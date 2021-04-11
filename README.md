@@ -1,4 +1,4 @@
-# LDAP Web Api (Bitai) ![Logo](resources/hierarchy_32.png)
+# LDAP Web Api (Bitai) ![Logo](resources/api1_32.png)
 
 **.NET Core 3.1** Web Api to search and authenticate on one or more **LDAP Servers**
 
