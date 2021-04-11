@@ -20,7 +20,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <DocumentationFile>LDAPProxyWebApi.xml</DocumentationFile>
+	  <DocumentationFile>Bitai.LDAPWebApi.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -37,6 +37,12 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Bitai.LDAPWebApi.xml">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>
