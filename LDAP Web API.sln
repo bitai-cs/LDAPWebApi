@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi", "src\LDAPWebApi\Bitai.LDAPWebApi.csproj", "{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi.DTO", "src\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj", "{643F9EA8-840E-44D7-884B-1DDDE5602870}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{68910433-DE7C-4D8D-917D-9103AA30F13C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi.Clients", "client\LDAPWebApi.Client\Bitai.LDAPWebApi.Clients.csproj", "{AF559051-04E2-4FFE-8A36-81A0634B0515}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi.Clients.Demo", "client\LDAPWebApi.Client.Demo\Bitai.LDAPWebApi.Clients.Demo.csproj", "{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{643F9EA8-840E-44D7-884B-1DDDE5602870}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{643F9EA8-840E-44D7-884B-1DDDE5602870}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{643F9EA8-840E-44D7-884B-1DDDE5602870}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{643F9EA8-840E-44D7-884B-1DDDE5602870}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF559051-04E2-4FFE-8A36-81A0634B0515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF559051-04E2-4FFE-8A36-81A0634B0515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF559051-04E2-4FFE-8A36-81A0634B0515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF559051-04E2-4FFE-8A36-81A0634B0515}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AF559051-04E2-4FFE-8A36-81A0634B0515} = {68910433-DE7C-4D8D-917D-9103AA30F13C}
+		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B} = {68910433-DE7C-4D8D-917D-9103AA30F13C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DB0C2252-0846-4C49-970A-C7C68C82A4F3}
+	EndGlobalSection
+EndGlobal

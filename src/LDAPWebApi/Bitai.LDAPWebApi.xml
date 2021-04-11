@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Bitai.LDAPWebApi</name>
+    </assembly>
+    <members>
+        <member name="T:Bitai.LDAPWebApi.Configurations.LDAP.WebApiConfiguration">
+            <summary>
+            Web Api configuration model 
+            </summary>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes">
+            <summary>
+            Defines the name of the Web API routes used for both local catalog and global catalog.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes.GlobalCatalogRoute">
+            <summary>
+            Global catalog route name.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes.LocalCatalogRoute">
+            <summary>
+            Local catalogroute name.
+            </summary>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles">
+            <summary>
+            List of <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile"/>.
+            </summary>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile">
+            <summary>
+            Profile that defines an LDAP service.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.ProfileId">
+            <summary>
+            Profile identifier.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.Server">
+            <summary>
+            LDAP server address.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.Port">
+            <summary>
+            LDAP server port for local catalog service.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.PortForGlobalCatalog">
+            <summary>
+            LDAP server port for global catalog service.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.BaseDN">
+            <summary>
+            Base distinguished name to limit searches on the LDAP server when using the local catalog service.
+            For example: DC=it,DC=us,DC=company,DC=com
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.BaseDNforGlobalCatalog">
+            <summary>
+            Base distinguished name to limit searches on the LDAP server when using the global catalog service.
+            For example: DC=company,DC=com
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.DefaultDomainName">
+            <summary>
+            Default domain name.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.ConnectionTimeout">
+            <summary>
+            Max time to get connection to the LDAP Server.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.UseSSL">
+            <summary>
+            Use secure socket layer to connect to the LDAP server when using local catalog service.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.UseSSLforGlobalCatalog">
+            <summary>
+            Use secure socket layer to connect to the LDAP server when using global catalog service.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.DomainAccountName">
+            <summary>
+            Name of the domain account to connect to the LDAP server.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.DomainAccountPassword">
+            <summary>
+            Password of the domain account to connect to the LDAP server.
+            </summary>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.GetPort(System.Boolean)">
+            <summary>
+            Helper method to get Port from properties.
+            </summary>
+            <param name="forGlobalCatalog">If using the global catalog service.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.GetBaseDN(System.Boolean)">
+            <summary>
+            Helper method to get BaseDN from properties.
+            </summary>
+            <param name="forGlobalCatalog">If using the global catalog service.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.GetUseSsl(System.Boolean)">
+            <summary>
+            Helper method to get UseSsl from properties.
+            </summary>
+            <param name="forGlobalCatalog">If using the global catalog service.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Configurations.Security.IdentityServer">
+            <summary>
+            Identity Server authority configuration model.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.ApiName">
+            <summary>
+            Api Name for description purpose
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.Authority">
+            <summary>
+            Identity Server Authority URL
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.ApiResource">
+            <summary>
+            Api Resource name 
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.RequireHttpsMetadata">
+            <summary>
+            Gets or sets if HTTPS is required for the metadata address or authority. 
+            The default is true. 
+            This should be disabled only in development environments.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.OidcSwaggerUIClientId">
+            <summary>
+            Client Id to connect to th Identity Server
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.OidcApiName">
+            <summary>
+            Authorized API name 
+            </summary>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Controllers.CatalogTypesController.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles,Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="configuration">Injected <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/></param>
+            <param name="ldapServerProfiles">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles"/></param>
+            <param name="ldapCatalogTypeRoutes">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Controllers.CredentialsController">
+            <summary>
+            Web API controller to process credentials.
+            </summary>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Controllers.CredentialsController.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles,Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="configuration">Injected <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/></param>
+            <param name="serverProfiles">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles"/></param>
+            <param name="catalogTypeRoutes">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Controllers.CredentialsController.PostAuthenticationAsync(System.String,System.String,System.String,System.String,Bitai.LDAPWebApi.DTO.LDAPAccountSecurityData)">
+            <summary>
+            Validate Domain Account Name credentials.
+            </summary>
+            <param name="serverProfile"></param>
+            <param name="catalogType"></param>
+            <param name="accountName"></param>
+            <param name="accountSecurityData">Credentials validatión request, see <see cref="T:Bitai.LDAPWebApi.DTO.LDAPAccountSecurityData"/></param>
+            <param name="requestTag"></param>
+            <returns><see cref="T:Bitai.LDAPWebApi.DTO.LDAPAccountAuthenticationStatus"/></returns>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Controllers.DirectoryController">
+            <summary>
+            Web API controller for operations with LDAP entries
+            </summary>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Controllers.DirectoryController.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles,Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="configuration">Injected <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/></param>
+            <param name="serverProfiles">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles"/></param>
+            <param name="catalogTypeRoutes">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Controllers.ServerProfilesController.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles,Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="configuration">Injected <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/></param>
+            <param name="ldapServerProfiles">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles"/></param>
+            <param name="ldapCatalogTypeRoutes">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Startup">
+            <summary>
+            Startup class
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Startup.Configuration">
+            <summary>
+            Configuration instance
+            </summary>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Startup.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="configuration">Injected <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/></param>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            This method gets called by the runtime. Use this method to add services to the container.
+            </summary>
+            <param name="services">Injected <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/></param>
+        </member>
+        <member name="M:Bitai.LDAPWebApi.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Bitai.LDAPWebApi.Configurations.LDAP.WebApiConfiguration,Bitai.LDAPWebApi.Configurations.Security.IdentityServer)">
+            <summary>
+            This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            </summary>
+            <param name="app">Injected <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/></param>
+            <param name="env">Injected <see cref="T:Microsoft.AspNetCore.Hosting.IWebHostEnvironment"/></param>
+            <param name="webApiConfiguration">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.WebApiConfiguration"/></param>
+            <param name="identityServerConfig">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.Security.IdentityServer"/></param>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
+    <Version>3.0.0</Version>
+    <Authors>Viko Bastidas (BITAI)</Authors>
+    <Company>BITAI</Company>
+    <Product>LDAP Web API</Product>
+    <Description>Library to make client requests to Bitai LDAP Web API.</Description>
+    <Copyright></Copyright>
+    <PackageIcon>hierarchy-1.png</PackageIcon>
+    <AssemblyVersion>3.0.0.7</AssemblyVersion>
+    <FileVersion>3.0.0.7</FileVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <PackageTags>LDAP, Client, API, Web, Helper, Directory</PackageTags>
+    <PackageId>Bitai.LDAPWebApi.Clients</PackageId>
+    <AssemblyName>Bitai.LDAPWebApi.Clients</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>Bitai.LDAPWebApi.Clients.xml</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="1.5.0" />
+    <PackageReference Include="Bitai.WebApi.Helpers" Version="2.0.0" />
+    <PackageReference Include="IdentityModel" Version="4.6.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\resources\hierarchy-1.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y &quot;$(TargetDir)*.*&quot; &quot;$(ProjectDir)..\..\..\..\_bin\netstandard2.0\Bitai.LDAPWebApi.Clients\&quot;" />
+  </Target>
+
+</Project>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>BITAI</Company>
+    <Authors>Vicko Bastidas (BITAI)</Authors>
+    <Product>LDAP Web API</Product>
+    <Version>2.0.0</Version>
+    <Description>Web API to access and query LDAP server.</Description>
+    <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>2.0.0.7</AssemblyVersion>
+    <FileVersion>2.0.0.7</FileVersion>
+    <PackageTags>LDAP, Helper, DTO, Web, API, Directory</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>5</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

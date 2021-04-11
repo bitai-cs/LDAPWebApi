@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
+		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
+		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
+		<Version>0.7.1</Version>
+		<AssemblyVersion>0.7.1.12</AssemblyVersion>
+		<Authors>Viko Bastidas (BITAI)</Authors>
+		<Company>BITAI</Company>
+		<Product>LDAP Web API</Product>
+		<Nullable>annotations</Nullable>
+		<FileVersion>0.7.1.13</FileVersion>
+		<Description>Web API to access and query LDAP server.</Description>
+		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+		<PackageTags>LDAP, Helper, Client, Directory, Web, Api</PackageTags>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <DocumentationFile>LDAPProxyWebApi.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DocumentationFile>Bitai.LDAPWebApi.xml</DocumentationFile>
+	  <PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Bitai.LDAPHelper" Version="3.0.1" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="2.0.0" />
+	  <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
+	</ItemGroup>
+
+</Project>
