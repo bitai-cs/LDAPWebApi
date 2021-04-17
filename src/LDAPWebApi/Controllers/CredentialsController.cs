@@ -17,7 +17,7 @@ namespace Bitai.LDAPWebApi.Controllers
     /// Web API controller to process credentials.
     /// </summary>
     [Route("api")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class CredentialsController : ApiControllerBase
     {

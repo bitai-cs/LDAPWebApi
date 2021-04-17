@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Bitai.LDAPWebApi.Helpers;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
 
 namespace Bitai.LDAPWebApi
 {
@@ -37,66 +39,50 @@ namespace Bitai.LDAPWebApi
             Configuration = configuration;
         }
 
-        
+
+
         /// <summary>
-        /// This method gets called by the runtime. Use this method to add services to the container.
+        /// This method gets called by the runtime. 
+        /// Use this method to add services to the container.
         /// </summary>
         /// <param name="services">Injected <see cref="IServiceCollection"/></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddWebApiConfiguration(this.Configuration, out var webApiConfiguration);
+            services.AddWebApiConfiguration(Configuration, out var webApiConfiguration);
 
-            services.AddLDAPServices(this.Configuration);
+            services.AddLDAPRoutes(Configuration, out var ldapServerProfiles);
 
-            services.AddSecurityServices(this.Configuration);
+            services.AddIdentityServerConfiguration(Configuration, out var identityServerConfiguration);
 
-            ////VIKO: services.AddControllers() executes services.AddCors() 
-            //services.AddCors();
-
-            services.Configure<RouteOptions>(config =>
-            {
-                config.ConstraintMap.Add("ldapSvrPf", typeof(Controllers.Constraints.LDAPServerProfileRouteConstraint));
-                config.ConstraintMap.Add("ldapCatType", typeof(Controllers.Constraints.LDAPCatalogTypeRouteConstraint));
-            });
+            services.RegisterRouteConstraints();
 
             services.AddControllers();
 
-            #region Uncomment this region to enable IdentityServer4 authority 
-            //services.AddAuthentication(co =>
-            //{
-            //	co.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-            //	co.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-            //})
-            //	.AddIdentityServerAuthentication(options =>
-            //	{
-            //		options.Authority = _identityServerConfig.Authority;
-            //		options.ApiName = _identityServerConfig.ApiResource;
-            //		options.RequireHttpsMetadata = _identityServerConfig.RequireHttpsMetadata;
-            //	});
-            //////VBG: Another way to set Authnetication
-            ////services.AddAuthentication("Bearer")
-            ////	.AddIdentityServerAuthentication(options =>
-            ////	{
-            ////		options.Authority = _identityServerConfig.Authority;
-            ////		options.ApiName = _identityServerConfig.ApiResource;
-            ////		options.RequireHttpsMetadata = _identityServerConfig.RequireHttpsMetadata;
-            ////	});
-            #endregion
+            services.ConfigureWebApiCors(Configuration);
+
+            services.AddAuthenticationWithIdentityServer(identityServerConfiguration);
 
             ////VIKO: services.AddControllers() executes services.AddAuthorization()
             //services.AddAuthorization();
 
-            services.AddSwaggerGenService(webApiConfiguration);
+            var healthChecksBuilder = services.AddHealthChecks();
+            healthChecksBuilder.AddCustomHealthChecks(identityServerConfiguration, ldapServerProfiles);
+
+            services.AddHealthChecksUI(settings => settings.AddHealthCheckEndpoint("default", "/hc"))
+                .AddInMemoryStorage();
+
+            services.ConfigureSwaggerGenerator(webApiConfiguration, identityServerConfiguration);
         }
 
         /// <summary>
-        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// This method gets called by the runtime. 
+        /// Use this method to configure the HTTP request pipeline.
         /// </summary>
         /// <param name="app">Injected <see cref="IApplicationBuilder"/></param>
         /// <param name="env">Injected <see cref="IWebHostEnvironment"/></param>
-        /// <param name="webApiConfiguration">Injected <see cref="Configurations.LDAP.WebApiConfiguration"/></param>
-        /// <param name="identityServerConfig">Injected <see cref="Configurations.Security.IdentityServer"/></param>
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Configurations.LDAP.WebApiConfiguration webApiConfiguration, Configurations.Security.IdentityServer identityServerConfig)
+        /// <param name="webApiConfiguration">Injected <see cref="Configurations.App.WebApiConfiguration"/></param>
+        /// <param name="identityServerConfig">Injected <see cref="Configurations.Security.IdentityServerConfiguration"/></param>
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.IdentityServerConfiguration identityServerConfig)
         {
             if (env.IsDevelopment())
             {
@@ -105,50 +91,55 @@ namespace Bitai.LDAPWebApi
 
             app.UseMiddleware<Bitai.WebApi.Server.ExceptionHandlingMiddleware>();
 
-            ////VIKO: Uncomment this to enable HTTPS redirection
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseRouting();
 
-#if DEBUG
-            app.UseCors(cp =>
-            {
-                cp.AllowAnyOrigin();
-                cp.AllowAnyHeader();
-                cp.AllowAnyMethod();
-            });
-#else //TODO: Implement a secure CORS policy
-			app.UseCors(cp => 
-			{
-				cp.AllowAnyOrigin();
-				cp.AllowAnyHeader();
-				cp.AllowAnyMethod();
-			});
-#endif
+            app.UseCors();
 
-            #region Uncomment this region to enable IdentityServer4 authority 
-            //app.UseAuthentication();
-            #endregion
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHealthChecks("/hc", new HealthCheckOptions()
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+
+                endpoints.MapHealthChecksUI(options => options.UIPath = "/hc-ui");
+
                 endpoints.MapControllers();
             });
 
+            //app.UseHealthChecks("/health", new HealthCheckOptions()
+            //{
+            //    Predicate = _ => true,
+            //    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            //})
+            //    .UseHealthChecksUI();
+            ////.UseHealthChecksUI(options =>
+            ////{
+            ////    //options.ApiPath = "/health";
+            ////    options.UIPath = "/health-ui";
+            ////});
+
             app.UseSwagger();
-            app.UseSwaggerUI(setupAction =>
+            app.UseSwaggerUI(builder =>
             {
-                setupAction.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
-                #region Uncomment this region to enable IdentityServer4 authority 
-                //setupAction.OAuthClientId(identityServerConfig.OidcSwaggerUIClientId);
-                //setupAction.OAuthAppName(identityServerConfig.ApiName);
-                //setupAction.OAuthUsePkce();
+                builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
+
+                #region Authorization request user interface 
+                builder.OAuthAppName(webApiConfiguration.WebApiTitle);
+                builder.OAuthClientId(identityServerConfig.SwaggerUIClientId);
+                builder.OAuthScopes(identityServerConfig.ApiScope);
+                builder.OAuthUsePkce();
                 #endregion
             });
 
-            //app.UseWelcomePage();
+            app.UseWelcomePage();
         }
     }
 }

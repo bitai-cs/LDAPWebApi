@@ -16,7 +16,7 @@ namespace Bitai.LDAPWebApi.Controllers
     /// Web API controller for operations with LDAP entries
     /// </summary>
     [Route("api")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class DirectoryController : ApiControllerBase
     {

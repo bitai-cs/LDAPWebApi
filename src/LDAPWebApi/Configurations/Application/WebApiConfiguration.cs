@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Bitai.LDAPWebApi.Configurations.LDAP
+namespace Bitai.LDAPWebApi.Configurations.App
 {
     /// <summary>
     /// Web Api configuration model 

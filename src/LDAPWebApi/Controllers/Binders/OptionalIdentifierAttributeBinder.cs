@@ -22,7 +22,7 @@ namespace Bitai.LDAPWebApi.Controllers.Binders
             if (!bindingContext.ValueProvider.ContainsPrefix(bindingContext.ModelMetadata.Name))
             {
                 //Assign default value
-                modelInstance = EntryAttribute.objectSid;
+                modelInstance = EntryAttribute.sAMAccountName;
 
                 bindingContext.Result = ModelBindingResult.Success(modelInstance);
 

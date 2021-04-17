@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://NPE-PRES2081331:27733",
-      "sslPort": 0
+      "applicationUrl": "https://localhost:44331",
+      "sslPort": 44331
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",

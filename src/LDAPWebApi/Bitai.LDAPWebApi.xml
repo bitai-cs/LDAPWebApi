@@ -4,9 +4,14 @@
         <name>Bitai.LDAPWebApi</name>
     </assembly>
     <members>
-        <member name="T:Bitai.LDAPWebApi.Configurations.LDAP.WebApiConfiguration">
+        <member name="T:Bitai.LDAPWebApi.Configurations.App.WebApiConfiguration">
             <summary>
             Web Api configuration model 
+            </summary>
+        </member>
+        <member name="T:Bitai.LDAPWebApi.Configurations.App.WebApiCorsConfiguration">
+            <summary>
+            Web Api CORS configuration model 
             </summary>
         </member>
         <member name="T:Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes">
@@ -117,41 +122,41 @@
             <param name="forGlobalCatalog">If using the global catalog service.</param>
             <returns></returns>
         </member>
-        <member name="T:Bitai.LDAPWebApi.Configurations.Security.IdentityServer">
+        <member name="T:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration">
             <summary>
             Identity Server authority configuration model.
             </summary>
         </member>
-        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.ApiName">
-            <summary>
-            Api Name for description purpose
-            </summary>
-        </member>
-        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.Authority">
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration.Authority">
             <summary>
             Identity Server Authority URL
             </summary>
         </member>
-        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.ApiResource">
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration.ApiResource">
             <summary>
             Api Resource name 
             </summary>
         </member>
-        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.RequireHttpsMetadata">
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration.ApiScope">
+            <summary>
+            Api Scope registered with the identity server.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration.ApiScopeTitle">
+            <summary>
+            Api Same title. To display in the user interface.
+            </summary>
+        </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration.RequireHttpsMetadata">
             <summary>
             Gets or sets if HTTPS is required for the metadata address or authority. 
             The default is true. 
             This should be disabled only in development environments.
             </summary>
         </member>
-        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.OidcSwaggerUIClientId">
+        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration.SwaggerUIClientId">
             <summary>
-            Client Id to connect to th Identity Server
-            </summary>
-        </member>
-        <member name="P:Bitai.LDAPWebApi.Configurations.Security.IdentityServer.OidcApiName">
-            <summary>
-            Authorized API name 
+            Client ID registered with the identity server.
             </summary>
         </member>
         <member name="M:Bitai.LDAPWebApi.Controllers.CatalogTypesController.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfiles,Bitai.LDAPWebApi.Configurations.LDAP.LDAPCatalogTypeRoutes)">
@@ -225,18 +230,20 @@
         </member>
         <member name="M:Bitai.LDAPWebApi.Startup.ConfigureServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
-            This method gets called by the runtime. Use this method to add services to the container.
+            This method gets called by the runtime. 
+            Use this method to add services to the container.
             </summary>
             <param name="services">Injected <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/></param>
         </member>
-        <member name="M:Bitai.LDAPWebApi.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Bitai.LDAPWebApi.Configurations.LDAP.WebApiConfiguration,Bitai.LDAPWebApi.Configurations.Security.IdentityServer)">
+        <member name="M:Bitai.LDAPWebApi.Startup.Configure(Microsoft.AspNetCore.Builder.IApplicationBuilder,Microsoft.AspNetCore.Hosting.IWebHostEnvironment,Bitai.LDAPWebApi.Configurations.App.WebApiConfiguration,Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration)">
             <summary>
-            This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+            This method gets called by the runtime. 
+            Use this method to configure the HTTP request pipeline.
             </summary>
             <param name="app">Injected <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/></param>
             <param name="env">Injected <see cref="T:Microsoft.AspNetCore.Hosting.IWebHostEnvironment"/></param>
-            <param name="webApiConfiguration">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.LDAP.WebApiConfiguration"/></param>
-            <param name="identityServerConfig">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.Security.IdentityServer"/></param>
+            <param name="webApiConfiguration">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.App.WebApiConfiguration"/></param>
+            <param name="identityServerConfig">Injected <see cref="T:Bitai.LDAPWebApi.Configurations.Security.IdentityServerConfiguration"/></param>
         </member>
     </members>
 </doc>

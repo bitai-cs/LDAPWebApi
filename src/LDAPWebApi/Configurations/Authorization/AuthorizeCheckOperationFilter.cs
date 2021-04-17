@@ -10,9 +10,9 @@ namespace Bitai.LDAPWebApi.Configurations.Authorization
 {
     public class AuthorizeCheckOperationFilter : IOperationFilter
     {
-        private readonly Security.IdentityServer _identityServerConfiguration;
+        private readonly Security.IdentityServerConfiguration _identityServerConfiguration;
 
-        public AuthorizeCheckOperationFilter(Security.IdentityServer identityServerconfiguration)
+        public AuthorizeCheckOperationFilter(Security.IdentityServerConfiguration identityServerconfiguration)
         {
             _identityServerConfiguration = identityServerconfiguration;
         }
@@ -24,6 +24,7 @@ namespace Bitai.LDAPWebApi.Configurations.Authorization
             if (hasAuthorize)
             {
                 operation.Responses.Add(StatusCodes.Status401Unauthorized.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Unauthorized) });
+
                 operation.Responses.Add(StatusCodes.Status403Forbidden.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Forbidden) });
 
                 operation.Security = new List<OpenApiSecurityRequirement> {
@@ -35,7 +36,7 @@ namespace Bitai.LDAPWebApi.Configurations.Authorization
                                                 Id = "OAuth2"
                                          }
                                      }
-                                ] = new[] { _identityServerConfiguration.OidcApiName }
+                                ] = new[] { _identityServerConfiguration.ApiScope }
                           }
                 };
             }

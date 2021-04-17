@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class CatalogTypesController : ApiControllerBase
     {

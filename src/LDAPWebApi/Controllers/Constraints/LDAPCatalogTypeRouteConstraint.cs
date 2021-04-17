@@ -1,17 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Bitai.LDAPWebApi.Configurations.LDAP;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Controllers.Constraints
 {
     public class LDAPCatalogTypeRouteConstraint : IRouteConstraint
     {
-        private readonly Configurations.LDAP.LDAPCatalogTypeRoutes _ldapCatalogTypeRoutes;
+        private readonly LDAPCatalogTypeRoutes _ldapCatalogTypeRoutes;
 
-        public LDAPCatalogTypeRouteConstraint(Configurations.LDAP.LDAPCatalogTypeRoutes ldapCatalogTypeRoutes)
+        public LDAPCatalogTypeRouteConstraint(LDAPCatalogTypeRoutes ldapCatalogTypeRoutes)
         {
             _ldapCatalogTypeRoutes = ldapCatalogTypeRoutes;
         }

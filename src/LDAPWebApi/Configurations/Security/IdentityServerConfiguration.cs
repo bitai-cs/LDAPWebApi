@@ -8,13 +8,8 @@ namespace Bitai.LDAPWebApi.Configurations.Security
     /// <summary>
     /// Identity Server authority configuration model.
     /// </summary>
-    public class IdentityServer
+    public class IdentityServerConfiguration
     {
-        /// <summary>
-        /// Api Name for description purpose
-        /// </summary>
-        public string ApiName { get; set; }
-
         /// <summary>
         /// Identity Server Authority URL
         /// </summary>
@@ -26,6 +21,16 @@ namespace Bitai.LDAPWebApi.Configurations.Security
         public string ApiResource { get; set; }
 
         /// <summary>
+        /// Api Scope registered with the identity server.
+        /// </summary>
+        public string ApiScope { get; set; }
+
+        /// <summary>
+        /// Api Same title. To display in the user interface.
+        /// </summary>
+        public string ApiScopeTitle { get; set; }
+
+        /// <summary>
         /// Gets or sets if HTTPS is required for the metadata address or authority. 
         /// The default is true. 
         /// This should be disabled only in development environments.
@@ -33,13 +38,8 @@ namespace Bitai.LDAPWebApi.Configurations.Security
         public bool RequireHttpsMetadata { get; set; }
 
         /// <summary>
-        /// Client Id to connect to th Identity Server
+        /// Client ID registered with the identity server.
         /// </summary>
-        public string OidcSwaggerUIClientId { get; set; }
-
-        /// <summary>
-        /// Authorized API name 
-        /// </summary>
-        public string OidcApiName { get; set; }
+        public string SwaggerUIClientId { get; set; }
     }
 }
