@@ -114,18 +114,6 @@ namespace Bitai.LDAPWebApi
                 endpoints.MapControllers();
             });
 
-            //app.UseHealthChecks("/health", new HealthCheckOptions()
-            //{
-            //    Predicate = _ => true,
-            //    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            //})
-            //    .UseHealthChecksUI();
-            ////.UseHealthChecksUI(options =>
-            ////{
-            ////    //options.ApiPath = "/health";
-            ////    options.UIPath = "/health-ui";
-            ////});
-
             app.UseSwagger();
             app.UseSwaggerUI(builder =>
             {

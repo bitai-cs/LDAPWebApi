@@ -101,6 +101,11 @@
             Password of the domain account to connect to the LDAP server.
             </summary>
         </member>
+        <member name="P:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.HealthCheckPingTimeout">
+            <summary>
+            Ping timeout value to set the latency health check.
+            </summary>
+        </member>
         <member name="M:Bitai.LDAPWebApi.Configurations.LDAP.LDAPServerProfile.GetPort(System.Boolean)">
             <summary>
             Helper method to get Port from properties.

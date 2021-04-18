@@ -136,7 +136,7 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static void AddCustomHealthChecks(this IHealthChecksBuilder healthChecksBuilder, IdentityServerConfiguration identityServerConfiguration, LDAPServerProfiles ldapServerProfiles)
         {
-            healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(identityServerConfiguration.Authority), name: "Identity Server Authority");
+            healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(identityServerConfiguration.Authority), name: "Identity Server Authority", tags: new string[] { identityServerConfiguration.Authority });
 
             foreach (var lp in ldapServerProfiles)
             {
@@ -146,10 +146,14 @@ namespace Bitai.LDAPWebApi.Helpers
                 healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
                  {
                      options.AddHost(lp.Server, portLc);
-                     options.AddHost(lp.Server, portGc);
-                 }, name: $"{lp.Server} - TCP Health");
+                 }, name: $"Connection: {lp.Server}:{portLc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
 
-                //hs.AddPingHealthCheck(options => options.AddHost(lp.Server, 10));
+                healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
+                {
+                    options.AddHost(lp.Server, portGc);
+                }, name: $"Connection: {lp.Server}:{portGc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+
+                healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
             }
         }
     }

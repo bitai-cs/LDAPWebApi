@@ -80,6 +80,10 @@ namespace Bitai.LDAPWebApi.Configurations.LDAP
         /// </summary>
         public string DomainAccountPassword { get; set; }
 
+        /// <summary>
+        /// Ping timeout value to set the latency health check.
+        /// </summary>
+        public int HealthCheckPingTimeout { get; set; }
 
         /// <summary>
         /// Helper method to get Port from properties.
