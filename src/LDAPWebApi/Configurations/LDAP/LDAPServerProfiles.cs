@@ -11,6 +11,15 @@ namespace Bitai.LDAPWebApi.Configurations.LDAP
     /// </summary>
     public class LDAPServerProfiles : List<LDAPServerProfile>
     {
+        public void CheckConfigurationIntegrity()
+        {
+            var repeatedProfileIds = this.GroupBy(id => id.ProfileId)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+
+            if (repeatedProfileIds.Count() > 0)
+                throw new Exception($"Error in LDAPServerProfiles configuration. There are repeating ProfileIds ({string.Join(',', repeatedProfileIds)})");
+        }
     }
 
     /// <summary>

@@ -9,7 +9,7 @@
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
     <Copyright></Copyright>
-    <PackageIcon>hierarchy-1.png</PackageIcon>
+    <PackageIcon>api1_64.png</PackageIcon>
     <AssemblyVersion>3.0.0.7</AssemblyVersion>
     <FileVersion>3.0.0.7</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\resources\hierarchy-1.png">
+    <None Include="..\..\resources\api1_64.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

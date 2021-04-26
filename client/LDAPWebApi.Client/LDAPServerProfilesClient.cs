@@ -8,7 +8,7 @@ namespace Bitai.LDAPWebApi.Clients
 {
     public class LDAPServerProfilesClient<DTOType> : LDAPBaseClient<DTOType>
     {
-        public LDAPServerProfilesClient(string webApiBaseUrl) : base(webApiBaseUrl)
+        public LDAPServerProfilesClient(string webApiBaseUrl, WebApiSecurityDefinition webApiScurity) : base(webApiBaseUrl, webApiScurity)
         {
         }
 
@@ -18,7 +18,7 @@ namespace Bitai.LDAPWebApi.Clients
         {
             var uri = $"/api/{ControllerNames.ServerProfilesController}/GetProfileIds";
 
-            using (var httpClient = CreateHttpClient())
+            using (var httpClient = await CreateHttpClient(true))
             {
                 var responseMessage = await httpClient.GetAsync(uri);
                 if (!responseMessage.IsSuccessStatusCode)
@@ -35,7 +35,7 @@ namespace Bitai.LDAPWebApi.Clients
 
             var uri = $"/api/{ControllerNames.ServerProfilesController}/{profileId}";
 
-            using (var httpClient = CreateHttpClient())
+            using (var httpClient = await CreateHttpClient(true))
             {
                 var responseMessage = await httpClient.GetAsync(uri);
                 if (!responseMessage.IsSuccessStatusCode)
@@ -48,7 +48,7 @@ namespace Bitai.LDAPWebApi.Clients
         public async Task<IHttpResponse> GetAllAsync()
         {
             var uri = $"/api/{ControllerNames.ServerProfilesController}";
-            using (var httpClient = CreateHttpClient())
+            using (var httpClient = await CreateHttpClient(true))
             {
                 var responseMessage = await httpClient.GetAsync(uri);
                 if (!responseMessage.IsSuccessStatusCode)

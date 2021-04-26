@@ -7,13 +7,9 @@ namespace Bitai.LDAPWebApi.DTO
 {
     public class LDAPCatalogTypes
     {
-        [Required]
-        [MinLength(2)]
-        public string LocalCatalog { get; set; }
+        public string LocalCatalog => "LC";
 
-        [Required]
-        [MinLength(2)]
-        public string GlobalCatalog { get; set; }
+        public string GlobalCatalog => "GC";
 
 
         public string GetCatalogTypeName(bool isGlobalCatalog)

@@ -8,16 +8,21 @@ namespace Bitai.LDAPWebApi.DTO
     /// <summary>
     /// This class represents the credentials that the LDAP server will validate  
     /// </summary>
-    public class LDAPAccountSecurityData
+    public class LDAPAccountCredential
     {
         /// <summary>
-        /// Domain of AccountName/>
+        /// Domain name of the <see cref="AccountName"/>/>
         /// </summary>
         [Required]
         public string DomainName { get; set; }
 
         /// <summary>
-        /// Network account password.
+        /// Account name
+        /// </summary>
+        public string AccountName { get; set; }
+
+        /// <summary>
+        /// <see cref="AccountName"/> password
         /// </summary>
         [Required]
         public string AccountPassword { get; set; }

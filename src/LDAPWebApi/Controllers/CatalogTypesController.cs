@@ -19,15 +19,17 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <param name="configuration">Injected <see cref="Microsoft.Extensions.Configuration.IConfiguration"/></param>
         /// <param name="ldapServerProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
         /// <param name="ldapCatalogTypeRoutes">Injected <see cref="Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
-        public CatalogTypesController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles, Configurations.LDAP.LDAPCatalogTypeRoutes ldapCatalogTypeRoutes) : base(configuration, ldapServerProfiles, ldapCatalogTypeRoutes)
+        public CatalogTypesController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, ldapServerProfiles)
         {
         }
+
+
 
         [Route("api/[controller]")]
         [HttpGet]
         public Task<DTO.LDAPCatalogTypes> GetAsync()
         {
-            return Task.Run(() => new DTO.LDAPCatalogTypes { LocalCatalog = CatalogTypeRoutes.LocalCatalogRoute, GlobalCatalog = CatalogTypeRoutes.GlobalCatalogRoute });
+            return Task.FromResult(CatalogTypeRoutes);
         }
     }
 }

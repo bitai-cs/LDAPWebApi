@@ -9,13 +9,22 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
     class Program
     {
-        static string WebApiBaseUrl = "http://localhost:27733";
+        static string WebApiBaseUrl = "https://localhost:44331";
+        static WebApiSecurityDefinition WebApiSecurity = new WebApiSecurityDefinition
+        {
+            AuthorityUrl = "https://localhost:44310",
+            ApiScope = "Bitai.LdapWebApi.Scope.Global",
+            ClientId = "Bitai.LdapWebApi.Demo.Client",
+            ClientSecret = "2ef61cb6-9ca6-7418-c116-80784583d88f"
+        };
         static string Tag { get; set; } = "DEMO";
-        static string Selected_LDAPServerProfile { get; set; } = "Profile1";
+        static string Selected_LDAPServerProfile { get; set; } = "PE";
 
 
         static async Task Main(string[] args)
         {
+            Thread.Sleep(10000);
+
             try
             {
                 ConfigLogger();
@@ -24,9 +33,9 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
                 await Authentication_Test();
 
-                await LDAPServerProfiles_GetProfileIds();
+                //await LDAPServerProfiles_GetProfileIds();
 
-                await LDAPServerProfiles_GetAll();
+                //await LDAPServerProfiles_GetAll();
             }
             catch (Exception ex)
             {
@@ -34,7 +43,37 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             }
             finally
             {
+                Console.ReadLine();
+            }
+        }
 
+        static async Task LDAPCatalogTypesClient_GetAll()
+        {
+            try
+            {
+                LogInfo("LDAPCatalogTypesClient_GetAll --------------------------");
+
+                var client = new LDAPCatalogTypesClient<DTO.LDAPCatalogTypes>(WebApiBaseUrl, WebApiSecurity);
+
+                LogInfo("GetAllAsync...");
+                var httpResponse = await client.GetAllAsync();
+                if (client.IsNoSuccessResponse(httpResponse))
+                {
+                    client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+                }
+                else
+                {
+                    var dto = await client.GetDTOFromResponseAsync(httpResponse);
+
+                    LogInfo($"{nameof(DTO.LDAPCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
+                    LogInfo($"{nameof(DTO.LDAPCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
+
+                    LogInfo("Set Parameters.CatalogTypes property values.");
+                }
+            }
+            catch (WebApiRequestException ex)
+            {
+                LogWebApiRequestError(ex);
             }
         }
 
@@ -44,16 +83,17 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             {
                 LogInfo("Authentication_Test --------------------------");
 
-                var client = new LDAPCredentialsClient<DTO.LDAPAccountAuthenticationStatus>(Program.WebApiBaseUrl, "PE", true);
+                var client = new LDAPCredentialsClient<DTO.LDAPAccountAuthenticationStatus>(WebApiBaseUrl, Selected_LDAPServerProfile, true, WebApiSecurity);
 
-                var accountSecurityData = new DTO.LDAPAccountSecurityData
+                var accountSecurityData = new DTO.LDAPAccountCredential
                 {
-                    DomainName = "LANPERU",
-                    AccountPassword = "fdsdd34343",
+                    DomainName = "DOMAIN",
+                    AccountName = "usr_ext01",
+                    AccountPassword = "Pq$",
                 };
 
-                LogInfo("ValidateCredentialsAsync...");
-                var httpResponse = await client.AccountAuthenticationAsync("4439690", accountSecurityData);
+                LogInfo("AccountAuthenticationAsync...");
+                var httpResponse = await client.AccountAuthenticationAsync("usr_ext01", accountSecurityData);
                 if (client.IsNoSuccessResponse(httpResponse))
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
@@ -71,46 +111,13 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             }
         }
 
-        static async Task LDAPCatalogTypesClient_GetAll()
-        {
-            try
-            {
-                LogInfo("LDAPCatalogTypesClient_Get --------------------------");
-
-                var client = new LDAPCatalogTypesClient<DTO.LDAPCatalogTypes>(Program.WebApiBaseUrl);
-
-                LogInfo("GetProfilesIdsAsync...");
-                var httpResponse = await client.GetAllAsync();
-                if (client.IsNoSuccessResponse(httpResponse))
-                {
-                    client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
-                }
-                else
-                {
-                    var dto = await client.GetDTOFromResponseAsync(httpResponse);
-
-                    LogInfo($"{nameof(DTO.LDAPCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
-                    LogInfo($"{nameof(DTO.LDAPCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
-
-                    LogInfo("Set Parameters.CatalogTypes property values.");
-
-                    Parameters.CatalogTypes.LocalCatalog = dto.LocalCatalog;
-                    Parameters.CatalogTypes.GlobalCatalog = dto.GlobalCatalog;
-                }
-            }
-            catch (WebApiRequestException ex)
-            {
-                LogWebApiRequestError(ex);
-            }
-        }
-
         static async Task LDAPServerProfiles_GetProfileIds()
         {
             try
             {
                 LogInfo("LDAPServerProfiles_GetProfileIds --------------------------");
 
-                var client = new LDAPServerProfilesClient<string>(Program.WebApiBaseUrl);
+                var client = new LDAPServerProfilesClient<string>(WebApiBaseUrl, WebApiSecurity);
 
                 LogInfo("GetProfilesIdsAsync...");
                 var httpResponse = await client.GetProfileIdsAsync();
@@ -139,7 +146,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             {
                 LogInfo("LDAPServerProfiles_GetAll --------------------------");
 
-                var client = new LDAPServerProfilesClient<DTO.LDAPServerProfile>(Program.WebApiBaseUrl);
+                var client = new LDAPServerProfilesClient<DTO.LDAPServerProfile>(WebApiBaseUrl, WebApiSecurity);
 
                 LogInfo("GetProfilesIdsAsync...");
                 var httpResponse = await client.GetAllAsync();

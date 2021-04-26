@@ -13,15 +13,16 @@ namespace Bitai.LDAPWebApi.Controllers
     {
         protected IConfiguration Configuration { get; }
         protected Configurations.LDAP.LDAPServerProfiles ServerProfiles { get; }
-        protected Configurations.LDAP.LDAPCatalogTypeRoutes CatalogTypeRoutes { get; }
+        protected DTO.LDAPCatalogTypes CatalogTypeRoutes => new DTO.LDAPCatalogTypes();
 
 
-        protected ApiControllerBase(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles, Configurations.LDAP.LDAPCatalogTypeRoutes catalogTypeRoutes)
+
+        protected ApiControllerBase(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles)
         {
             Configuration = configuration;
             ServerProfiles = serverProfiles;
-            CatalogTypeRoutes = catalogTypeRoutes;
         }
+
 
 
         protected LDAPHelper.ClientConfiguration GetLdapClientConfiguration(string serverProfile, bool useGlobalCatalog)
@@ -29,17 +30,15 @@ namespace Bitai.LDAPWebApi.Controllers
             if (string.IsNullOrEmpty(serverProfile))
                 throw new ArgumentNullException(nameof(serverProfile));
 
-            var _ldapServerProfile = this.ServerProfiles.Where(p => p.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
+            var ldapServerProfile = this.ServerProfiles.Where(p => p.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
 
-            var _connectionInfo = new LDAPHelper.ConnectionInfo(_ldapServerProfile.Server, _ldapServerProfile.GetPort(useGlobalCatalog), _ldapServerProfile.GetUseSsl(useGlobalCatalog), _ldapServerProfile.ConnectionTimeout);
+            var connectionInfo = new LDAPHelper.ConnectionInfo(ldapServerProfile.Server, ldapServerProfile.GetPort(useGlobalCatalog), ldapServerProfile.GetUseSsl(useGlobalCatalog), ldapServerProfile.ConnectionTimeout);
 
-            var _credentials = new LDAPHelper.Credentials(_ldapServerProfile.DomainAccountName, _ldapServerProfile.DomainAccountPassword);
+            var credentials = new LDAPHelper.Credentials(ldapServerProfile.DomainAccountName, ldapServerProfile.DomainAccountPassword);
 
-            var _searchLimits = new LDAPHelper.SearchLimits(_ldapServerProfile.GetBaseDN(useGlobalCatalog));
+            var searchLimits = new LDAPHelper.SearchLimits(ldapServerProfile.GetBaseDN(useGlobalCatalog));
 
-            var _return = new LDAPHelper.ClientConfiguration(_connectionInfo, _credentials, _searchLimits);
-
-            return _return;
+            return new LDAPHelper.ClientConfiguration(connectionInfo, credentials, searchLimits);
         }
 
         protected async Task<LDAPHelper.Searcher> GetLdapSearcher(LDAPHelper.ClientConfiguration clientConfiguration)
@@ -58,10 +57,10 @@ namespace Bitai.LDAPWebApi.Controllers
 
         protected bool IsGlobalCatalog(string ldapCatalogType)
         {
-            if (CatalogTypeRoutes.GlobalCatalogRoute.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
+            if (CatalogTypeRoutes.GlobalCatalog.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            if (CatalogTypeRoutes.LocalCatalogRoute.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
+            if (CatalogTypeRoutes.LocalCatalog.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
                 return false;
 
             throw new Exception($"LDAP Catalog type '{ldapCatalogType}' not found.");

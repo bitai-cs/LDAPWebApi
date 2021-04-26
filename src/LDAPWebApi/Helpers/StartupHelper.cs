@@ -41,26 +41,20 @@ namespace Bitai.LDAPWebApi.Helpers
             return services;
         }
 
-        internal static IServiceCollection AddLDAPRoutes(this IServiceCollection services, IConfiguration configuration, out LDAPServerProfiles ldapServerProfiles)
+        internal static IServiceCollection AddLDAPServerProfiles(this IServiceCollection services, IConfiguration configuration, out LDAPServerProfiles ldapServerProfiles)
         {
             ldapServerProfiles = configuration.GetSection(nameof(LDAPServerProfiles)).Get<LDAPServerProfiles>();
 
-            services.AddSingleton(ldapServerProfiles);
+            ldapServerProfiles.CheckConfigurationIntegrity();
 
-            var ldapCatalogTypeRoutes = configuration.GetSection(nameof(LDAPCatalogTypeRoutes)).Get<LDAPCatalogTypeRoutes>();
-
-            services.AddSingleton(ldapCatalogTypeRoutes);
-
-            return services;
+            return services.AddSingleton(ldapServerProfiles);
         }
 
-        internal static IServiceCollection AddIdentityServerConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.Security.IdentityServerConfiguration identityServerConfig)
+        internal static IServiceCollection AddIdentityServerConfiguration(this IServiceCollection services, IConfiguration configuration, out IdentityServerConfiguration identityServerConfig)
         {
-            identityServerConfig = configuration.GetSection(nameof(Configurations.Security.IdentityServerConfiguration)).Get<Configurations.Security.IdentityServerConfiguration>();
+            identityServerConfig = configuration.GetSection(nameof(IdentityServerConfiguration)).Get<IdentityServerConfiguration>();
 
-            services.AddSingleton(identityServerConfig);
-
-            return services;
+            return services.AddSingleton(identityServerConfig);
         }
 
         internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.IdentityServerConfiguration identityServerConfiguration)
@@ -93,7 +87,7 @@ namespace Bitai.LDAPWebApi.Helpers
                             AuthorizationUrl = new Uri($"{identityServerConfiguration.Authority}/connect/authorize"),
                             TokenUrl = new Uri($"{identityServerConfiguration.Authority}/connect/token"),
                             Scopes = new Dictionary<string, string> {
-                                  { identityServerConfiguration.ApiScope, identityServerConfiguration.ApiScopeTitle }
+                                  { identityServerConfiguration.SwaggerUITargetApiScope, identityServerConfiguration.SwaggerUITargetApiScopeTitle }
                              }
                         }
                     },

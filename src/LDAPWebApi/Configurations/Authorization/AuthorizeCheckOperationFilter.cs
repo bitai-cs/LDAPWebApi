@@ -36,7 +36,7 @@ namespace Bitai.LDAPWebApi.Configurations.Authorization
                                                 Id = "OAuth2"
                                          }
                                      }
-                                ] = new[] { _identityServerConfiguration.ApiScope }
+                                ] = new[] { _identityServerConfiguration.SwaggerUITargetApiScope }
                           }
                 };
             }

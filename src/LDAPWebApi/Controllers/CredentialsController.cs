@@ -27,7 +27,8 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
         /// <param name="catalogTypeRoutes">Injected <see cref="Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
-        public CredentialsController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles, Configurations.LDAP.LDAPCatalogTypeRoutes catalogTypeRoutes) : base(configuration, serverProfiles, catalogTypeRoutes) { }
+        public CredentialsController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, serverProfiles) { }
+
 
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <param name="serverProfile"></param>
         /// <param name="catalogType"></param>
         /// <param name="accountName"></param>
-        /// <param name="accountSecurityData">Credentials validatión request, see <see cref="DTO.LDAPAccountSecurityData"/></param>
+        /// <param name="accountCredential">Credentials validatión request, see <see cref="DTO.LDAPAccountSecurityData"/></param>
         /// <param name="requestTag"></param>
         /// <returns><see cref="DTO.LDAPAccountAuthenticationStatus"/></returns>
         [HttpPost]
@@ -47,14 +48,17 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromRoute] string catalogType,
             [FromRoute] string accountName,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
-            [FromBody] DTO.LDAPAccountSecurityData accountSecurityData)
+            [FromBody] DTO.LDAPAccountCredential accountCredential)
         {
+            if (accountName != accountCredential.AccountName)
+                throw new Exception($"{nameof(accountName)}:{accountName} route does not match the {nameof(DTO.LDAPAccountCredential.AccountName)}:{accountCredential.AccountName} provided in the credential. They must be the same.");
+
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
             var validationStatus = new DTO.LDAPAccountAuthenticationStatus
             {
-                DomainName = accountSecurityData.DomainName,
-                AccountName = accountName,
+                DomainName = accountCredential.DomainName,
+                AccountName = accountCredential.AccountName,
                 RequestTag = requestTag
             };
 
@@ -76,8 +80,8 @@ namespace Bitai.LDAPWebApi.Controllers
             else
             {
                 var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
-                var domainAccountName = $"{accountSecurityData.DomainName}\\{accountName}";
-                var credentialToAuthenticate = new LDAPHelper.Credentials(domainAccountName, accountSecurityData.AccountPassword);
+                var domainAccountName = $"{accountCredential.DomainName}\\{accountCredential.AccountName}";
+                var credentialToAuthenticate = new LDAPHelper.Credentials(domainAccountName, accountCredential.AccountPassword);
                 var isAuthenticated = await authenticator.AuthenticateAsync(credentialToAuthenticate);
 
                 //Asignar respuesta de la autenticación

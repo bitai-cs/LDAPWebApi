@@ -26,9 +26,10 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
         /// <param name="catalogTypeRoutes">Injected <see cref="Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
-        public DirectoryController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles, Configurations.LDAP.LDAPCatalogTypeRoutes catalogTypeRoutes) : base(configuration, serverProfiles, catalogTypeRoutes)
+        public DirectoryController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, serverProfiles)
         {
         }
+
 
 
         [HttpGet]

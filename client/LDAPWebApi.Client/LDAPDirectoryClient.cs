@@ -9,7 +9,7 @@ namespace Bitai.LDAPWebApi.Clients
 {
     public class LDAPDirectoryClient<DTOType> : LDAPBaseClient<DTOType>
     {
-        public LDAPDirectoryClient(string webApiUri) : base(webApiUri)
+        public LDAPDirectoryClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiSecurityDefinition webApiScurity) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, webApiScurity)
         {
         }
 
@@ -17,9 +17,9 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<IHttpResponse> SearchByIdentifierAsync(string identifier, EntryAttribute? identifierAttribute, RequiredEntryAttributes? requiredAttributes = null, string requestTag = null)
         {
-            var uri = $"/api/{ServerProfile}/{Parameters.CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.DirectoryController}/{identifier}?identifierAttribute={GetOptionalEntryAttributeName(identifierAttribute)}&requiredAttributes={GetOptionalRequiredEntryAttributesName(requiredAttributes)}&requestTag={requestTag}";
+            var uri = $"/api/{ServerProfile}/{CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.DirectoryController}/{identifier}?identifierAttribute={GetOptionalEntryAttributeName(identifierAttribute)}&requiredAttributes={GetOptionalRequiredEntryAttributesName(requiredAttributes)}&requestTag={requestTag}";
 
-            using (var httpClient = CreateHttpClient())
+            using (var httpClient = await CreateHttpClient(true))
             {
                 var responseMessage = await httpClient.GetAsync(uri);
                 if (!responseMessage.IsSuccessStatusCode)
@@ -31,9 +31,9 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, EntryAttribute? secondFilterAttribute = null, string secondFilterValue = null, bool? combineFilters = null, RequiredEntryAttributes? requiredAttributes = null, string requestTag = null)
         {
-            var uri = $"/api/{ServerProfile}/{Parameters.CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.DirectoryController}/filterBy?filterAttribute={filterAttribute}&filterValue={filterValue}&secondFilterAttribute={GetOptionalEntryAttributeName(secondFilterAttribute)}&secondFilterValue={secondFilterValue}&combineFilters={GetOptionalBooleanValue(combineFilters)}&requiredAttributes={GetOptionalRequiredEntryAttributesName(requiredAttributes)}&requestTag={requestTag}";
+            var uri = $"/api/{ServerProfile}/{CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.DirectoryController}/filterBy?filterAttribute={filterAttribute}&filterValue={filterValue}&secondFilterAttribute={GetOptionalEntryAttributeName(secondFilterAttribute)}&secondFilterValue={secondFilterValue}&combineFilters={GetOptionalBooleanValue(combineFilters)}&requiredAttributes={GetOptionalRequiredEntryAttributesName(requiredAttributes)}&requestTag={requestTag}";
 
-            using (var httpClient = CreateHttpClient())
+            using (var httpClient = await CreateHttpClient(true))
             {
                 var responseMessage = await httpClient.GetAsync(uri);
                 if (!responseMessage.IsSuccessStatusCode)

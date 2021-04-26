@@ -21,21 +21,21 @@ namespace Bitai.LDAPWebApi.Configurations.Security
         public string ApiResource { get; set; }
 
         /// <summary>
-        /// Api Scope registered with the identity server.
-        /// </summary>
-        public string ApiScope { get; set; }
-
-        /// <summary>
-        /// Api Same title. To display in the user interface.
-        /// </summary>
-        public string ApiScopeTitle { get; set; }
-
-        /// <summary>
         /// Gets or sets if HTTPS is required for the metadata address or authority. 
         /// The default is true. 
         /// This should be disabled only in development environments.
         /// </summary>
         public bool RequireHttpsMetadata { get; set; }
+
+        /// <summary>
+        /// Api Scope registered with the identity server.
+        /// </summary>
+        public string SwaggerUITargetApiScope { get; set; }
+
+        /// <summary>
+        /// Api Same title. To display in the user interface.
+        /// </summary>
+        public string SwaggerUITargetApiScopeTitle { get; set; }
 
         /// <summary>
         /// Client ID registered with the identity server.

@@ -50,7 +50,7 @@ namespace Bitai.LDAPWebApi
         {
             services.AddWebApiConfiguration(Configuration, out var webApiConfiguration);
 
-            services.AddLDAPRoutes(Configuration, out var ldapServerProfiles);
+            services.AddLDAPServerProfiles(Configuration, out var ldapServerProfiles);
 
             services.AddIdentityServerConfiguration(Configuration, out var identityServerConfiguration);
 
@@ -122,12 +122,10 @@ namespace Bitai.LDAPWebApi
                 #region Authorization request user interface 
                 builder.OAuthAppName(webApiConfiguration.WebApiTitle);
                 builder.OAuthClientId(identityServerConfig.SwaggerUIClientId);
-                builder.OAuthScopes(identityServerConfig.ApiScope);
+                builder.OAuthScopes(identityServerConfig.SwaggerUITargetApiScope);
                 builder.OAuthUsePkce();
                 #endregion
             });
-
-            app.UseWelcomePage();
         }
     }
 }

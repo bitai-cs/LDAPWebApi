@@ -7,6 +7,9 @@ project.lock.json
 *.pyc
 nupkg/
 
+#.NET Json configurations
+appsettings.*.json
+
 # Visual Studio Code
 .vscode
 
@@ -232,3 +235,4 @@ __pycache__/
 # tools/
 
 /README.md.backup
+/src/LDAPWebApi/Bitai.LDAPWebApi.xml
