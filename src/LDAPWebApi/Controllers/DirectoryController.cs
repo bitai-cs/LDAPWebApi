@@ -24,8 +24,7 @@ namespace Bitai.LDAPWebApi.Controllers
         /// Constructor
         /// </summary>
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
-        /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
-        /// <param name="catalogTypeRoutes">Injected <see cref="Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
+        /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>        
         public DirectoryController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, serverProfiles)
         {
         }
@@ -95,6 +94,16 @@ namespace Bitai.LDAPWebApi.Controllers
             return Ok(searchResult);
         }
 
+        /// <summary>
+        /// Gets an LDAP entry with the data of a user. 
+        /// </summary>
+        /// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
+        /// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/></param>
+        /// <param name="identifier">Value for <paramref name="identifierAttribute"/> attribute that defines a user. It also defines part of the route./></param>
+        /// <param name="identifierAttribute">Optional, default value is <see cref="LDAPHelper.DTO.EntryAttribute.sAMAccountName"/>. It is the attribute by which a user will be identified.</param>
+        /// <param name="requiredAttributes">The type of attribute set to return in the result. See <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/></param>
+        /// <param name="requestTag">Custom value to tag response values.</param>
+        /// <returns><see cref="LDAPSearchResult"/></returns>
         [HttpGet]
         [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}")]
         public async Task<ActionResult<LDAPSearchResult>> GetUserByIdentifier(
