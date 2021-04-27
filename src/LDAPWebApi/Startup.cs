@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
+using Bitai.LDAPWebApi.Controllers.AuthRequirements;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bitai.LDAPWebApi
 {
@@ -50,9 +52,11 @@ namespace Bitai.LDAPWebApi
         {
             services.AddWebApiConfiguration(Configuration, out var webApiConfiguration);
 
+            services.AddWebApiScopesConfiguration(Configuration, out var webApiScopesConfiguration);
+
             services.AddLDAPServerProfiles(Configuration, out var ldapServerProfiles);
 
-            services.AddIdentityServerConfiguration(Configuration, out var identityServerConfiguration);
+            services.AddAuthorityConfiguration(Configuration, out var authorityConfiguration);
 
             services.RegisterRouteConstraints();
 
@@ -60,20 +64,19 @@ namespace Bitai.LDAPWebApi
 
             services.ConfigureWebApiCors(Configuration);
 
-            services.AddAuthenticationWithIdentityServer(identityServerConfiguration);
+            services.AddAuthenticationWithIdentityServer(authorityConfiguration);
 
-            ////VIKO: services.AddControllers() executes services.AddAuthorization()
-            //services.AddAuthorization();
+            services.AddAuthorizationWithApiScopePolicies(webApiScopesConfiguration, authorityConfiguration);
 
             var healthChecksBuilder = services.AddHealthChecks();
-            healthChecksBuilder.AddCustomHealthChecks(identityServerConfiguration, ldapServerProfiles);
-
+            healthChecksBuilder.AddCustomHealthChecks(authorityConfiguration, ldapServerProfiles);
             services.AddHealthChecksUI(settings => settings.AddHealthCheckEndpoint("default", "/hc"))
                 .AddInMemoryStorage();
 
-            services.ConfigureSwaggerGenerator(webApiConfiguration, identityServerConfiguration);
-        }
+            services.AddSwaggerConfiguration(Configuration, out var swaggerUIConfiguration);
 
+            services.ConfigureSwaggerGenerator(webApiConfiguration, authorityConfiguration, swaggerUIConfiguration);
+        }
         /// <summary>
         /// This method gets called by the runtime. 
         /// Use this method to configure the HTTP request pipeline.
@@ -81,12 +84,16 @@ namespace Bitai.LDAPWebApi
         /// <param name="app">Injected <see cref="IApplicationBuilder"/></param>
         /// <param name="env">Injected <see cref="IWebHostEnvironment"/></param>
         /// <param name="webApiConfiguration">Injected <see cref="Configurations.App.WebApiConfiguration"/></param>
-        /// <param name="identityServerConfig">Injected <see cref="Configurations.Security.IdentityServerConfiguration"/></param>
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.IdentityServerConfiguration identityServerConfig)
+        /// <param name="swaggerUIConfiguration">Injected <see cref="Configurations.Swagger.SwaggerUIConfiguration"/></param>
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseHsts();
             }
 
             app.UseMiddleware<Bitai.WebApi.Server.ExceptionHandlingMiddleware>();
@@ -115,17 +122,8 @@ namespace Bitai.LDAPWebApi
             });
 
             app.UseSwagger();
-            app.UseSwaggerUI(builder =>
-            {
-                builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
 
-                #region Authorization request user interface 
-                builder.OAuthAppName(webApiConfiguration.WebApiTitle);
-                builder.OAuthClientId(identityServerConfig.SwaggerUIClientId);
-                builder.OAuthScopes(identityServerConfig.SwaggerUITargetApiScope);
-                builder.OAuthUsePkce();
-                #endregion
-            });
+            app.UseSwaggerUI(webApiConfiguration, swaggerUIConfiguration);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPHelper.QueryFilters;
+using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,7 +18,7 @@ namespace Bitai.LDAPWebApi.Controllers
     /// Web Api controller to process credentials.
     /// </summary>
     [Route("api")]
-    [Authorize]
+    [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
     [ApiController]
     public class CredentialsController : ApiControllerBase
     {

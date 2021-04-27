@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPHelper.QueryFilters;
+using Bitai.LDAPWebApi.Configurations.App;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ namespace Bitai.LDAPWebApi.Controllers
     /// Web API controller for operations with LDAP entries
     /// </summary>
     [Route("api")]
-    [Authorize]
+    [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
     [ApiController]
     public class DirectoryController : ApiControllerBase
     {

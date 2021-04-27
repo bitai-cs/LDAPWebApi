@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Bitai.LDAPWebApi.Configurations.App;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,10 @@ namespace Bitai.LDAPWebApi.Controllers
     /// <summary>
     /// Web Api controller to handle LDAP Catalog names 
     /// </summary>
-    [Authorize]
-    [ApiController]
+    [Authorize()]
+    [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
     public class CatalogTypesController : ApiControllerBase
-    {
+    {        
         /// <summary>
         /// Constructor
         /// </summary>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Bitai.LDAPWebApi.Configurations.App;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
-    [Authorize]
+    [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
     [ApiController]
     public class ServerProfilesController : ApiControllerBase
     {

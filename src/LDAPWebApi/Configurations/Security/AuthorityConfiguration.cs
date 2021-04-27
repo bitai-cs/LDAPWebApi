@@ -8,7 +8,7 @@ namespace Bitai.LDAPWebApi.Configurations.Security
     /// <summary>
     /// Identity Server authority configuration model.
     /// </summary>
-    public class IdentityServerConfiguration
+    public class AuthorityConfiguration
     {
         /// <summary>
         /// Identity Server Authority URL
@@ -25,21 +25,6 @@ namespace Bitai.LDAPWebApi.Configurations.Security
         /// The default is true. 
         /// This should be disabled only in development environments.
         /// </summary>
-        public bool RequireHttpsMetadata { get; set; }
-
-        /// <summary>
-        /// Api Scope registered with the identity server.
-        /// </summary>
-        public string SwaggerUITargetApiScope { get; set; }
-
-        /// <summary>
-        /// Api Same title. To display in the user interface.
-        /// </summary>
-        public string SwaggerUITargetApiScopeTitle { get; set; }
-
-        /// <summary>
-        /// Client ID registered with the identity server.
-        /// </summary>
-        public string SwaggerUIClientId { get; set; }
+        public bool RequireHttpsMetadata { get; set; }        
     }
 }

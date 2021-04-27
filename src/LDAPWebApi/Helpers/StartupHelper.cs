@@ -1,5 +1,9 @@
-﻿using Bitai.LDAPWebApi.Configurations.LDAP;
+﻿using Bitai.LDAPWebApi.Configurations.App;
+using Bitai.LDAPWebApi.Configurations.LDAP;
 using Bitai.LDAPWebApi.Configurations.Security;
+using Bitai.LDAPWebApi.Configurations.Swagger;
+using Bitai.LDAPWebApi.Controllers.AuthRequirements;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +22,13 @@ namespace Bitai.LDAPWebApi.Helpers
             services.AddSingleton(webApiConfiguration);
 
             return services;
+        }
+
+        internal static IServiceCollection AddWebApiScopesConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiScopesConfiguration webApiScopesConfiguration)
+        {
+            webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>();
+
+            return services.AddSingleton(webApiScopesConfiguration);
         }
 
         internal static IServiceCollection ConfigureWebApiCors(this IServiceCollection services, IConfiguration configuration)
@@ -50,14 +61,21 @@ namespace Bitai.LDAPWebApi.Helpers
             return services.AddSingleton(ldapServerProfiles);
         }
 
-        internal static IServiceCollection AddIdentityServerConfiguration(this IServiceCollection services, IConfiguration configuration, out IdentityServerConfiguration identityServerConfig)
+        internal static IServiceCollection AddAuthorityConfiguration(this IServiceCollection services, IConfiguration configuration, out AuthorityConfiguration authorityConfiguration)
         {
-            identityServerConfig = configuration.GetSection(nameof(IdentityServerConfiguration)).Get<IdentityServerConfiguration>();
+            authorityConfiguration = configuration.GetSection(nameof(AuthorityConfiguration)).Get<AuthorityConfiguration>();
 
-            return services.AddSingleton(identityServerConfig);
+            return services.AddSingleton(authorityConfiguration);
         }
 
-        internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.IdentityServerConfiguration identityServerConfiguration)
+        internal static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.Swagger.SwaggerUIConfiguration swaggerConfigration)
+        {
+            swaggerConfigration = configuration.GetSection(nameof(Configurations.Swagger.SwaggerUIConfiguration)).Get<Configurations.Swagger.SwaggerUIConfiguration>();
+
+            return services.AddSingleton(swaggerConfigration);
+        }
+
+        internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.AuthorityConfiguration authorityConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerConfiguration)
         {
             services.AddSwaggerGen(setupAction =>
             {
@@ -84,10 +102,10 @@ namespace Bitai.LDAPWebApi.Helpers
                     {
                         AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
                         {
-                            AuthorizationUrl = new Uri($"{identityServerConfiguration.Authority}/connect/authorize"),
-                            TokenUrl = new Uri($"{identityServerConfiguration.Authority}/connect/token"),
+                            AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
+                            TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),
                             Scopes = new Dictionary<string, string> {
-                                  { identityServerConfiguration.SwaggerUITargetApiScope, identityServerConfiguration.SwaggerUITargetApiScopeTitle }
+                                  { swaggerConfiguration.SwaggerUITargetApiScope, swaggerConfiguration.SwaggerUITargetApiScopeTitle }
                              }
                         }
                     },
@@ -111,7 +129,7 @@ namespace Bitai.LDAPWebApi.Helpers
             return services;
         }
 
-        internal static IServiceCollection AddAuthenticationWithIdentityServer(this IServiceCollection services, IdentityServerConfiguration identityServerConfiguration)
+        internal static IServiceCollection AddAuthenticationWithIdentityServer(this IServiceCollection services, AuthorityConfiguration authorityConfiguration)
         {
             services.AddAuthentication(co =>
             {
@@ -120,17 +138,30 @@ namespace Bitai.LDAPWebApi.Helpers
             })
                 .AddIdentityServerAuthentication(options =>
                 {
-                    options.Authority = identityServerConfiguration.Authority;
-                    options.ApiName = identityServerConfiguration.ApiResource;
-                    options.RequireHttpsMetadata = identityServerConfiguration.RequireHttpsMetadata;
+                    options.Authority = authorityConfiguration.Authority;
+                    options.ApiName = authorityConfiguration.ApiResource;
+                    options.RequireHttpsMetadata = authorityConfiguration.RequireHttpsMetadata;
                 });
 
             return services;
         }
 
-        internal static void AddCustomHealthChecks(this IHealthChecksBuilder healthChecksBuilder, IdentityServerConfiguration identityServerConfiguration, LDAPServerProfiles ldapServerProfiles)
+        internal static IServiceCollection AddAuthorizationWithApiScopePolicies(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
         {
-            healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(identityServerConfiguration.Authority), name: "Identity Server Authority", tags: new string[] { identityServerConfiguration.Authority });
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName, policy =>
+                {
+                    policy.Requirements.Add(new ApiScopeRequirement(new string[] { webApiScopesConfiguration.GlobalScopeName }, authorityConfiguration.Authority));
+                });
+            });
+
+            return services.AddSingleton<IAuthorizationHandler, ApiScopeRequirementHandler>();
+        }
+
+        internal static void AddCustomHealthChecks(this IHealthChecksBuilder healthChecksBuilder, AuthorityConfiguration authorityConfiguration, LDAPServerProfiles ldapServerProfiles)
+        {
+            healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "Identity Server Authority", tags: new string[] { authorityConfiguration.Authority });
 
             foreach (var lp in ldapServerProfiles)
             {
@@ -150,5 +181,20 @@ namespace Bitai.LDAPWebApi.Helpers
                 healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
             }
         }
+
+        internal static IApplicationBuilder UseSwaggerUI(this IApplicationBuilder app, WebApiConfiguration webApiConfiguration, SwaggerUIConfiguration swaggerUIConfiguration)
+        {
+            return app.UseSwaggerUI(builder =>
+            {
+                builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
+
+                #region Authorization request user interface 
+                builder.OAuthAppName(webApiConfiguration.WebApiTitle);
+                builder.OAuthClientId(swaggerUIConfiguration.SwaggerUIClientId);
+                builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScope);
+                builder.OAuthUsePkce();
+                #endregion
+            });
+        } 
     }
 }

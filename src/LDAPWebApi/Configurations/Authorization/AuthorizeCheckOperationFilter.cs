@@ -10,11 +10,11 @@ namespace Bitai.LDAPWebApi.Configurations.Authorization
 {
     public class AuthorizeCheckOperationFilter : IOperationFilter
     {
-        private readonly Security.IdentityServerConfiguration _identityServerConfiguration;
+        private readonly Swagger.SwaggerUIConfiguration _swaggerUIConfiguration;
 
-        public AuthorizeCheckOperationFilter(Security.IdentityServerConfiguration identityServerconfiguration)
+        public AuthorizeCheckOperationFilter(Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
         {
-            _identityServerConfiguration = identityServerconfiguration;
+            _swaggerUIConfiguration = swaggerUIConfiguration;
         }
 
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
@@ -36,7 +36,7 @@ namespace Bitai.LDAPWebApi.Configurations.Authorization
                                                 Id = "OAuth2"
                                          }
                                      }
-                                ] = new[] { _identityServerConfiguration.SwaggerUITargetApiScope }
+                                ] = new[] { _swaggerUIConfiguration.SwaggerUITargetApiScope }
                           }
                 };
             }
