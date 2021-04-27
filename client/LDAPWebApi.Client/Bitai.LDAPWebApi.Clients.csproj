@@ -19,6 +19,7 @@
     <PackageTags>LDAP, Client, API, Web, Helper, Directory</PackageTags>
     <PackageId>Bitai.LDAPWebApi.Clients</PackageId>
     <AssemblyName>Bitai.LDAPWebApi.Clients</AssemblyName>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -34,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
     <None Include="..\..\resources\api1_64.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
