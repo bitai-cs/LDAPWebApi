@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "https://localhost:44331",
+      "applicationUrl": "http://localhost:44330",
       "sslPort": 44331
     }
   },
@@ -12,19 +12,20 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "hc-ui",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "jsWebView2Debugging": true
+      "jsWebView2Debugging": false
     },
     "LDAPWebApi": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "hc-ui",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:5001"
+      "applicationUrl": "http://localhost:5100;https://localhost:5101"
     }
   }
 }

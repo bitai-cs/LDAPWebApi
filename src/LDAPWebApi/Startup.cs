@@ -98,7 +98,10 @@ namespace Bitai.LDAPWebApi
 
             app.UseMiddleware<Bitai.WebApi.Server.ExceptionHandlingMiddleware>();
 
-            app.UseHttpsRedirection();
+            if (env.IsProduction())
+            {
+                app.UseHttpsRedirection();
+            }            
 
             app.UseRouting();
 
