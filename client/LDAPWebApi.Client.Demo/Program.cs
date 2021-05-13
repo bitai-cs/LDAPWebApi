@@ -85,7 +85,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
                 var client = new LDAPCredentialsClient<DTO.LDAPAccountAuthenticationStatus>(WebApiBaseUrl, Selected_LDAPServerProfile, true, WebApiSecurity);
 
-                var accountSecurityData = new DTO.LDAPAccountCredential
+                var accountSecurityData = new DTO.LDAPAccountCredentials
                 {
                     DomainName = "DOMAIN",
                     AccountName = "usr_ext01",
