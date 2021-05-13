@@ -49,8 +49,4 @@
     <ProjectReference Include="..\..\src\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y &quot;$(TargetDir)*.*&quot; &quot;$(ProjectDir)..\..\..\..\_bin\netstandard2.0\Bitai.LDAPWebApi.Clients\&quot;" />
-  </Target>
-
 </Project>
