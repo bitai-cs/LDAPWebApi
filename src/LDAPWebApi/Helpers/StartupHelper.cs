@@ -4,6 +4,7 @@ using Bitai.LDAPWebApi.Configurations.Security;
 using Bitai.LDAPWebApi.Configurations.Swagger;
 using Bitai.LDAPWebApi.Controllers.AuthRequirements;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -148,6 +149,11 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddAuthorizationWithApiScopePolicies(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
         {
+            if (webApiScopesConfiguration.BypassApiScopesAuthorization)
+            {
+                services.AddSingleton<IPolicyEvaluator, Controllers.PolicyEvaluators.AuthorizationBypassPolicyEvaluator>();
+            }
+
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName, policy =>
@@ -195,6 +201,6 @@ namespace Bitai.LDAPWebApi.Helpers
                 builder.OAuthUsePkce();
                 #endregion
             });
-        } 
+        }
     }
 }

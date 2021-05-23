@@ -9,6 +9,9 @@ namespace Bitai.LDAPWebApi.Configurations.App
     {
         internal const string GlobalScopeAuthorizationPolicyName = "RequiredGlobalScopePolicy";
 
+
+        public bool BypassApiScopesAuthorization { get; set; }
+
         public string GlobalScopeName { get; set; }
     }
 }

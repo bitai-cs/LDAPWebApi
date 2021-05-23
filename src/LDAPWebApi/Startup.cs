@@ -1,22 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Bitai.LDAPWebApi.Helpers;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Bitai.LDAPWebApi.Helpers;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using HealthChecks.UI.Client;
-using Bitai.LDAPWebApi.Controllers.AuthRequirements;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Bitai.LDAPWebApi
 {
@@ -77,6 +66,7 @@ namespace Bitai.LDAPWebApi
 
             services.ConfigureSwaggerGenerator(webApiConfiguration, authorityConfiguration, swaggerUIConfiguration);
         }
+
         /// <summary>
         /// This method gets called by the runtime. 
         /// Use this method to configure the HTTP request pipeline.
@@ -93,15 +83,32 @@ namespace Bitai.LDAPWebApi
             }
             else
             {
-                app.UseHsts();
+                /* HSTS is generally a browser only instruction. Other callers,
+                 * such as phone or desktop apps, do not obey the instruction. 
+                 * Even within browsers, a single authenticated call to an API
+                 * over HTTP has risks on insecure networks. The secure
+                 * approach is to configure API projects to only listen to
+                 * and respond over HTTPS.*/
+                // Due to the above, UseHsts is disabled
+                // app.UseHsts();
             }
 
             app.UseMiddleware<Bitai.WebApi.Server.ExceptionHandlingMiddleware>();
 
-            if (env.IsProduction())
-            {
-                app.UseHttpsRedirection();
-            }            
+            /* Do not use RequireHttpsAttribute on Web APIs that receive 
+             * sensitive information.RequireHttpsAttribute uses HTTP status 
+             * codes to redirect browsers from HTTP to HTTPS. API clients may
+             * not understand or obey redirects from HTTP to HTTPS.
+             * Such clients may send information over HTTP.
+             * Web APIs should either:
+             *      Not listen on HTTP.
+             *      Close the connection with status code 400(Bad Request) 
+             *      and not serve the request. */
+            // Due to the above, UseHttpsRedirection is disabled
+            //if (env.IsProduction())
+            //{
+            //    app.UseHttpsRedirection();
+            //}            
 
             app.UseRouting();
 
