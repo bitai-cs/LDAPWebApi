@@ -165,9 +165,10 @@ namespace Bitai.LDAPWebApi.Helpers
             return services.AddSingleton<IAuthorizationHandler, ApiScopeRequirementHandler>();
         }
 
-        internal static void AddCustomHealthChecks(this IHealthChecksBuilder healthChecksBuilder, AuthorityConfiguration authorityConfiguration, LDAPServerProfiles ldapServerProfiles)
+        internal static void AddCustomHealthChecks(this IHealthChecksBuilder healthChecksBuilder, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
         {
-            healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "Identity Server Authority", tags: new string[] { authorityConfiguration.Authority });
+            if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
+                healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "Identity Server Authority", tags: new string[] { authorityConfiguration.Authority });
 
             foreach (var lp in ldapServerProfiles)
             {

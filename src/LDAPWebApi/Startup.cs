@@ -57,9 +57,9 @@ namespace Bitai.LDAPWebApi
 
             services.AddAuthorizationWithApiScopePolicies(webApiScopesConfiguration, authorityConfiguration);
 
-            var healthChecksBuilder = services.AddHealthChecks();
-            healthChecksBuilder.AddCustomHealthChecks(authorityConfiguration, ldapServerProfiles);
-            services.AddHealthChecksUI(settings => settings.AddHealthCheckEndpoint("default", "/hc"))
+            services.AddHealthChecks()
+                .AddCustomHealthChecks(authorityConfiguration, webApiScopesConfiguration, ldapServerProfiles);
+            services.AddHealthChecksUI(settings => settings.AddHealthCheckEndpoint("default", $"{webApiConfiguration.WebApiBaseUrl}/hc"))
                 .AddInMemoryStorage();
 
             services.AddSwaggerConfiguration(Configuration, out var swaggerUIConfiguration);
