@@ -3,9 +3,11 @@ using Bitai.LDAPWebApi.Configurations.LDAP;
 using Bitai.LDAPWebApi.Configurations.Security;
 using Bitai.LDAPWebApi.Configurations.Swagger;
 using Bitai.LDAPWebApi.Controllers.AuthRequirements;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -165,10 +167,15 @@ namespace Bitai.LDAPWebApi.Helpers
             return services.AddSingleton<IAuthorizationHandler, ApiScopeRequirementHandler>();
         }
 
-        internal static void AddCustomHealthChecks(this IHealthChecksBuilder healthChecksBuilder, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
+        internal static void AddCustomHealthChecks(this IServiceCollection services, WebApiConfiguration webApiConfiguration, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
         {
+            if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
+                return;
+
+            IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
+
             if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
-                healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "Identity Server Authority", tags: new string[] { authorityConfiguration.Authority });
+                healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "OAuth/OpenId Server", tags: new string[] { authorityConfiguration.Authority });
 
             foreach (var lp in ldapServerProfiles)
             {
@@ -176,9 +183,9 @@ namespace Bitai.LDAPWebApi.Helpers
                 var portGc = lp.GetPort(true);
 
                 healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
-                 {
-                     options.AddHost(lp.Server, portLc);
-                 }, name: $"Connection: {lp.Server}:{portLc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+                {
+                    options.AddHost(lp.Server, portLc);
+                }, name: $"Connection: {lp.Server}:{portLc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
 
                 healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
                 {
@@ -187,6 +194,9 @@ namespace Bitai.LDAPWebApi.Helpers
 
                 healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
             }
+
+            services.AddHealthChecksUI(settings => settings.AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}"))
+                .AddInMemoryStorage();
         }
 
         internal static IApplicationBuilder UseSwaggerUI(this IApplicationBuilder app, WebApiConfiguration webApiConfiguration, SwaggerUIConfiguration swaggerUIConfiguration)
@@ -201,6 +211,23 @@ namespace Bitai.LDAPWebApi.Helpers
                 builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScope);
                 builder.OAuthUsePkce();
                 #endregion
+            });
+        }
+
+        internal static void MapCustomHealthChecks(this IEndpointRouteBuilder endpoints, WebApiConfiguration webApiConfiguration)
+        {
+            if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
+                return;
+
+            endpoints.MapHealthChecks($"/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}", new HealthCheckOptions()
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+
+            endpoints.MapHealthChecksUI(setupOptions =>
+            {
+                setupOptions.UIPath = $"/{webApiConfiguration.HealthChecksConfiguration.UIPath}";
             });
         }
     }

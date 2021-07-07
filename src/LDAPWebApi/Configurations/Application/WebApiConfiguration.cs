@@ -18,5 +18,18 @@ namespace Bitai.LDAPWebApi.Configurations.App
         public string WebApiContactName { get; set; }
         public string WebApiContactMail { get; set; }
         public string WebApiContactUrl { get; set; }
+        public WebApiHealthChecksConfiguration HealthChecksConfiguration { get; set; }
+
+        #region Inner class
+        public class WebApiHealthChecksConfiguration
+        {
+            public bool EnableHealthChecks { get; set; }
+            public string HealthChecksGroupName { get; set; }
+            public string ApiEndPointName { get; set; }
+            public string UIPath { get; set; }
+            public int MaximunHistoryEntries { get; set; }
+            public int EvaluationTime { get; set; }
+        }
+        #endregion
     }
 }
