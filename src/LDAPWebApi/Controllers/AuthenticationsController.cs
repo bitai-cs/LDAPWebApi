@@ -49,7 +49,7 @@ namespace Bitai.LDAPWebApi.Controllers
         {
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
-            var validationStatus = new DTO.LDAPAccountAuthenticationStatus
+            var accountAuthenticationStatus = new DTO.LDAPAccountAuthenticationStatus
             {
                 DomainName = accountCredentials.DomainName,
                 AccountName = accountCredentials.AccountName,
@@ -68,7 +68,8 @@ namespace Bitai.LDAPWebApi.Controllers
                 }
                 else
                 {
-                    throw new ResourceNotFoundException($"The account name {accountCredentials.AccountName} could not be found, verify that the account name exists. The LDAP server profile that was used: {serverProfile}, Global Catalog: {IsGlobalCatalog(catalogType)}, Base DN: [{ldapClientConfig.SearchLimits.BaseDN}]");
+                    accountAuthenticationStatus.IsAuthenticated = false;
+                    accountAuthenticationStatus.Message = $"The account name {accountCredentials.AccountName} could not be found, verify that the account name exists.";
                 }
             }
             else
@@ -78,12 +79,11 @@ namespace Bitai.LDAPWebApi.Controllers
                 var credentialToAuthenticate = new LDAPHelper.Credentials(domainAccountName, accountCredentials.AccountPassword);
                 var isAuthenticated = await authenticator.AuthenticateAsync(credentialToAuthenticate);
 
-                //Asignar respuesta de la autenticación
-                validationStatus.IsAuthenticated = isAuthenticated;
-                validationStatus.Message = isAuthenticated ? "The credentials are valid." : "Wrong Domain or password.";
+                accountAuthenticationStatus.IsAuthenticated = isAuthenticated;
+                accountAuthenticationStatus.Message = isAuthenticated ? "The credentials are valid." : "Wrong Domain or password.";
             }
 
-            return Ok(validationStatus);
+            return Ok(accountAuthenticationStatus);
         }
     }
 }

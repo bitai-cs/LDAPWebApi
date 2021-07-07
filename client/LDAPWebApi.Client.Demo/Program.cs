@@ -16,7 +16,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             AuthorityUrl = "https://localhost:44310",
             ApiScope = "Bitai.LdapWebApi.Scope.Global",
             ClientId = "Bitai.LdapWebApi.Demo.Client",
-            ClientSecret = "2ef61cb6-9ca6-7418-c116-80784583d88f-???"
+            ClientSecret = "2ef61cb6-9ca6-7418-c116-80784583d88f"
         };
         static string Tag { get; set; } = "DEMO";
         static string Selected_LDAPServerProfile { get; set; } = "PE";
@@ -92,7 +92,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                 var accountSecurityData = new DTO.LDAPAccountCredentials
                 {
                     DomainName = "DOMAIN",
-                    AccountName = "usr_ext01",
+                    AccountName = "usr_ext012",
                     AccountPassword = "Pq$",
                 };
 
@@ -106,7 +106,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                 {
                     var status = await client.GetDTOFromResponseAsync(httpResponse);
 
-                    LogInfo($"CustomTag:{status.RequestTag} | DomainName:{status.DomainName} | AccountName:{status.AccountName} | Authenticated:{status.IsAuthenticated}");
+                    LogInfo($"CustomTag:{status.RequestTag} | DomainName:{status.DomainName} | AccountName:{status.AccountName} | Authenticated:{status.IsAuthenticated} | Message:{status.Message}");
                 }
             }
             catch (WebApiRequestException ex)
