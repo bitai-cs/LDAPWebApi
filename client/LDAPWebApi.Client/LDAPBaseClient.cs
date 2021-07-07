@@ -15,13 +15,13 @@ namespace Bitai.LDAPWebApi.Clients
         public string ServerProfile { get; set; }
         public bool UseGlobalCatalog { get; set; }
         public LDAPCatalogTypes CatalogTypes => new LDAPCatalogTypes();
-        public WebApiSecurityDefinition WebApiSecurity { get; set; }
+        public WebApiSecurityDefinition WebApiSecurityDefinition { get; set; }
 
 
 
         public LDAPBaseClient(string webApiBaseUrl, WebApiSecurityDefinition webApiSecurity) : base(webApiBaseUrl)
         {
-            WebApiSecurity = webApiSecurity;
+            WebApiSecurityDefinition = webApiSecurity;
         }
 
         public LDAPBaseClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiSecurityDefinition webApiSecurity) : this(webApiBaseUrl, webApiSecurity)
@@ -52,7 +52,7 @@ namespace Bitai.LDAPWebApi.Clients
             var httpClient = CreateHttpClient();
 
             if (setAuthenticationHeader)
-                await CheckSecurityHeaderHealth(httpClient, WebApiSecurity);
+                await CheckSecurityHeaderHealth(httpClient, WebApiSecurityDefinition);
 
             return httpClient;
         }
@@ -63,19 +63,16 @@ namespace Bitai.LDAPWebApi.Clients
         internal static TokenResponse _cachedTokenResponse;
         internal static DateTime? _cachedTokenExpireDate;
 
-        internal static async Task CheckSecurityHeaderHealth(HttpClient httpClient, WebApiSecurityDefinition webApiScurity)
+        internal static async Task CheckSecurityHeaderHealth(HttpClient httpClient, WebApiSecurityDefinition webApiScurityDefinition)
         {
             var now = DateTime.Now;
 
             if (_cachedTokenResponse == null || now >= _cachedTokenExpireDate)
             {
-                _cachedTokenResponse = await GetTokenForClientCredentials(httpClient, webApiScurity);
-
-                if (_cachedTokenResponse == null)
-                    throw new Exception($"Security token is null.");
+                _cachedTokenResponse = await GetTokenForClientCredentials(httpClient, webApiScurityDefinition);
 
                 if (_cachedTokenResponse.IsError)
-                    throw new Exception($"Can't get the token for client credentials. Error:{_cachedTokenResponse.Error} | Error description:{_cachedTokenResponse.ErrorDescription} | Error type: {_cachedTokenResponse.ErrorType} | Http Message: {_cachedTokenResponse.HttpErrorReason}");
+                    throw new Exception($"Can't get security token. Authority: {webApiScurityDefinition.AuthorityUrl} | ClientId: {webApiScurityDefinition.ClientId} | Error: {_cachedTokenResponse.Error}" + (string.IsNullOrEmpty(_cachedTokenResponse.ErrorDescription) ? string.Empty : $" | Error description: {_cachedTokenResponse.ErrorDescription}") + $" | Error type: {_cachedTokenResponse.ErrorType} | Http Message: {_cachedTokenResponse.HttpErrorReason}");
 
                 _cachedTokenExpireDate = now.AddSeconds(_cachedTokenResponse.ExpiresIn);
             }
@@ -86,9 +83,15 @@ namespace Bitai.LDAPWebApi.Clients
         internal static async Task<TokenResponse> GetTokenForClientCredentials(HttpClient httpClient, WebApiSecurityDefinition webApiSecurity)
         {
             var discoveryDoc = await httpClient.GetDiscoveryDocumentAsync(webApiSecurity.AuthorityUrl);
+
             if (discoveryDoc.IsError)
             {
-                throw new Exception($"Can't get the discovery document from authority {webApiSecurity.AuthorityUrl}. Error:{discoveryDoc.Error} | Error type: {discoveryDoc.ErrorType} | Http Message: {discoveryDoc.HttpErrorReason}");
+                var exceptionMessage = $"Failed to get security token. An error occurred while getting the discovery document from authority {webApiSecurity.AuthorityUrl}. Error: {discoveryDoc.Error} | Error type: {discoveryDoc.ErrorType}";
+
+                if (discoveryDoc.HttpResponse != null)
+                    exceptionMessage += $" Http Status Code: {Convert.ToInt32(discoveryDoc.HttpStatusCode)} | Http Message: {discoveryDoc.HttpErrorReason}";
+
+                throw new Exception(exceptionMessage);
             }
 
             return await httpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
@@ -113,7 +116,7 @@ namespace Bitai.LDAPWebApi.Clients
         {
             public static readonly string ServerProfilesController = "ServerProfiles";
             public static readonly string CatalogTypesController = "CatalogTypes";
-            public static readonly string CredentialsController = "Credentials";
+            public static readonly string AuthenticationsController = "Authentications";
             public static readonly string DirectoryController = "Directory";
         }
         #endregion

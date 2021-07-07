@@ -8,7 +8,7 @@ namespace Bitai.LDAPWebApi.Clients
 {
     public class LDAPCatalogTypesClient<DTOType> : LDAPBaseClient<DTOType>
     {
-        public LDAPCatalogTypesClient(string webApiBaseUrl, WebApiSecurityDefinition webApiScurity) : base(webApiBaseUrl, webApiScurity)
+        public LDAPCatalogTypesClient(string webApiBaseUrl, WebApiSecurityDefinition webApiScurityDefinition) : base(webApiBaseUrl, webApiScurityDefinition)
         {
         }
 

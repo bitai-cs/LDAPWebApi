@@ -10,17 +10,17 @@ using System.Threading;
 
 namespace Bitai.LDAPWebApi.Clients
 {
-    public class LDAPCredentialsClient<DTOType> : LDAPBaseClient<DTOType>
+    public class LDAPAuthenticationsClient<DTOType> : LDAPBaseClient<DTOType>
     {
-        public LDAPCredentialsClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiSecurityDefinition webApiScurity) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, webApiScurity)
+        public LDAPAuthenticationsClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiSecurityDefinition webApiScurityDefinition) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, webApiScurityDefinition)
         {
         }
 
 
 
-        public async Task<IHttpResponse> AccountAuthenticationAsync(string accountName, DTO.LDAPAccountCredentials accountCredential, CancellationToken cancellationToken = default)
+        public async Task<IHttpResponse> AccountAuthenticationAsync(DTO.LDAPAccountCredentials accountCredential, CancellationToken cancellationToken = default)
         {
-            var uri = $"/api/{ServerProfile}/{CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.CredentialsController}/{accountName}/Authentication";
+            var uri = $"/api/{ServerProfile}/{CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.AuthenticationsController}";
 
             using (var httpClient = await CreateHttpClient(true))
             {

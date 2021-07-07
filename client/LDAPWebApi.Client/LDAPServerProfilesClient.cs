@@ -8,7 +8,7 @@ namespace Bitai.LDAPWebApi.Clients
 {
     public class LDAPServerProfilesClient<DTOType> : LDAPBaseClient<DTOType>
     {
-        public LDAPServerProfilesClient(string webApiBaseUrl, WebApiSecurityDefinition webApiScurity) : base(webApiBaseUrl, webApiScurity)
+        public LDAPServerProfilesClient(string webApiBaseUrl, WebApiSecurityDefinition webApiScurityDefinition) : base(webApiBaseUrl, webApiScurityDefinition)
         {
         }
 

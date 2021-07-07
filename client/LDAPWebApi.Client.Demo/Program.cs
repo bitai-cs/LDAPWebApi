@@ -9,13 +9,14 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
     class Program
     {
-        static string WebApiBaseUrl = "https://localhost:44331";
-        static WebApiSecurityDefinition WebApiSecurity = new WebApiSecurityDefinition
+        static string WebApiBaseUrl = "https://localhost:5101";
+
+        static WebApiSecurityDefinition WebApiSecurityDefinition = new WebApiSecurityDefinition
         {
             AuthorityUrl = "https://localhost:44310",
             ApiScope = "Bitai.LdapWebApi.Scope.Global",
             ClientId = "Bitai.LdapWebApi.Demo.Client",
-            ClientSecret = "2ef61cb6-9ca6-7418-c116-80784583d88f"
+            ClientSecret = "2ef61cb6-9ca6-7418-c116-80784583d88f-???"
         };
         static string Tag { get; set; } = "DEMO";
         static string Selected_LDAPServerProfile { get; set; } = "PE";
@@ -28,6 +29,9 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             try
             {
                 ConfigLogger();
+
+                Console.WriteLine("Presione la tecla enter para iniciar el demo...");
+                Console.ReadLine();
 
                 await LDAPCatalogTypesClient_GetAll();
 
@@ -53,7 +57,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             {
                 LogInfo("LDAPCatalogTypesClient_GetAll --------------------------");
 
-                var client = new LDAPCatalogTypesClient<DTO.LDAPCatalogTypes>(WebApiBaseUrl, WebApiSecurity);
+                var client = new LDAPCatalogTypesClient<DTO.LDAPCatalogTypes>(WebApiBaseUrl, WebApiSecurityDefinition);
 
                 LogInfo("GetAllAsync...");
                 var httpResponse = await client.GetAllAsync();
@@ -83,7 +87,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             {
                 LogInfo("Authentication_Test --------------------------");
 
-                var client = new LDAPCredentialsClient<DTO.LDAPAccountAuthenticationStatus>(WebApiBaseUrl, Selected_LDAPServerProfile, true, WebApiSecurity);
+                var client = new LDAPAuthenticationsClient<DTO.LDAPAccountAuthenticationStatus>(WebApiBaseUrl, Selected_LDAPServerProfile, true, WebApiSecurityDefinition);
 
                 var accountSecurityData = new DTO.LDAPAccountCredentials
                 {
@@ -93,7 +97,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                 };
 
                 LogInfo("AccountAuthenticationAsync...");
-                var httpResponse = await client.AccountAuthenticationAsync("usr_ext01", accountSecurityData);
+                var httpResponse = await client.AccountAuthenticationAsync(accountSecurityData);
                 if (client.IsNoSuccessResponse(httpResponse))
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
@@ -117,7 +121,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             {
                 LogInfo("LDAPServerProfiles_GetProfileIds --------------------------");
 
-                var client = new LDAPServerProfilesClient<string>(WebApiBaseUrl, WebApiSecurity);
+                var client = new LDAPServerProfilesClient<string>(WebApiBaseUrl, WebApiSecurityDefinition);
 
                 LogInfo("GetProfilesIdsAsync...");
                 var httpResponse = await client.GetProfileIdsAsync();
@@ -146,7 +150,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             {
                 LogInfo("LDAPServerProfiles_GetAll --------------------------");
 
-                var client = new LDAPServerProfilesClient<DTO.LDAPServerProfile>(WebApiBaseUrl, WebApiSecurity);
+                var client = new LDAPServerProfilesClient<DTO.LDAPServerProfile>(WebApiBaseUrl, WebApiSecurityDefinition);
 
                 LogInfo("GetProfilesIdsAsync...");
                 var httpResponse = await client.GetAllAsync();
@@ -210,13 +214,22 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
         static void LogError(Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error($"Message: {ex.Message}");
+            Log.Error($"Source: {ex.Source}");
+            Log.Error(ex.StackTrace);
+            Console.WriteLine();
             if (ex.InnerException == null) return;
 
-            Log.Error(ex.InnerException.Message);
+            Log.Error($"Message: {ex.InnerException.Message}");
+            Log.Error($"Source: {ex.InnerException.Source}");
+            Log.Error(ex.InnerException.StackTrace);
+            Console.WriteLine();
             if (ex.InnerException.InnerException == null) return;
 
-            Log.Error(ex.InnerException.InnerException.Message);
+            Log.Error($"Message: {ex.InnerException.InnerException.Message}");
+            Log.Error($"Source: {ex.InnerException.InnerException.Message}");
+            Log.Error(ex.InnerException.InnerException.StackTrace);
+            Console.WriteLine();
         }
 
         static void LogWebApiRequestError(WebApiRequestException ex)
@@ -255,9 +268,9 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                     _exceptionJsonFormat = _exceptionJsonFormat.InnerMiddlewareException;
                 }
             }
-            else if (typeOfContent == typeof(NoSuccessResponseWuthHtmlContent))
+            else if (typeOfContent == typeof(NoSuccessResponseWithHtmlContent))
             {
-                var noSuccessResponse = (NoSuccessResponseWuthHtmlContent)ex.NoSuccessResponse;
+                var noSuccessResponse = (NoSuccessResponseWithHtmlContent)ex.NoSuccessResponse;
 
                 LogError(noSuccessResponse.ReasonPhrase);
                 LogError(((int)noSuccessResponse.HttpStatusCode).ToString());

@@ -9,7 +9,7 @@ namespace Bitai.LDAPWebApi.Clients
 {
     public class LDAPUserDirectoryClient<DTOType> : LDAPBaseClient<DTOType>
     {
-        public LDAPUserDirectoryClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiSecurityDefinition webApiScurity) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, webApiScurity)
+        public LDAPUserDirectoryClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiSecurityDefinition webApiScurityDefinition) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, webApiScurityDefinition)
         {
         }
 

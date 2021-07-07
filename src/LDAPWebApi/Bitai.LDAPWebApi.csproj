@@ -34,10 +34,10 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="3.1.2" />
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="3.1.2" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="5.0.1" />
-	  <PackageReference Include="Bitai.LDAPHelper" Version="3.0.1" />
-	  <PackageReference Include="Bitai.WebApi.Helpers" Version="2.0.0" />
+	  <PackageReference Include="Bitai.LDAPHelper" Version="3.0.2" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="2.0.1" />
 	  <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.2" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
 	</ItemGroup>
 
 	<ItemGroup>
