@@ -24,6 +24,7 @@ namespace Bitai.LDAPWebApi.Configurations.App
         public class WebApiHealthChecksConfiguration
         {
             public bool EnableHealthChecks { get; set; }
+            public string HealthChecksHeaderText { get; set; }
             public string HealthChecksGroupName { get; set; }
             public string ApiEndPointName { get; set; }
             public string UIPath { get; set; }

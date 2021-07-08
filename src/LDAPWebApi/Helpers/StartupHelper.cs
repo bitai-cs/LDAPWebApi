@@ -195,7 +195,14 @@ namespace Bitai.LDAPWebApi.Helpers
                 healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
             }
 
-            services.AddHealthChecksUI(settings => settings.AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}"))
+            services.AddHealthChecksUI(settings =>
+            {
+                settings
+                    .SetHeaderText(webApiConfiguration.HealthChecksConfiguration.HealthChecksHeaderText)
+                    .SetEvaluationTimeInSeconds(webApiConfiguration.HealthChecksConfiguration.EvaluationTime)
+                    .MaximumHistoryEntriesPerEndpoint(webApiConfiguration.HealthChecksConfiguration.MaximunHistoryEntries)
+                    .AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}");
+            })
                 .AddInMemoryStorage();
         }
 
@@ -228,6 +235,7 @@ namespace Bitai.LDAPWebApi.Helpers
             endpoints.MapHealthChecksUI(setupOptions =>
             {
                 setupOptions.UIPath = $"/{webApiConfiguration.HealthChecksConfiguration.UIPath}";
+                setupOptions.AddCustomStylesheet("HealthChecksUI.css");
             });
         }
     }

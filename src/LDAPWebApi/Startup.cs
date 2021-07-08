@@ -111,6 +111,8 @@ namespace Bitai.LDAPWebApi
 
             app.UseCors();
 
+            app.UseStaticFiles();
+
             app.UseAuthentication();
 
             app.UseAuthorization();

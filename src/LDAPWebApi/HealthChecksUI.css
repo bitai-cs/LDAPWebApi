@@ -1,0 +1,10 @@
+﻿:root {
+    --primaryColor: rgb(2, 0, 111);
+    --secondaryColor: #eaebf5;
+    --bgMenuActive: rgb(60 58 152);
+    --bgButton: rgb(232, 17, 75);
+    --logoImageUrl: url('../../../images/cloud_check_64.png');
+    --bgAside: var(--primaryColor);
+    --successColor: #4cff00;
+    --dangerColor: #ff0000;
+}
