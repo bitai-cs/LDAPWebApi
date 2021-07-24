@@ -82,21 +82,28 @@ namespace Bitai.LDAPWebApi.Clients
 
         internal static async Task<TokenResponse> GetTokenForClientCredentials(HttpClient httpClient, WebApiSecurityDefinition webApiSecurity)
         {
-            var discoveryDoc = await httpClient.GetDiscoveryDocumentAsync(webApiSecurity.AuthorityUrl);
-
-            if (discoveryDoc.IsError)
+            var discoveryDocResponse = await httpClient.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest
             {
-                var exceptionMessage = $"Failed to get security token. An error occurred while getting the discovery document from authority {webApiSecurity.AuthorityUrl}. Error: {discoveryDoc.Error} | Error type: {discoveryDoc.ErrorType}";
+                Address = webApiSecurity.AuthorityUrl,
+                Policy = new DiscoveryPolicy
+                {
+                    RequireHttps = false
+                }
+            });
 
-                if (discoveryDoc.HttpResponse != null)
-                    exceptionMessage += $" Http Status Code: {Convert.ToInt32(discoveryDoc.HttpStatusCode)} | Http Message: {discoveryDoc.HttpErrorReason}";
+            if (discoveryDocResponse.IsError)
+            {
+                var exceptionMessage = $"Failed to get security token. An error occurred while getting the discovery document from authority {webApiSecurity.AuthorityUrl}. Error: {discoveryDocResponse.Error} | Error type: {discoveryDocResponse.ErrorType}";
+
+                if (discoveryDocResponse.HttpResponse != null)
+                    exceptionMessage += $" Http Status Code: {Convert.ToInt32(discoveryDocResponse.HttpStatusCode)} | Http Message: {discoveryDocResponse.HttpErrorReason}";
 
                 throw new Exception(exceptionMessage);
             }
 
             return await httpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
-                Address = discoveryDoc.TokenEndpoint,
+                Address = discoveryDocResponse.TokenEndpoint,
                 Scope = webApiSecurity.ApiScope,
                 ClientId = webApiSecurity.ClientId,
                 ClientSecret = webApiSecurity.ClientSecret
