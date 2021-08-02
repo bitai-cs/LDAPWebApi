@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
@@ -18,6 +20,12 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <see cref="IConfiguration"/>    
         /// </summary>
         protected IConfiguration Configuration { get; }
+        
+        /// <summary>
+        /// Logger
+        /// </summary>
+        public ILogger Logger { get; }
+
         /// <summary>
         /// List of <see cref="Configurations.LDAP.LDAPServerProfile"/>
         /// </summary>
@@ -33,10 +41,12 @@ namespace Bitai.LDAPWebApi.Controllers
         /// Constructor
         /// </summary>
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+        /// <param name="logger">Logger</param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
-        protected ApiControllerBase(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles)
+        protected ApiControllerBase(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles serverProfiles)
         {
             Configuration = configuration;
+            Logger = logger;
             ServerProfiles = serverProfiles;
         }
 
@@ -89,6 +99,15 @@ namespace Bitai.LDAPWebApi.Controllers
                 return false;
 
             throw new Exception($"LDAP Catalog type '{ldapCatalogType}' not found.");
+        }
+
+        /// <summary>
+        /// Log caller name
+        /// </summary>
+        /// <param name="callerName">Method or property name of the caller to this method. See <see cref="CallerMemberNameAttribute"./></param>
+        protected void LogInformationOfCalledMethod([CallerMemberName] string callerName = "")
+        {
+            Logger.Information(callerName);
         }
     }
 }

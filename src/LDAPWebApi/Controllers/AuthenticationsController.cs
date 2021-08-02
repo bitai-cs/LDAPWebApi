@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
@@ -27,7 +28,7 @@ namespace Bitai.LDAPWebApi.Controllers
         /// </summary>
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-        public AuthenticationsController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, serverProfiles) { }
+        public AuthenticationsController(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles) { }
 
 
 
@@ -47,6 +48,8 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
             [FromBody] DTO.LDAPAccountCredentials accountCredentials)
         {
+            Logger.Information("{0}", nameof(AuthenticationsController.PostAuthenticationAsync));
+
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
             var accountAuthenticationStatus = new DTO.LDAPAccountAuthenticationStatus

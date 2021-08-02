@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace Bitai.LDAPWebApi
 {
@@ -39,6 +40,8 @@ namespace Bitai.LDAPWebApi
         /// <param name="services">Injected <see cref="IServiceCollection"/></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(Log.Logger);
+
             services.AddWebApiConfiguration(Configuration, out var webApiConfiguration);
 
             services.AddWebApiScopesConfiguration(Configuration, out var webApiScopesConfiguration);
@@ -90,7 +93,7 @@ namespace Bitai.LDAPWebApi
                 // app.UseHsts();
             }
 
-            app.UseMiddleware<Bitai.WebApi.Server.ExceptionHandlingMiddleware>();
+            app.UseMiddleware<Middleware.ExceptionHandlingMiddleware>();
 
             /* Do not use RequireHttpsAttribute on Web APIs that receive 
              * sensitive information.RequireHttpsAttribute uses HTTP status 

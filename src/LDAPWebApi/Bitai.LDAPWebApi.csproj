@@ -5,13 +5,13 @@
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>0.7.1</Version>
-		<AssemblyVersion>0.7.1.12</AssemblyVersion>
+		<Version>0.7.2</Version>
+		<AssemblyVersion>0.7.2.1</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>annotations</Nullable>
-		<FileVersion>0.7.1.13</FileVersion>
+		<FileVersion>0.7.2.1</FileVersion>
 		<Description>Web API to access and query LDAP server.</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -37,6 +37,11 @@
 	  <PackageReference Include="Bitai.LDAPHelper" Version="3.0.2" />
 	  <PackageReference Include="Bitai.WebApi.Helpers" Version="2.0.1" />
 	  <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
+	  <PackageReference Include="Serilog.Enrichers.Environment" Version="2.1.3" />
+	  <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.1" />
+	  <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
+	  <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
 	</ItemGroup>
 

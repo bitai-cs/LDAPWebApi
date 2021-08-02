@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
@@ -25,8 +26,9 @@ namespace Bitai.LDAPWebApi.Controllers
         /// Constructor
         /// </summary>
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+        /// <param name="logger">Logger</param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>        
-        public DirectoryController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, serverProfiles)
+        public DirectoryController(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
         {
         }
 

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
@@ -15,13 +16,14 @@ namespace Bitai.LDAPWebApi.Controllers
     /// </summary>
     [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
     public class CatalogTypesController : ApiControllerBase
-    {        
+    {
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+        /// <param name="logger">Logger</param>
         /// <param name="ldapServerProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-        public CatalogTypesController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, ldapServerProfiles)
+        public CatalogTypesController(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, logger, ldapServerProfiles)
         {
         }
 
