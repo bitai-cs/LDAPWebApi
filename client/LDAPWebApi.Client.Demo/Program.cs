@@ -9,14 +9,16 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
     class Program
     {
-        static string WebApiBaseUrl = "https://localhost:5101";
+        //static string WebApiBaseUrl = "https://localhost:5101";
+        static string WebApiBaseUrl = "http://npe-itdesa01.pe.lan.com/lpwac";
+
 
         static WebApiSecurityDefinition WebApiSecurityDefinition = new WebApiSecurityDefinition
         {
             AuthorityUrl = "https://localhost:44310",
             ApiScope = "Bitai.LdapWebApi.Scope.Global",
-            ClientId = "Bitai.LdapWebApi.Demo.Client",
-            ClientSecret = "2ef61cb6-9ca6-7418-c116-80784583d88f"
+            ClientId = "Is4.Sts.LdapWebApi.Client",
+            ClientSecret = "232459a4-747c-6e0e-2516-72aba52a7069"
         };
         static string Tag { get; set; } = "DEMO";
         static string Selected_LDAPServerProfile { get; set; } = "PE";
@@ -24,8 +26,6 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
         static async Task Main(string[] args)
         {
-            Thread.Sleep(10000);
-
             try
             {
                 ConfigLogger();
@@ -33,7 +33,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                 Console.WriteLine("Presione la tecla enter para iniciar el demo...");
                 Console.ReadLine();
 
-                await LDAPCatalogTypesClient_GetAll();
+                //await LDAPCatalogTypesClient_GetAll();
 
                 await Authentication_Test();
 
@@ -89,7 +89,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
                 var client = new LDAPAuthenticationsClient<DTO.LDAPAccountAuthenticationStatus>(WebApiBaseUrl, Selected_LDAPServerProfile, true, WebApiSecurityDefinition);
 
-                var accountSecurityData = new DTO.LDAPAccountCredentials
+                var accountCredentials = new DTO.LDAPAccountCredentials
                 {
                     DomainName = "DOMAIN",
                     AccountName = "usr_ext012",
@@ -97,7 +97,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                 };
 
                 LogInfo("AccountAuthenticationAsync...");
-                var httpResponse = await client.AccountAuthenticationAsync(accountSecurityData);
+                var httpResponse = await client.AccountAuthenticationAsync(accountCredentials);
                 if (client.IsNoSuccessResponse(httpResponse))
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);

@@ -20,7 +20,7 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<IHttpResponse> AccountAuthenticationAsync(DTO.LDAPAccountCredentials accountCredential, CancellationToken cancellationToken = default)
         {
-            var uri = $"/api/{ServerProfile}/{CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.AuthenticationsController}";
+            var uri = $"{WebApiBaseUrl}/api/{ServerProfile}/{CatalogTypes.GetCatalogTypeName(UseGlobalCatalog)}/{ControllerNames.AuthenticationsController}";
 
             using (var httpClient = await CreateHttpClient(true))
             {

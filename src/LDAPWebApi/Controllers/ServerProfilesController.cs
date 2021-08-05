@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
@@ -20,7 +21,7 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <param name="configuration">Injected <see cref="Microsoft.Extensions.Configuration.IConfiguration"/></param>
         /// <param name="ldapServerProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
         /// <param name="ldapCatalogTypeRoutes">Injected <see cref="Configurations.LDAP.LDAPCatalogTypeRoutes"/></param>
-        public ServerProfilesController(IConfiguration configuration, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, ldapServerProfiles)
+        public ServerProfilesController(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, logger, ldapServerProfiles)
         {
         }
 

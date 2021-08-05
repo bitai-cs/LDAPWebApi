@@ -236,3 +236,5 @@ __pycache__/
 
 /README.md.backup
 /src/LDAPWebApi/Bitai.LDAPWebApi.xml
+*.jsonlog
+logs
