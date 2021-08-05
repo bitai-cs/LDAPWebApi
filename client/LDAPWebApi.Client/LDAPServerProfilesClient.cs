@@ -16,7 +16,7 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<IHttpResponse> GetProfileIdsAsync()
         {
-            var uri = $"/api/{ControllerNames.ServerProfilesController}/GetProfileIds";
+            var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}/GetProfileIds";
 
             using (var httpClient = await CreateHttpClient(true))
             {
@@ -33,7 +33,7 @@ namespace Bitai.LDAPWebApi.Clients
             if (string.IsNullOrEmpty(profileId))
                 throw new ArgumentNullException(nameof(profileId));
 
-            var uri = $"/api/{ControllerNames.ServerProfilesController}/{profileId}";
+            var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}/{profileId}";
 
             using (var httpClient = await CreateHttpClient(true))
             {
@@ -47,7 +47,7 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<IHttpResponse> GetAllAsync()
         {
-            var uri = $"/api/{ControllerNames.ServerProfilesController}";
+            var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}";
             using (var httpClient = await CreateHttpClient(true))
             {
                 var responseMessage = await httpClient.GetAsync(uri);

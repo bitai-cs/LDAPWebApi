@@ -16,7 +16,7 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<IHttpResponse> GetAllAsync()
         {
-            var uri = $"/api/{ControllerNames.CatalogTypesController}";
+            var uri = $"{WebApiBaseUrl}/api/{ControllerNames.CatalogTypesController}";
 
             using (var httpClient = await CreateHttpClient(true))
             {

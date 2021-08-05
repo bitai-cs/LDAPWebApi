@@ -44,6 +44,8 @@ namespace Bitai.LDAPWebApi
 
             services.AddWebApiConfiguration(Configuration, out var webApiConfiguration);
 
+            services.AddWebApiLogConfiguration(Configuration);
+
             services.AddWebApiScopesConfiguration(Configuration, out var webApiScopesConfiguration);
 
             services.AddLDAPServerProfiles(Configuration, out var ldapServerProfiles);

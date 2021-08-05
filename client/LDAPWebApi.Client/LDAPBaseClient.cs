@@ -49,6 +49,17 @@ namespace Bitai.LDAPWebApi.Clients
 
         public async Task<HttpClient> CreateHttpClient(bool setAuthenticationHeader)
         {
+            //#if DEBUG
+            //            //For development and debugging purposes only
+            //            if (System.Net.ServicePointManager.ServerCertificateValidationCallback == null)
+            //            {
+            //                System.Net.ServicePointManager.ServerCertificateValidationCallback = delegate (object sender, System.Security.Cryptography.X509Certificates.X509Certificate certificate, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
+            //                {
+            //                    return true;
+            //                };
+            //            }
+            //#endif
+
             var httpClient = CreateHttpClient();
 
             if (setAuthenticationHeader)

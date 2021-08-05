@@ -27,6 +27,15 @@ namespace Bitai.LDAPWebApi.Helpers
             return services;
         }
 
+        internal static IServiceCollection AddWebApiLogConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>();
+            
+            services.AddSingleton(webApiLogConfiguration);
+
+            return services;
+        }        
+
         internal static IServiceCollection AddWebApiScopesConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiScopesConfiguration webApiScopesConfiguration)
         {
             webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>();

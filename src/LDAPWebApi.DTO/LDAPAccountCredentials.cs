@@ -26,5 +26,19 @@ namespace Bitai.LDAPWebApi.DTO
         /// </summary>
         [Required]
         public string AccountPassword { get; set; }
+
+
+
+        /// <summary>
+        /// Clone of this object; password must not be cloned.
+        /// </summary>
+        /// <returns></returns>
+        public LDAPAccountCredentials Clone()
+        {
+            return new LDAPAccountCredentials { 
+                 DomainName = DomainName,
+                 AccountName = AccountName
+            };
+        }
     }
 }

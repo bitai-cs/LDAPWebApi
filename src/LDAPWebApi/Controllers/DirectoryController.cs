@@ -44,6 +44,8 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
@@ -58,6 +60,8 @@ namespace Bitai.LDAPWebApi.Controllers
             if (searchResult.Entries.Count() > 1)
                 throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
+            Log.Information("Response body: {@result}", searchResult);
+
             return Ok(searchResult);
         }
 
@@ -71,6 +75,8 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
@@ -91,8 +97,11 @@ namespace Bitai.LDAPWebApi.Controllers
                 searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
             }
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+            var resultCount = searchResult.Entries.Count();
+            if (resultCount == 0 && searchResult.HasErrorInfo)
                 throw searchResult.ErrorObject;
+
+            Log.Information("Search result count: {0}", resultCount);
 
             return Ok(searchResult);
         }
@@ -117,6 +126,8 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
@@ -134,6 +145,8 @@ namespace Bitai.LDAPWebApi.Controllers
             if (searchResult.Entries.Count() > 1)
                 throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
+            Log.Information("Response body: {@result}", searchResult);
+
             return Ok(searchResult);
         }
 
@@ -147,6 +160,8 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
@@ -164,6 +179,8 @@ namespace Bitai.LDAPWebApi.Controllers
             if (searchResult.Entries.Count() > 1)
                 throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
+            Log.Information("Response body: {@result}", searchResult);
+
             return Ok(searchResult);
         }
 
@@ -177,6 +194,8 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
             var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(clientConfiguration);
@@ -205,8 +224,11 @@ namespace Bitai.LDAPWebApi.Controllers
                 searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
             }
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+            var resultCount = searchResult.Entries.Count();
+            if (resultCount == 0 && searchResult.HasErrorInfo)
                 throw searchResult.ErrorObject;
+
+            Log.Information("Search result count: {0}", resultCount);
 
             return Ok(searchResult);
         }
@@ -215,13 +237,15 @@ namespace Bitai.LDAPWebApi.Controllers
         [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}")]
         public async Task<ActionResult<LDAPSearchResult>> GetGroupByIdentifier(
             [FromRoute] string serverProfile,
-            [FromRoute] string ldapCatalogType,
+            [FromRoute] string catalogType,
             [FromRoute] string identifier,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(ldapCatalogType));
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
+            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
 
@@ -239,19 +263,23 @@ namespace Bitai.LDAPWebApi.Controllers
             if (searchResult.Entries.Count() > 1)
                 throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
+            Log.Information("Response body: {@result}", searchResult);
+
             return Ok(searchResult);
         }
 
         [HttpGet]
         [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}/Parents")]
         public async Task<ActionResult<LDAPSearchResult>> GetParentsForGroupIdentifier([FromRoute] string serverProfile,
-            [FromRoute] string ldapCatalogType,
+            [FromRoute] string catalogType,
             [FromRoute] string identifier,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
         {
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(ldapCatalogType));
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
+            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
 
@@ -269,6 +297,8 @@ namespace Bitai.LDAPWebApi.Controllers
             if (searchResult.Entries.Count() > 1)
                 throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
+            Log.Information("Response body: {@result}", searchResult);
+
             return Ok(searchResult);
         }
 
@@ -277,13 +307,15 @@ namespace Bitai.LDAPWebApi.Controllers
         [ActionName("filterBy")]
         public async Task<ActionResult<LDAPSearchResult>> GetGroupsFilteringByAsync(
             [FromRoute] string serverProfile,
-            [FromRoute] string ldapCatalogType,
+            [FromRoute] string catalogType,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag
             )
         {
-            var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(ldapCatalogType));
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
+            var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
             var ldapSearcher = await GetLdapSearcher(clientConfiguration);
 
@@ -311,8 +343,11 @@ namespace Bitai.LDAPWebApi.Controllers
                 searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
             }
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+            var resultCount = searchResult.Entries.Count();
+            if (resultCount == 0 && searchResult.HasErrorInfo)
                 throw searchResult.ErrorObject;
+
+            Log.Information("Search result count: {0}", resultCount);
 
             return Ok(searchResult);
         }

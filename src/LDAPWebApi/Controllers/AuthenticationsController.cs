@@ -48,7 +48,9 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
             [FromBody] DTO.LDAPAccountCredentials accountCredentials)
         {
-            Logger.Information("{0}", nameof(AuthenticationsController.PostAuthenticationAsync));
+            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(requestTag)}={requestTag}");
+
+            Logger.Information("Request body: {@credentials}", accountCredentials.Clone());
 
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
@@ -85,6 +87,8 @@ namespace Bitai.LDAPWebApi.Controllers
                 accountAuthenticationStatus.IsAuthenticated = isAuthenticated;
                 accountAuthenticationStatus.Message = isAuthenticated ? "The credentials are valid." : "Wrong Domain or password.";
             }
+
+            Logger.Information("Response body: {@status}", accountAuthenticationStatus);
 
             return Ok(accountAuthenticationStatus);
         }

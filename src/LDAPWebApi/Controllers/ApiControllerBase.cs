@@ -100,14 +100,5 @@ namespace Bitai.LDAPWebApi.Controllers
 
             throw new Exception($"LDAP Catalog type '{ldapCatalogType}' not found.");
         }
-
-        /// <summary>
-        /// Log caller name
-        /// </summary>
-        /// <param name="callerName">Method or property name of the caller to this method. See <see cref="CallerMemberNameAttribute"./></param>
-        protected void LogInformationOfCalledMethod([CallerMemberName] string callerName = "")
-        {
-            Logger.Information(callerName);
-        }
     }
 }
