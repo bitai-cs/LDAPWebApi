@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Bitai.LDAPWebApi.DTO
 {
+    /// <summary>
+    /// Directory service catalog types.
+    /// </summary>
     public class LDAPCatalogTypes
     {
         public string LocalCatalog => "LC";
@@ -12,6 +15,11 @@ namespace Bitai.LDAPWebApi.DTO
         public string GlobalCatalog => "GC";
 
 
+        /// <summary>
+        /// Helper method to get catalog type name
+        /// </summary>
+        /// <param name="isGlobalCatalog">Global catalog name is required.</param>
+        /// <returns></returns>
         public string GetCatalogTypeName(bool isGlobalCatalog)
         {
             return isGlobalCatalog ? GlobalCatalog : LocalCatalog;

@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Bitai.LDAPWebApi.DTO
 {
+    /// <summary>
+    /// Represents the LDAP Server properties
+    /// </summary>
     public class LDAPServerProfile
     {
         public string ProfileId { get; set; }

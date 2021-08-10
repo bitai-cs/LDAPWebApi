@@ -9,8 +9,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
     class Program
     {
-        //static string WebApiBaseUrl = "https://localhost:5101";
-        static string WebApiBaseUrl = "http://npe-itdesa01.pe.lan.com/lpwac";
+        static string WebApiBaseUrl = "https://localhost:5101";
 
 
         static WebApiSecurityDefinition WebApiSecurityDefinition = new WebApiSecurityDefinition
