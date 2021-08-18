@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
@@ -21,14 +21,15 @@ namespace Bitai.LDAPWebApi.Controllers
     [Route("api")]
     [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
     [ApiController]
-    public class AuthenticationsController : ApiControllerBase
+    public class AuthenticationsController : ApiControllerBase<AuthenticationsController>
     {
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+        /// <param name="logger">See <see cref="ILogger{TCategoryName}"/>.</param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-        public AuthenticationsController(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles) { }
+        public AuthenticationsController(IConfiguration configuration, ILogger<AuthenticationsController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles) { }
 
 
 
@@ -48,9 +49,9 @@ namespace Bitai.LDAPWebApi.Controllers
             [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
             [FromBody] DTO.LDAPAccountCredentials accountCredentials)
         {
-            Logger.Information($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(requestTag)}={requestTag}");
+            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(requestTag)}={requestTag}");
 
-            Logger.Information("Request body: {@credentials}", accountCredentials.Clone());
+            Logger.LogInformation("Request body: {@credentials}", accountCredentials.Clone());
 
             var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
@@ -88,7 +89,7 @@ namespace Bitai.LDAPWebApi.Controllers
                 accountAuthenticationStatus.Message = isAuthenticated ? "The credentials are valid." : "Wrong Domain or password.";
             }
 
-            Logger.Information("Response body: {@status}", accountAuthenticationStatus);
+            Logger.LogInformation("Response body: {@status}", accountAuthenticationStatus);
 
             return Ok(accountAuthenticationStatus);
         }

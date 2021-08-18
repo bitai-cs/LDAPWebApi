@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Bitai.WebApi.Client;
@@ -10,9 +11,8 @@ namespace Bitai.LDAPWebApi.Clients.Demo
     class Program
     {
         static string WebApiBaseUrl = "https://localhost:5101";
-
-
-        static WebApiSecurityDefinition WebApiSecurityDefinition = new WebApiSecurityDefinition
+        static bool WebApiRequiresAccessToken = true;
+        static WebApiClientCredentials ClientCredentials = new WebApiClientCredentials
         {
             AuthorityUrl = "https://localhost:44310",
             ApiScope = "Bitai.LdapWebApi.Scope.Global",
@@ -20,7 +20,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             ClientSecret = "232459a4-747c-6e0e-2516-72aba52a7069"
         };
         static string Tag { get; set; } = "DEMO";
-        static string Selected_LDAPServerProfile { get; set; } = "PE";
+        static string Selected_LDAPServerProfile { get; set; } = "Profile1";
 
 
         static async Task Main(string[] args)
@@ -32,13 +32,13 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                 Console.WriteLine("Presione la tecla enter para iniciar el demo...");
                 Console.ReadLine();
 
-                //await LDAPCatalogTypesClient_GetAll();
+                await CatalogTypesClient_GetAllAsync();
 
-                await Authentication_Test();
+                await AuthenticationsClient_AccountAuthenticationAsync();
 
-                //await LDAPServerProfiles_GetProfileIds();
+                await ServerProfilesClient_GetProfileIdsAsync();
 
-                //await LDAPServerProfiles_GetAll();
+                await ServerProfilesClient_GetAllAsync();
             }
             catch (Exception ex)
             {
@@ -50,23 +50,23 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             }
         }
 
-        static async Task LDAPCatalogTypesClient_GetAll()
+        static async Task CatalogTypesClient_GetAllAsync()
         {
             try
             {
-                LogInfo("LDAPCatalogTypesClient_GetAll --------------------------");
+                var client = new LDAPCatalogTypesWebApiClient(WebApiBaseUrl, ClientCredentials);
 
-                var client = new LDAPCatalogTypesClient<DTO.LDAPCatalogTypes>(WebApiBaseUrl, WebApiSecurityDefinition);
+                LogInfoOfType(client.GetType());
 
-                LogInfo("GetAllAsync...");
-                var httpResponse = await client.GetAllAsync();
-                if (client.IsNoSuccessResponse(httpResponse))
+                LogInfo($"{nameof(client.GetAllAsync)}...");
+                var httpResponse = await client.GetAllAsync(WebApiRequiresAccessToken);
+                if (!httpResponse.IsSuccessResponse)
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
                 }
                 else
                 {
-                    var dto = await client.GetDTOFromResponseAsync(httpResponse);
+                    var dto = await client.GetDTOFromResponseAsync<DTO.LDAPCatalogTypes>(httpResponse);
 
                     LogInfo($"{nameof(DTO.LDAPCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
                     LogInfo($"{nameof(DTO.LDAPCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
@@ -80,13 +80,13 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             }
         }
 
-        static async Task Authentication_Test()
+        static async Task AuthenticationsClient_AccountAuthenticationAsync()
         {
             try
             {
-                LogInfo("Authentication_Test --------------------------");
+                var client = new LDAPAuthenticationsWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, true, ClientCredentials);
 
-                var client = new LDAPAuthenticationsClient<DTO.LDAPAccountAuthenticationStatus>(WebApiBaseUrl, Selected_LDAPServerProfile, true, WebApiSecurityDefinition);
+                LogInfoOfType(client.GetType());
 
                 var accountCredentials = new DTO.LDAPAccountCredentials
                 {
@@ -95,15 +95,15 @@ namespace Bitai.LDAPWebApi.Clients.Demo
                     AccountPassword = "Pq$",
                 };
 
-                LogInfo("AccountAuthenticationAsync...");
-                var httpResponse = await client.AccountAuthenticationAsync(accountCredentials);
-                if (client.IsNoSuccessResponse(httpResponse))
+                LogInfo($"{nameof(client.AccountAuthenticationAsync)}...");
+                var httpResponse = await client.AccountAuthenticationAsync(accountCredentials, WebApiRequiresAccessToken);
+                if (!httpResponse.IsSuccessResponse)
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
                 }
                 else
                 {
-                    var status = await client.GetDTOFromResponseAsync(httpResponse);
+                    var status = await client.GetDTOFromResponseAsync<DTO.LDAPAccountAuthenticationStatus>(httpResponse);
 
                     LogInfo($"CustomTag:{status.RequestTag} | DomainName:{status.DomainName} | AccountName:{status.AccountName} | Authenticated:{status.IsAuthenticated} | Message:{status.Message}");
                 }
@@ -114,23 +114,23 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             }
         }
 
-        static async Task LDAPServerProfiles_GetProfileIds()
+        static async Task ServerProfilesClient_GetProfileIdsAsync()
         {
             try
             {
-                LogInfo("LDAPServerProfiles_GetProfileIds --------------------------");
+                var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
 
-                var client = new LDAPServerProfilesClient<string>(WebApiBaseUrl, WebApiSecurityDefinition);
+                LogInfoOfType(client.GetType());
 
-                LogInfo("GetProfilesIdsAsync...");
-                var httpResponse = await client.GetProfileIdsAsync();
-                if (client.IsNoSuccessResponse(httpResponse))
+                LogInfo($"{nameof(client.GetProfileIdsAsync)}...");
+                var httpResponse = await client.GetProfileIdsAsync(WebApiRequiresAccessToken);
+                if (!httpResponse.IsSuccessResponse)
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
                 }
                 else
                 {
-                    var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync(httpResponse);
+                    var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync<string>(httpResponse);
                     foreach (var profileId in enumerableDTO)
                     {
                         LogInfo($"ProfileId: {profileId}");
@@ -143,23 +143,23 @@ namespace Bitai.LDAPWebApi.Clients.Demo
             }
         }
 
-        static async Task LDAPServerProfiles_GetAll()
+        static async Task ServerProfilesClient_GetAllAsync()
         {
             try
             {
-                LogInfo("LDAPServerProfiles_GetAll --------------------------");
+                var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
 
-                var client = new LDAPServerProfilesClient<DTO.LDAPServerProfile>(WebApiBaseUrl, WebApiSecurityDefinition);
+                LogInfoOfType(client.GetType());
 
-                LogInfo("GetProfilesIdsAsync...");
-                var httpResponse = await client.GetAllAsync();
-                if (client.IsNoSuccessResponse(httpResponse))
+                LogInfo($"{nameof(client.GetAllAsync)}...");
+                var httpResponse = await client.GetAllAsync(WebApiRequiresAccessToken);
+                if (!httpResponse.IsSuccessResponse)
                 {
                     client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
                 }
                 else
                 {
-                    var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync(httpResponse);
+                    var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync<DTO.LDAPServerProfile>(httpResponse);
                     foreach (var ldapServerProfile in enumerableDTO)
                     {
                         LogInfo($"ProfileId: {ldapServerProfile.ProfileId}");
@@ -194,6 +194,16 @@ namespace Bitai.LDAPWebApi.Clients.Demo
         {
             for (var _l = 0; _l < lines; _l++)
                 Console.WriteLine();
+        }
+
+        static void LogInfoOfCaller([CallerMemberName] string memberName = null)
+        {
+            Log.Information("{0}...", memberName.ToUpper());
+        }
+
+        static void LogInfoOfType(Type type)
+        {
+            Log.Information("{0} **************************", type.FullName);
         }
 
         static void LogInfo(string message)
@@ -233,10 +243,21 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
         static void LogWebApiRequestError(WebApiRequestException ex)
         {
-            LogError(ex.Message);
+            LogInfoOfCaller();
+
+            Log.Error("{@error}", ex);
+
+            NewBlankLines(1);
+
+            LogError("Below a resume of the error:");
+
+            NewBlankLines(1);
+
+            LogError($"Exception type: {ex.GetType().FullName}");
+            LogError($"Error message: {ex.Message}");
 
             var typeOfContent = ex.NoSuccessResponse.GetType();
-            LogError(typeOfContent.FullName);
+            LogError($"Type of response content: {typeOfContent.FullName}");
 
             if (typeOfContent == typeof(NoSuccessResponseWithJsonStringContent))
             {
@@ -244,7 +265,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
                 LogError(noSuccessResponse.ReasonPhrase);
                 LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
-                LogError(noSuccessResponse.ContentType.ToString());
+                LogError(noSuccessResponse.ContentMediaType.ToString());
                 LogError(noSuccessResponse.Content);
             }
             else if (typeOfContent == typeof(NoSuccessResponseWithJsonExceptionContent))

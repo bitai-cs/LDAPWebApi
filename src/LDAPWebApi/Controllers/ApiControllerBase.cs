@@ -7,14 +7,14 @@ using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers
 {
     /// <summary>
     /// Base Web Controller Api that defines the basic behavior of any controller.
     /// </summary>
-    public class ApiControllerBase : ControllerBase
+    public abstract class ApiControllerBase<T> : ControllerBase
     {
         /// <summary>
         /// <see cref="IConfiguration"/>    
@@ -24,16 +24,18 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <summary>
         /// Logger
         /// </summary>
-        public ILogger Logger { get; }
+        protected ILogger<T> Logger { get; }
 
         /// <summary>
         /// List of <see cref="Configurations.LDAP.LDAPServerProfile"/>
         /// </summary>
         protected Configurations.LDAP.LDAPServerProfiles ServerProfiles { get; }
+        
         /// <summary>
         /// Route name for each LDAP Catalog.
         /// </summary>
         protected DTO.LDAPCatalogTypes CatalogTypeRoutes => new DTO.LDAPCatalogTypes();
+
 
 
 
@@ -43,12 +45,13 @@ namespace Bitai.LDAPWebApi.Controllers
         /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
         /// <param name="logger">Logger</param>
         /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
-        protected ApiControllerBase(IConfiguration configuration, ILogger logger, Configurations.LDAP.LDAPServerProfiles serverProfiles)
+        protected ApiControllerBase(IConfiguration configuration, ILogger<T> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles)
         {
             Configuration = configuration;
             Logger = logger;
             ServerProfiles = serverProfiles;
         }
+
 
 
 

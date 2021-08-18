@@ -11,15 +11,22 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System;
 using System.Collections.Generic;
 
 namespace Bitai.LDAPWebApi.Helpers
 {
+    /// <summary>
+    /// <see cref="IServiceCollection"/> and <see cref="IApplicationBuilder"/> 
+    /// extensions, commonly used in <see cref="Startup"/>.
+    /// </summary>
     public static class StartupHelpers
     {
         internal static IServiceCollection AddWebApiConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiConfiguration webApiConfiguration)
         {
+            Log.Information("{method}", nameof(AddWebApiConfiguration));
+
             webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>();
 
             services.AddSingleton(webApiConfiguration);
@@ -29,15 +36,19 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddWebApiLogConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            Log.Information("{method}", nameof(AddWebApiLogConfiguration));
+
             var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>();
-            
+
             services.AddSingleton(webApiLogConfiguration);
 
             return services;
-        }        
+        }
 
         internal static IServiceCollection AddWebApiScopesConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiScopesConfiguration webApiScopesConfiguration)
         {
+            Log.Information("{method}", nameof(AddWebApiScopesConfiguration));
+
             webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>();
 
             return services.AddSingleton(webApiScopesConfiguration);
@@ -45,6 +56,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection ConfigureWebApiCors(this IServiceCollection services, IConfiguration configuration)
         {
+            Log.Information("{method}", nameof(ConfigureWebApiCors));
+
             var webApiCorsConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiCorsConfiguration)).Get<Configurations.App.WebApiCorsConfiguration>();
 
             services.AddCors(setup =>
@@ -66,6 +79,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddLDAPServerProfiles(this IServiceCollection services, IConfiguration configuration, out LDAPServerProfiles ldapServerProfiles)
         {
+            Log.Information("{method}", nameof(AddLDAPServerProfiles));
+
             ldapServerProfiles = configuration.GetSection(nameof(LDAPServerProfiles)).Get<LDAPServerProfiles>();
 
             ldapServerProfiles.CheckConfigurationIntegrity();
@@ -75,6 +90,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddAuthorityConfiguration(this IServiceCollection services, IConfiguration configuration, out AuthorityConfiguration authorityConfiguration)
         {
+            Log.Information("{method}", nameof(AddAuthorityConfiguration));
+
             authorityConfiguration = configuration.GetSection(nameof(AuthorityConfiguration)).Get<AuthorityConfiguration>();
 
             return services.AddSingleton(authorityConfiguration);
@@ -82,6 +99,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.Swagger.SwaggerUIConfiguration swaggerConfigration)
         {
+            Log.Information("{method}", nameof(AddSwaggerConfiguration));
+
             swaggerConfigration = configuration.GetSection(nameof(Configurations.Swagger.SwaggerUIConfiguration)).Get<Configurations.Swagger.SwaggerUIConfiguration>();
 
             return services.AddSingleton(swaggerConfigration);
@@ -89,6 +108,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.AuthorityConfiguration authorityConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerConfiguration)
         {
+            Log.Information("{method}", nameof(ConfigureSwaggerGenerator));
+
             services.AddSwaggerGen(setupAction =>
             {
                 setupAction.SwaggerDoc(webApiConfiguration.WebApiVersion, new Microsoft.OpenApi.Models.OpenApiInfo
@@ -132,6 +153,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection RegisterRouteConstraints(this IServiceCollection services)
         {
+            Log.Information("{method}", nameof(RegisterRouteConstraints));
+
             services.Configure<RouteOptions>(config =>
             {
                 config.ConstraintMap.Add("ldapSvrPf", typeof(Controllers.Constraints.LDAPServerProfileRouteConstraint));
@@ -143,6 +166,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddAuthenticationWithIdentityServer(this IServiceCollection services, AuthorityConfiguration authorityConfiguration)
         {
+            Log.Information("{method}", nameof(AddAuthenticationWithIdentityServer));
+
             services.AddAuthentication(co =>
             {
                 co.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
@@ -160,6 +185,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IServiceCollection AddAuthorizationWithApiScopePolicies(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
         {
+            Log.Information("{method}", nameof(AddAuthorizationWithApiScopePolicies));
+
             if (webApiScopesConfiguration.BypassApiScopesAuthorization)
             {
                 services.AddSingleton<IPolicyEvaluator, Controllers.PolicyEvaluators.AuthorizationBypassPolicyEvaluator>();
@@ -178,6 +205,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static void AddCustomHealthChecks(this IServiceCollection services, WebApiConfiguration webApiConfiguration, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
         {
+            Log.Information("{method}", nameof(AddCustomHealthChecks));
+
             if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
                 return;
 
@@ -217,6 +246,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static IApplicationBuilder UseSwaggerUI(this IApplicationBuilder app, WebApiConfiguration webApiConfiguration, SwaggerUIConfiguration swaggerUIConfiguration)
         {
+            Log.Information("{method}", nameof(UseSwaggerUI));
+
             return app.UseSwaggerUI(builder =>
             {
                 builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
@@ -232,6 +263,8 @@ namespace Bitai.LDAPWebApi.Helpers
 
         internal static void MapCustomHealthChecks(this IEndpointRouteBuilder endpoints, WebApiConfiguration webApiConfiguration)
         {
+            Log.Information("{method}", nameof(MapCustomHealthChecks));
+
             if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
                 return;
 

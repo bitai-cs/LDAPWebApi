@@ -16,7 +16,17 @@ namespace Bitai.LDAPWebApi
     public class Startup
     {
         /// <summary>
-        /// Configuration instance
+        /// Full name of <see cref="Startup"/> 
+        /// </summary>
+        public static string FullName = typeof(Startup).FullName;
+
+        /// <summary>
+        /// See <see cref="IWebHostEnvironment"/>.
+        /// </summary>
+        public IWebHostEnvironment WebHostEnvironment;
+
+        /// <summary>
+        /// See <see cref="IConfiguration"/>.
         /// </summary>
         public IConfiguration Configuration { get; }
 
@@ -25,10 +35,12 @@ namespace Bitai.LDAPWebApi
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
-        public Startup(IConfiguration configuration)
+        /// <param name="configuration">Injected <see cref="IConfiguration"/>.</param>
+        /// <param name="webHostEnvironment">Injected <see cref="IWebHostEnvironment"/>.</param>
+        public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             Configuration = configuration;
+            WebHostEnvironment = webHostEnvironment;
         }
 
 
@@ -40,7 +52,7 @@ namespace Bitai.LDAPWebApi
         /// <param name="services">Injected <see cref="IServiceCollection"/></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(Log.Logger);
+            Log.Information("{class} -> {method} starting...", FullName, nameof(ConfigureServices));
 
             services.AddWebApiConfiguration(Configuration, out var webApiConfiguration);
 
@@ -67,6 +79,8 @@ namespace Bitai.LDAPWebApi
             services.AddSwaggerConfiguration(Configuration, out var swaggerUIConfiguration);
 
             services.ConfigureSwaggerGenerator(webApiConfiguration, authorityConfiguration, swaggerUIConfiguration);
+
+            Log.Information("{class} -> {method} completed.", FullName, nameof(ConfigureServices));
         }
 
         /// <summary>
@@ -95,7 +109,7 @@ namespace Bitai.LDAPWebApi
                 // app.UseHsts();
             }
 
-            app.UseMiddleware<Middleware.ExceptionHandlingMiddleware>();
+            app.UseMiddleware<WebApi.Server.ExceptionHandlingMiddleware>();
 
             /* Do not use RequireHttpsAttribute on Web APIs that receive 
              * sensitive information.RequireHttpsAttribute uses HTTP status 
