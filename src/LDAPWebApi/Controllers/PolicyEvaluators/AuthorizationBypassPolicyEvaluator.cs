@@ -25,7 +25,7 @@ namespace Bitai.LDAPWebApi.Controllers.PolicyEvaluators
                 new AuthenticationProperties(), bypassScheme)));
         }
 
-        public virtual async Task<PolicyAuthorizationResult> AuthorizeAsync(AuthorizationPolicy policy, AuthenticateResult authenticationResult, HttpContext context, object resource)
+        public virtual async Task<PolicyAuthorizationResult> AuthorizeAsync(AuthorizationPolicy policy, AuthenticateResult authenticationResult, HttpContext context, object? resource)
         {
             return await Task.FromResult(PolicyAuthorizationResult.Success());
         }

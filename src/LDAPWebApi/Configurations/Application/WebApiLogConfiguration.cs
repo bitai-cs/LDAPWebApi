@@ -11,6 +11,18 @@ namespace Bitai.LDAPWebApi.Configurations.App
     public class WebApiLogConfiguration
     {
         /// <summary>
+        /// Constructor.
+        /// Set default property values.
+        /// </summary>
+        public WebApiLogConfiguration()
+		{
+            MinimunLogLevel = MinimunLogEventLevel.Error;
+            LogFilePath = "/logs";
+		}
+
+
+
+        /// <summary>
         /// Specifies the meaning and relative importance of a log event.
         /// </summary>        
         public enum MinimunLogEventLevel

@@ -17,268 +17,282 @@ using System.Collections.Generic;
 
 namespace Bitai.LDAPWebApi.Helpers
 {
-    /// <summary>
-    /// <see cref="IServiceCollection"/> and <see cref="IApplicationBuilder"/> 
-    /// extensions, commonly used in <see cref="Startup"/>.
-    /// </summary>
-    public static class StartupHelpers
-    {
-        internal static IServiceCollection AddWebApiConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiConfiguration webApiConfiguration)
-        {
-            Log.Information("{method}", nameof(AddWebApiConfiguration));
+	/// <summary>
+	/// <see cref="IServiceCollection"/> and <see cref="IApplicationBuilder"/> 
+	/// extensions, commonly used in <see cref="Startup"/>.
+	/// </summary>
+	public static class StartupHelpers
+	{
+		internal static IServiceCollection AddWebApiConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiConfiguration webApiConfiguration)
+		{
+			Log.Information("{method}", nameof(AddWebApiConfiguration));
 
-            webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>();
+			webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>();
 
-            services.AddSingleton(webApiConfiguration);
+			services.AddSingleton(webApiConfiguration);
 
-            return services;
-        }
+			return services;
+		}
 
-        internal static IServiceCollection AddWebApiLogConfiguration(this IServiceCollection services, IConfiguration configuration)
-        {
-            Log.Information("{method}", nameof(AddWebApiLogConfiguration));
+		internal static IServiceCollection AddWebApiLogConfiguration(this IServiceCollection services, IConfiguration configuration)
+		{
+			Log.Information("{method}", nameof(AddWebApiLogConfiguration));
 
-            var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>();
+			var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>();
 
-            services.AddSingleton(webApiLogConfiguration);
+			services.AddSingleton(webApiLogConfiguration);
 
-            return services;
-        }
+			return services;
+		}
 
-        internal static IServiceCollection AddWebApiScopesConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiScopesConfiguration webApiScopesConfiguration)
-        {
-            Log.Information("{method}", nameof(AddWebApiScopesConfiguration));
+		internal static IServiceCollection AddWebApiScopesConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.App.WebApiScopesConfiguration webApiScopesConfiguration)
+		{
+			Log.Information("{method}", nameof(AddWebApiScopesConfiguration));
 
-            webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>();
+			webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>();
 
-            return services.AddSingleton(webApiScopesConfiguration);
-        }
+			return services.AddSingleton(webApiScopesConfiguration);
+		}
 
-        internal static IServiceCollection ConfigureWebApiCors(this IServiceCollection services, IConfiguration configuration)
-        {
-            Log.Information("{method}", nameof(ConfigureWebApiCors));
+		internal static IServiceCollection ConfigureWebApiCors(this IServiceCollection services, IConfiguration configuration)
+		{
+			Log.Information("{method}", nameof(ConfigureWebApiCors));
 
-            var webApiCorsConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiCorsConfiguration)).Get<Configurations.App.WebApiCorsConfiguration>();
+			var webApiCorsConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiCorsConfiguration)).Get<Configurations.App.WebApiCorsConfiguration>();
 
-            services.AddCors(setup =>
-            {
-                setup.AddDefaultPolicy(builder =>
-                {
-                    builder.AllowAnyMethod();
-                    builder.AllowAnyHeader();
+			services.AddCors(setup =>
+			{
+				setup.AddDefaultPolicy(builder =>
+				{
+					builder.AllowAnyMethod();
+					builder.AllowAnyHeader();
 
-                    if (webApiCorsConfiguration.AllowAnyOrigin)
-                        builder.AllowAnyOrigin();
-                    else
-                        builder.WithOrigins(webApiCorsConfiguration.AllowedOrigins);
-                });
-            });
+					if (webApiCorsConfiguration.AllowAnyOrigin)
+						builder.AllowAnyOrigin();
+					else
+						builder.WithOrigins(webApiCorsConfiguration.AllowedOrigins);
+				});
+			});
 
-            return services;
-        }
+			return services;
+		}
 
-        internal static IServiceCollection AddLDAPServerProfiles(this IServiceCollection services, IConfiguration configuration, out LDAPServerProfiles ldapServerProfiles)
-        {
-            Log.Information("{method}", nameof(AddLDAPServerProfiles));
+		internal static IServiceCollection AddLDAPServerProfiles(this IServiceCollection services, IConfiguration configuration, out LDAPServerProfiles ldapServerProfiles)
+		{
+			Log.Information("{method}", nameof(AddLDAPServerProfiles));
 
-            ldapServerProfiles = configuration.GetSection(nameof(LDAPServerProfiles)).Get<LDAPServerProfiles>();
+			ldapServerProfiles = configuration.GetSection(nameof(LDAPServerProfiles)).Get<LDAPServerProfiles>();
 
-            ldapServerProfiles.CheckConfigurationIntegrity();
+			ldapServerProfiles.CheckConfigurationIntegrity();
 
-            return services.AddSingleton(ldapServerProfiles);
-        }
+			return services.AddSingleton(ldapServerProfiles);
+		}
 
-        internal static IServiceCollection AddAuthorityConfiguration(this IServiceCollection services, IConfiguration configuration, out AuthorityConfiguration authorityConfiguration)
-        {
-            Log.Information("{method}", nameof(AddAuthorityConfiguration));
+		internal static IServiceCollection AddAuthorityConfiguration(this IServiceCollection services, IConfiguration configuration, out AuthorityConfiguration authorityConfiguration)
+		{
+			Log.Information("{method}", nameof(AddAuthorityConfiguration));
 
-            authorityConfiguration = configuration.GetSection(nameof(AuthorityConfiguration)).Get<AuthorityConfiguration>();
+			authorityConfiguration = configuration.GetSection(nameof(AuthorityConfiguration)).Get<AuthorityConfiguration>();
 
-            return services.AddSingleton(authorityConfiguration);
-        }
+			return services.AddSingleton(authorityConfiguration);
+		}
 
-        internal static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.Swagger.SwaggerUIConfiguration swaggerConfigration)
-        {
-            Log.Information("{method}", nameof(AddSwaggerConfiguration));
+		internal static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services, IConfiguration configuration, out Configurations.Swagger.SwaggerUIConfiguration swaggerConfigration)
+		{
+			Log.Information("{method}", nameof(AddSwaggerConfiguration));
 
-            swaggerConfigration = configuration.GetSection(nameof(Configurations.Swagger.SwaggerUIConfiguration)).Get<Configurations.Swagger.SwaggerUIConfiguration>();
+			swaggerConfigration = configuration.GetSection(nameof(Configurations.Swagger.SwaggerUIConfiguration)).Get<Configurations.Swagger.SwaggerUIConfiguration>();
 
-            return services.AddSingleton(swaggerConfigration);
-        }
+			return services.AddSingleton(swaggerConfigration);
+		}
 
-        internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.AuthorityConfiguration authorityConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerConfiguration)
-        {
-            Log.Information("{method}", nameof(ConfigureSwaggerGenerator));
+		internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.AuthorityConfiguration authorityConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerConfiguration)
+		{
+			Log.Information("{method}", nameof(ConfigureSwaggerGenerator));
 
-            services.AddSwaggerGen(setupAction =>
-            {
-                setupAction.SwaggerDoc(webApiConfiguration.WebApiVersion, new Microsoft.OpenApi.Models.OpenApiInfo
-                {
-                    Contact = new Microsoft.OpenApi.Models.OpenApiContact
-                    {
-                        Name = webApiConfiguration.WebApiContactName,
-                        Email = webApiConfiguration.WebApiContactMail,
-                        Url = new Uri(webApiConfiguration.WebApiContactUrl)
-                    },
-                    Title = webApiConfiguration.WebApiTitle,
-                    Version = webApiConfiguration.WebApiVersion,
-                    Description = webApiConfiguration.WebApiDescription
-                });
+			services.AddSwaggerGen(setupAction =>
+			{
+				setupAction.SwaggerDoc(webApiConfiguration.WebApiVersion, new Microsoft.OpenApi.Models.OpenApiInfo
+				{
+					Contact = new Microsoft.OpenApi.Models.OpenApiContact
+					{
+						Name = webApiConfiguration.WebApiContactName,
+						Email = webApiConfiguration.WebApiContactMail,
+						Url = new Uri(webApiConfiguration.WebApiContactUrl)
+					},
+					Title = webApiConfiguration.WebApiTitle,
+					Version = webApiConfiguration.WebApiVersion,
+					Description = webApiConfiguration.WebApiDescription
+				});
 
-                setupAction.IncludeXmlComments(System.IO.Path.Combine(AppContext.BaseDirectory,
-                    $"{webApiConfiguration.GetType().Assembly.GetName().Name}.xml"));
+				setupAction.IncludeXmlComments(System.IO.Path.Combine(AppContext.BaseDirectory,
+					$"{webApiConfiguration.GetType().Assembly.GetName().Name}.xml"));
 
-                setupAction.AddSecurityDefinition("OAuth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
-                    Flows = new Microsoft.OpenApi.Models.OpenApiOAuthFlows
-                    {
-                        AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
-                        {
-                            AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
-                            TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),
-                            Scopes = new Dictionary<string, string> {
-                                  { swaggerConfiguration.SwaggerUITargetApiScope, swaggerConfiguration.SwaggerUITargetApiScopeTitle }
-                             }
-                        }
-                    },
-                    Description = "Swagger Generator OpenId security scheme."
-                });
+				setupAction.AddSecurityDefinition("OAuth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+				{
+					Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
+					Flows = new Microsoft.OpenApi.Models.OpenApiOAuthFlows
+					{
+						AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
+						{
+							AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
+							TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),
+							Scopes = new Dictionary<string, string> {
+								  { swaggerConfiguration.SwaggerUITargetApiScope, swaggerConfiguration.SwaggerUITargetApiScopeTitle }
+							 }
+						}
+					},
+					Description = "Swagger Generator OpenId security scheme."
+				});
 
-                setupAction.OperationFilter<Configurations.Authorization.AuthorizeCheckOperationFilter>();
-            });
+				setupAction.OperationFilter<Configurations.Authorization.AuthorizeCheckOperationFilter>();
+			});
 
-            return services;
-        }
+			return services;
+		}
 
-        internal static IServiceCollection RegisterRouteConstraints(this IServiceCollection services)
-        {
-            Log.Information("{method}", nameof(RegisterRouteConstraints));
+		internal static IServiceCollection RegisterRouteConstraints(this IServiceCollection services)
+		{
+			Log.Information("{method}", nameof(RegisterRouteConstraints));
 
-            services.Configure<RouteOptions>(config =>
-            {
-                config.ConstraintMap.Add("ldapSvrPf", typeof(Controllers.Constraints.LDAPServerProfileRouteConstraint));
-                config.ConstraintMap.Add("ldapCatType", typeof(Controllers.Constraints.LDAPCatalogTypeRouteConstraint));
-            });
+			services.Configure<RouteOptions>(config =>
+			{
+				config.ConstraintMap.Add("ldapSvrPf", typeof(Controllers.Constraints.LDAPServerProfileRouteConstraint));
+				config.ConstraintMap.Add("ldapCatType", typeof(Controllers.Constraints.LDAPCatalogTypeRouteConstraint));
+			});
 
-            return services;
-        }
+			return services;
+		}
 
-        internal static IServiceCollection AddAuthenticationWithIdentityServer(this IServiceCollection services, AuthorityConfiguration authorityConfiguration)
-        {
-            Log.Information("{method}", nameof(AddAuthenticationWithIdentityServer));
+		internal static IServiceCollection AddAuthenticationWithIdentityServer(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
+		{
+			Log.Information("{method}", nameof(AddAuthenticationWithIdentityServer));
 
-            services.AddAuthentication(co =>
-            {
-                co.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-                co.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddIdentityServerAuthentication(options =>
-                {
-                    options.Authority = authorityConfiguration.Authority;
-                    options.ApiName = authorityConfiguration.ApiResource;
-                    options.RequireHttpsMetadata = authorityConfiguration.RequireHttpsMetadata;
-                });
+			if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
+			{
+				var authBuilder = services.AddAuthentication(co =>
+				{
+					co.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+					co.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+				});
 
-            return services;
-        }
+				if (string.IsNullOrEmpty(authorityConfiguration.Authority))
+					throw new Exception($"{nameof(WebApiScopesConfiguration)}/{nameof(WebApiScopesConfiguration.BypassApiScopesAuthorization)} is disabled, the value of {nameof(AuthorityConfiguration)}/{nameof(AuthorityConfiguration.Authority)} must be set.");
 
-        internal static IServiceCollection AddAuthorizationWithApiScopePolicies(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
-        {
-            Log.Information("{method}", nameof(AddAuthorizationWithApiScopePolicies));
+				if (string.IsNullOrEmpty(authorityConfiguration.ApiResource))
+					throw new Exception($"{nameof(WebApiScopesConfiguration)}/{nameof(WebApiScopesConfiguration.BypassApiScopesAuthorization)} is disabled, the value of {nameof(AuthorityConfiguration)}/{nameof(AuthorityConfiguration.ApiResource)} must be set.");
 
-            if (webApiScopesConfiguration.BypassApiScopesAuthorization)
-            {
-                services.AddSingleton<IPolicyEvaluator, Controllers.PolicyEvaluators.AuthorizationBypassPolicyEvaluator>();
-            }
+				if (!authorityConfiguration.RequireHttpsMetadata.HasValue)
+					throw new Exception($"{nameof(WebApiScopesConfiguration)}/{nameof(WebApiScopesConfiguration.BypassApiScopesAuthorization)} is disabled, the value of {nameof(AuthorityConfiguration)}/{nameof(AuthorityConfiguration.RequireHttpsMetadata)} must be set.");
 
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName, policy =>
-                {
-                    policy.Requirements.Add(new ApiScopeRequirement(new string[] { webApiScopesConfiguration.GlobalScopeName }, authorityConfiguration.Authority));
-                });
-            });
+				authBuilder.AddIdentityServerAuthentication(options =>
+				{
+					options.Authority = authorityConfiguration.Authority;
+					options.ApiName = authorityConfiguration.ApiResource;
+					options.RequireHttpsMetadata = authorityConfiguration.RequireHttpsMetadata.Value;
+				});
+			}
 
-            return services.AddSingleton<IAuthorizationHandler, ApiScopeRequirementHandler>();
-        }
+			return services;
+		}
 
-        internal static void AddCustomHealthChecks(this IServiceCollection services, WebApiConfiguration webApiConfiguration, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
-        {
-            Log.Information("{method}", nameof(AddCustomHealthChecks));
+		internal static IServiceCollection AddAuthorizationWithApiScopePolicies(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
+		{
+			Log.Information("{method}", nameof(AddAuthorizationWithApiScopePolicies));
 
-            if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
-                return;
+			if (webApiScopesConfiguration.BypassApiScopesAuthorization)
+			{
+				//Add custom policy evaluator to bypass api authorizations
+				services.AddSingleton<IPolicyEvaluator, Controllers.PolicyEvaluators.AuthorizationBypassPolicyEvaluator>();
+			}
 
-            IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
+			services.AddAuthorization(options =>
+			{
+				options.AddPolicy(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName, policy =>
+				{
+					policy.Requirements.Add(new ApiScopeRequirement(new string[] { webApiScopesConfiguration.GlobalScopeName }, authorityConfiguration.Authority ?? "https://localhost/oauth2"));
+				});
+			});
 
-            if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
-                healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "OAuth/OpenId Server", tags: new string[] { authorityConfiguration.Authority });
+			return services.AddSingleton<IAuthorizationHandler, ApiScopeRequirementHandler>();
+		}
 
-            foreach (var lp in ldapServerProfiles)
-            {
-                var portLc = lp.GetPort(false);
-                var portGc = lp.GetPort(true);
+		internal static void AddCustomHealthChecks(this IServiceCollection services, WebApiConfiguration webApiConfiguration, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
+		{
+			Log.Information("{method}", nameof(AddCustomHealthChecks));
 
-                healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
-                {
-                    options.AddHost(lp.Server, portLc);
-                }, name: $"Connection: {lp.Server}:{portLc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+			if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
+				return;
 
-                healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
-                {
-                    options.AddHost(lp.Server, portGc);
-                }, name: $"Connection: {lp.Server}:{portGc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+			IHealthChecksBuilder healthChecksBuilder = services.AddHealthChecks();
 
-                healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
-            }
+			if (!webApiScopesConfiguration.BypassApiScopesAuthorization && authorityConfiguration.Authority != null)
+				healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "OAuth/OpenId Server", tags: new string[] { authorityConfiguration.Authority });
 
-            services.AddHealthChecksUI(settings =>
-            {
-                settings
-                    .SetHeaderText(webApiConfiguration.HealthChecksConfiguration.HealthChecksHeaderText)
-                    .SetEvaluationTimeInSeconds(webApiConfiguration.HealthChecksConfiguration.EvaluationTime)
-                    .MaximumHistoryEntriesPerEndpoint(webApiConfiguration.HealthChecksConfiguration.MaximunHistoryEntries)
-                    .AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}");
-            })
-                .AddInMemoryStorage();
-        }
+			foreach (var lp in ldapServerProfiles)
+			{
+				var portLc = lp.GetPort(false);
+				var portGc = lp.GetPort(true);
 
-        internal static IApplicationBuilder UseSwaggerUI(this IApplicationBuilder app, WebApiConfiguration webApiConfiguration, SwaggerUIConfiguration swaggerUIConfiguration)
-        {
-            Log.Information("{method}", nameof(UseSwaggerUI));
+				healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
+				{
+					options.AddHost(lp.Server, portLc);
+				}, name: $"Connection: {lp.Server}:{portLc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
 
-            return app.UseSwaggerUI(builder =>
-            {
-                builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
+				healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
+				{
+					options.AddHost(lp.Server, portGc);
+				}, name: $"Connection: {lp.Server}:{portGc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
 
-                #region Authorization request user interface 
-                builder.OAuthAppName(webApiConfiguration.WebApiTitle);
-                builder.OAuthClientId(swaggerUIConfiguration.SwaggerUIClientId);
-                builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScope);
-                builder.OAuthUsePkce();
-                #endregion
-            });
-        }
+				healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+			}
 
-        internal static void MapCustomHealthChecks(this IEndpointRouteBuilder endpoints, WebApiConfiguration webApiConfiguration)
-        {
-            Log.Information("{method}", nameof(MapCustomHealthChecks));
+			services.AddHealthChecksUI(settings =>
+			{
+				settings
+					.SetHeaderText(webApiConfiguration.HealthChecksConfiguration.HealthChecksHeaderText)
+					.SetEvaluationTimeInSeconds(webApiConfiguration.HealthChecksConfiguration.EvaluationTime)
+					.MaximumHistoryEntriesPerEndpoint(webApiConfiguration.HealthChecksConfiguration.MaximunHistoryEntries)
+					.AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}");
+			})
+				.AddInMemoryStorage();
+		}
 
-            if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
-                return;
+		internal static IApplicationBuilder UseSwaggerUI(this IApplicationBuilder app, WebApiConfiguration webApiConfiguration, SwaggerUIConfiguration swaggerUIConfiguration)
+		{
+			Log.Information("{method}", nameof(UseSwaggerUI));
 
-            endpoints.MapHealthChecks($"/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}", new HealthCheckOptions()
-            {
-                Predicate = _ => true,
-                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-            });
+			return app.UseSwaggerUI(builder =>
+			{
+				builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
 
-            endpoints.MapHealthChecksUI(setupOptions =>
-            {
-                setupOptions.UIPath = $"/{webApiConfiguration.HealthChecksConfiguration.UIPath}";
-                setupOptions.AddCustomStylesheet("HealthChecksUI.css");
-            });
-        }
-    }
+				#region Authorization request user interface 
+				builder.OAuthAppName(webApiConfiguration.WebApiTitle);
+				builder.OAuthClientId(swaggerUIConfiguration.SwaggerUIClientId);
+				builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScope);
+				builder.OAuthUsePkce();
+				#endregion
+			});
+		}
+
+		internal static void MapCustomHealthChecks(this IEndpointRouteBuilder endpoints, WebApiConfiguration webApiConfiguration)
+		{
+			Log.Information("{method}", nameof(MapCustomHealthChecks));
+
+			if (!webApiConfiguration.HealthChecksConfiguration.EnableHealthChecks)
+				return;
+
+			endpoints.MapHealthChecks($"/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}", new HealthCheckOptions()
+			{
+				Predicate = _ => true,
+				ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+			});
+
+			endpoints.MapHealthChecksUI(setupOptions =>
+			{
+				setupOptions.UIPath = $"/{webApiConfiguration.HealthChecksConfiguration.UIPath}";
+				setupOptions.AddCustomStylesheet("HealthChecksUI.css");
+			});
+		}
+	}
 }

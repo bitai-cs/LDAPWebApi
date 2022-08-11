@@ -10,6 +10,23 @@ namespace Bitai.LDAPWebApi.Configurations.App
     /// </summary>
     public class WebApiConfiguration
     {
+        public WebApiConfiguration()
+		{
+            WebApiName = "LDAP Web Api";
+            WebApiTitle = "BITAI LDAP Web Api";
+            WebApiDescription = "Web Api for queryng LDAP servers";
+            WebApiVersion = "v1";
+            WebApiBaseUrl = "http://localhost:5100";
+            WebApiContactName = "Viko Bastidas";
+            WebApiContactMail = "vico.bastidasgmail.com";
+            WebApiContactUrl = "https://www.linkedin.com/in/victorbastidasg";
+
+            HealthChecksConfiguration = new WebApiHealthChecksConfiguration();
+        }
+
+
+
+
         public string WebApiName { get; set; }
         public string WebApiTitle { get; set; }
         public string WebApiDescription { get; set; }
@@ -23,7 +40,23 @@ namespace Bitai.LDAPWebApi.Configurations.App
         #region Inner class
         public class WebApiHealthChecksConfiguration
         {
-            public bool EnableHealthChecks { get; set; }
+            /// <summary>
+            /// Constructor
+            /// </summary>
+			public WebApiHealthChecksConfiguration()
+			{
+                EnableHealthChecks = false;
+                HealthChecksHeaderText = "Health Checks UI";
+                HealthChecksGroupName = "Health Checks";
+                ApiEndPointName = "hc";
+                UIPath = "hc-ui";
+                MaximunHistoryEntries = 100;
+                EvaluationTime = 30;
+            }
+
+
+
+			public bool EnableHealthChecks { get; set; }
             public string HealthChecksHeaderText { get; set; }
             public string HealthChecksGroupName { get; set; }
             public string ApiEndPointName { get; set; }

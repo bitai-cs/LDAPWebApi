@@ -94,16 +94,16 @@ namespace Bitai.LDAPWebApi.Controllers.Binders
 
             if (bindingContext.ModelState.IsValid)
             {
-                var secondFilterAttribute = modelType.GetProperty(nameof(Models.SearchFiltersModel.secondFilterAttribute)).GetValue(modelInstance);
+                var secondFilterAttribute = modelType.GetProperty(nameof(Models.SearchFiltersModel.secondFilterAttribute))!.GetValue(modelInstance);
 
                 if (secondFilterAttribute != null)
                 {
-                    var secondFilterValue = modelType.GetProperty(nameof(Models.SearchFiltersModel.secondFilterValue)).GetValue(modelInstance);
+                    var secondFilterValue = modelType.GetProperty(nameof(Models.SearchFiltersModel.secondFilterValue))!.GetValue(modelInstance);
 
                     if (secondFilterValue == null || secondFilterValue.ToString() == string.Empty)
                         bindingContext.ModelState.AddModelError($"{nameof(Models.SearchFiltersModel.secondFilterValue)}", $"{nameof(Models.SearchFiltersModel.secondFilterAttribute)} has been set, therefore {nameof(Models.SearchFiltersModel.secondFilterValue)} is required.");
 
-                    var combineFilters = modelType.GetProperty(nameof(Models.SearchFiltersModel.combineFilters)).GetValue(modelInstance);
+                    var combineFilters = modelType.GetProperty(nameof(Models.SearchFiltersModel.combineFilters))!.GetValue(modelInstance);
 
                     if (combineFilters == null)
                         bindingContext.ModelState.AddModelError($"{nameof(Models.SearchFiltersModel.combineFilters)}", $"{nameof(Models.SearchFiltersModel.secondFilterAttribute)} has been set, therefore {nameof(Models.SearchFiltersModel.combineFilters)} is required.");

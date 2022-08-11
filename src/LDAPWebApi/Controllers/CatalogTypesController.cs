@@ -15,6 +15,7 @@ namespace Bitai.LDAPWebApi.Controllers
     /// Web Api controller to handle LDAP Catalog names 
     /// </summary>
     [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
+	[ApiController]
     public class CatalogTypesController : ApiControllerBase<CatalogTypesController>
     {
         /// <summary>

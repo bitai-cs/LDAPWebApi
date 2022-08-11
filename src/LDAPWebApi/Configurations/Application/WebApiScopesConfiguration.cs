@@ -10,8 +10,27 @@ namespace Bitai.LDAPWebApi.Configurations.App
         internal const string GlobalScopeAuthorizationPolicyName = "RequiredGlobalScopePolicy";
 
 
+
+        /// <summary>
+        /// Constructor. 
+        /// Set default values.
+        /// </summary>
+        public WebApiScopesConfiguration()
+		{
+            BypassApiScopesAuthorization = true;
+            GlobalScopeName = "Bitai.LdapWebApi.Scope.Global";
+		}
+
+
+
+        /// <summary>
+        /// Whether or not to bypass authorization validation for Api Scopes.
+        /// </summary>
         public bool BypassApiScopesAuthorization { get; set; }
 
+        /// <summary>
+        /// Name of the Global Scope
+        /// </summary>
         public string GlobalScopeName { get; set; }
     }
 }

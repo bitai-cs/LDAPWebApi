@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
     <Version>4.1.1</Version>
     <Authors>Viko Bastidas (BITAI)</Authors>
@@ -21,6 +21,8 @@
     <AssemblyName>Bitai.LDAPWebApi.Clients</AssemblyName>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <UserSecretsId>ad686ef5-c54b-454c-b2d8-93da42982266</UserSecretsId>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

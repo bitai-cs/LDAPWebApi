@@ -28,6 +28,31 @@ namespace Bitai.LDAPWebApi.Configurations.LDAP
     public class LDAPServerProfile
     {
         /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <remarks>
+        /// Set default property values.
+        /// </remarks>
+        public LDAPServerProfile()
+		{
+            ProfileId = "LOCAL";
+            Server = "localhost";
+            Port = "Default";
+            PortForGlobalCatalog = "Default";
+            BaseDN = "DC=local,DC=com";
+            BaseDNforGlobalCatalog = "DC=com";
+            DefaultDomainName = "LOCAL";
+            ConnectionTimeout = 10;
+            UseSSL = false;
+            UseSSLforGlobalCatalog = false;
+            DomainAccountName = "LOCAL\\user";
+            DomainAccountPassword = "P@ssw0rd";
+            HealthCheckPingTimeout = 2;
+        }
+
+
+
+        /// <summary>
         /// Profile identifier.
         /// </summary>
         public string ProfileId { get; set; }
@@ -94,6 +119,8 @@ namespace Bitai.LDAPWebApi.Configurations.LDAP
         /// </summary>
         public int HealthCheckPingTimeout { get; set; }
 
+
+
         /// <summary>
         /// Helper method to get Port from properties.
         /// </summary>
@@ -132,7 +159,7 @@ namespace Bitai.LDAPWebApi.Configurations.LDAP
         /// </summary>
         /// <param name="forGlobalCatalog">If using the global catalog service.</param>
         /// <returns></returns>
-        public string GetBaseDN(bool forGlobalCatalog)
+        public string? GetBaseDN(bool forGlobalCatalog)
         {
             return (forGlobalCatalog ? BaseDNforGlobalCatalog : BaseDN);
         }

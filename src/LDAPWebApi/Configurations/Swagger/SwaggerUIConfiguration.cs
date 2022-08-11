@@ -10,6 +10,15 @@ namespace Bitai.LDAPWebApi.Configurations.Swagger
     /// </summary>
     public class SwaggerUIConfiguration
     {
+        public SwaggerUIConfiguration()
+		{
+            SwaggerUITargetApiScope = "ApiScope";
+            SwaggerUITargetApiScopeTitle = "Api Scope";
+            SwaggerUIClientId = "Swagger_Client_Id";
+        }
+
+
+
         /// <summary>
         /// Api Scope registered with the identity server.
         /// </summary>

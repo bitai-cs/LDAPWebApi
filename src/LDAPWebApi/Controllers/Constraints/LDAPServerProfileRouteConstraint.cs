@@ -14,12 +14,12 @@ namespace Bitai.LDAPWebApi.Controllers.Constraints
             this._ldapServerProfiles = ldapServerProfiles;
         }
 
-        public bool Match(HttpContext httpContext, IRouter route, string routeKey, RouteValueDictionary values, RouteDirection routeDirection)
+        public bool Match(HttpContext? httpContext, IRouter? route, string routeKey, RouteValueDictionary values, RouteDirection routeDirection)
         {
             if (!values.TryGetValue(routeKey, out var routeValue))
                 throw new Exception($"Cannot get '{routeKey}' route value.");
 
-            return _ldapServerProfiles.Exists(m => m.ProfileId.Equals(routeValue.ToString(), StringComparison.OrdinalIgnoreCase));
+            return _ldapServerProfiles.Exists(m => m.ProfileId.Equals(routeValue!.ToString(), StringComparison.OrdinalIgnoreCase));
         }
     }
 }

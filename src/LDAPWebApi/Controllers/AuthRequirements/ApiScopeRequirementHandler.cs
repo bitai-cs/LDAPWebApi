@@ -13,7 +13,11 @@ namespace Bitai.LDAPWebApi.Controllers.AuthRequirements
             if (!context.User.HasClaim(c => c.Type == "scope" && c.Issuer == requirement.Issuer))
                 return Task.CompletedTask;
 
-            var scopes = context.User.FindFirst(c => c.Type == "scope" && c.Issuer == requirement.Issuer).Value.Split(' ');
+            var claim = context.User.FindFirst(c => c.Type == "scope" && c.Issuer == requirement.Issuer);
+            if (claim == null)
+                throw new Exception($"The issuer named {requirement.Issuer} was not found in the user's claims.");
+
+            var scopes = claim.Value.Split(' ');
 
             if (scopes.Any(s => requirement.Scopes.Contains(s)))
                 context.Succeed(requirement);
