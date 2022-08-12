@@ -16,8 +16,8 @@ namespace Bitai.LDAPWebApi.Configurations.App
         /// </summary>
         public WebApiLogConfiguration()
 		{
-            MinimunLogLevel = MinimunLogEventLevel.Error;
-            LogFilePath = "/logs";
+            MinimunLogLevel = MinimunLogEventLevel.Information;
+            LogFilePath = "./logs/Bitai.LDAPWebApi-.log";
 		}
 
 

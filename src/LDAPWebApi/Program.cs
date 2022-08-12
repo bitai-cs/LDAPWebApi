@@ -98,7 +98,7 @@ namespace Bitai.LDAPWebApi
 
 		private static LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, LoggerConfiguration loggerConfiguration, bool useBootstrapConfiguration)
 		{
-			var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>();
+			var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>() ?? new WebApiLogConfiguration();
 
 			if (useBootstrapConfiguration)
 			{

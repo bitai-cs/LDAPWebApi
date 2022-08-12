@@ -78,7 +78,7 @@ namespace Bitai.LDAPWebApi
 
 			services.AddSwaggerConfiguration(Configuration, out var swaggerUIConfiguration);
 
-			services.ConfigureSwaggerGenerator(webApiConfiguration, authorityConfiguration, swaggerUIConfiguration);
+			services.ConfigureSwaggerGenerator(webApiConfiguration, webApiScopesConfiguration, authorityConfiguration, swaggerUIConfiguration);
 
 			Log.Information("{class} -> {method} completed.", FullName, nameof(ConfigureServices));
 		}

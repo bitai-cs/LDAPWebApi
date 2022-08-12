@@ -15,8 +15,11 @@ namespace Bitai.LDAPWebApi.Configurations.App
         /// </summary>
         public WebApiCorsConfiguration()
 		{
-            AllowAnyOrigin = true;
-            AllowedOrigins = new string[] { };
+            AllowAnyOrigin = false;
+            AllowedOrigins = new string[] { 
+                "http://localhost:5100",
+                "https://localhost:5101"
+            };
 		}
 
 

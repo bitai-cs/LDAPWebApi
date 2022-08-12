@@ -16,7 +16,7 @@ namespace Bitai.LDAPWebApi.Configurations.App
             WebApiTitle = "BITAI LDAP Web Api";
             WebApiDescription = "Web Api for queryng LDAP servers";
             WebApiVersion = "v1";
-            WebApiBaseUrl = "http://localhost:5100";
+            WebApiBaseUrl = "https://localhost:5101";
             WebApiContactName = "Viko Bastidas";
             WebApiContactMail = "vico.bastidasgmail.com";
             WebApiContactUrl = "https://www.linkedin.com/in/victorbastidasg";

@@ -27,7 +27,7 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(AddWebApiConfiguration));
 
-			webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>();
+			webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>() ?? new WebApiConfiguration();
 
 			services.AddSingleton(webApiConfiguration);
 
@@ -38,7 +38,7 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(AddWebApiLogConfiguration));
 
-			var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>();
+			var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>() ?? new WebApiLogConfiguration();
 
 			services.AddSingleton(webApiLogConfiguration);
 
@@ -49,7 +49,7 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(AddWebApiScopesConfiguration));
 
-			webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>();
+			webApiScopesConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiScopesConfiguration)).Get<Configurations.App.WebApiScopesConfiguration>() ?? new WebApiScopesConfiguration();
 
 			return services.AddSingleton(webApiScopesConfiguration);
 		}
@@ -58,7 +58,7 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(ConfigureWebApiCors));
 
-			var webApiCorsConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiCorsConfiguration)).Get<Configurations.App.WebApiCorsConfiguration>();
+			var webApiCorsConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiCorsConfiguration)).Get<Configurations.App.WebApiCorsConfiguration>() ?? new WebApiCorsConfiguration();
 
 			services.AddCors(setup =>
 			{
@@ -81,7 +81,7 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(AddLDAPServerProfiles));
 
-			ldapServerProfiles = configuration.GetSection(nameof(LDAPServerProfiles)).Get<LDAPServerProfiles>();
+			ldapServerProfiles = configuration.GetSection(nameof(LDAPServerProfiles)).Get<LDAPServerProfiles>() ?? new LDAPServerProfiles();
 
 			ldapServerProfiles.CheckConfigurationIntegrity();
 
@@ -92,7 +92,7 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(AddAuthorityConfiguration));
 
-			authorityConfiguration = configuration.GetSection(nameof(AuthorityConfiguration)).Get<AuthorityConfiguration>();
+			authorityConfiguration = configuration.GetSection(nameof(AuthorityConfiguration)).Get<AuthorityConfiguration>() ?? new AuthorityConfiguration();
 
 			return services.AddSingleton(authorityConfiguration);
 		}
@@ -101,12 +101,12 @@ namespace Bitai.LDAPWebApi.Helpers
 		{
 			Log.Information("{method}", nameof(AddSwaggerConfiguration));
 
-			swaggerConfigration = configuration.GetSection(nameof(Configurations.Swagger.SwaggerUIConfiguration)).Get<Configurations.Swagger.SwaggerUIConfiguration>();
+			swaggerConfigration = configuration.GetSection(nameof(Configurations.Swagger.SwaggerUIConfiguration)).Get<Configurations.Swagger.SwaggerUIConfiguration>() ?? new SwaggerUIConfiguration();
 
 			return services.AddSingleton(swaggerConfigration);
 		}
 
-		internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Security.AuthorityConfiguration authorityConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerConfiguration)
+		internal static IServiceCollection ConfigureSwaggerGenerator(this IServiceCollection services, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.App.WebApiScopesConfiguration webApiScopesConfiguration, Configurations.Security.AuthorityConfiguration authorityConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerConfiguration)
 		{
 			Log.Information("{method}", nameof(ConfigureSwaggerGenerator));
 
@@ -128,24 +128,27 @@ namespace Bitai.LDAPWebApi.Helpers
 				setupAction.IncludeXmlComments(System.IO.Path.Combine(AppContext.BaseDirectory,
 					$"{webApiConfiguration.GetType().Assembly.GetName().Name}.xml"));
 
-				setupAction.AddSecurityDefinition("OAuth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+				if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
 				{
-					Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
-					Flows = new Microsoft.OpenApi.Models.OpenApiOAuthFlows
+					setupAction.AddSecurityDefinition("OAuth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
 					{
-						AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
+						Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
+						Flows = new Microsoft.OpenApi.Models.OpenApiOAuthFlows
 						{
-							AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
-							TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),
-							Scopes = new Dictionary<string, string> {
+							AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
+							{
+								AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
+								TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),
+								Scopes = new Dictionary<string, string> {
 								  { swaggerConfiguration.SwaggerUITargetApiScope, swaggerConfiguration.SwaggerUITargetApiScopeTitle }
 							 }
-						}
-					},
-					Description = "Swagger Generator OpenId security scheme."
-				});
+							}
+						},
+						Description = "Swagger Generator OpenId security scheme."
+					});
 
-				setupAction.OperationFilter<Configurations.Authorization.AuthorizeCheckOperationFilter>();
+					setupAction.OperationFilter<Configurations.Authorization.AuthorizeCheckOperationFilter>();
+				}
 			});
 
 			return services;

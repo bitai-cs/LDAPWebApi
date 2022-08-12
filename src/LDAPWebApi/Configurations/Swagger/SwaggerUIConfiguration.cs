@@ -12,9 +12,9 @@ namespace Bitai.LDAPWebApi.Configurations.Swagger
     {
         public SwaggerUIConfiguration()
 		{
-            SwaggerUITargetApiScope = "ApiScope";
-            SwaggerUITargetApiScopeTitle = "Api Scope";
-            SwaggerUIClientId = "Swagger_Client_Id";
+            SwaggerUITargetApiScope = "Bitai.LdapWebApi.Scope.Global";
+            SwaggerUITargetApiScopeTitle = "BITAI LDAP Web Api Global Scope";
+            SwaggerUIClientId = "Bitai.LdapWebApi.Swagger.Client";
         }
 
 
