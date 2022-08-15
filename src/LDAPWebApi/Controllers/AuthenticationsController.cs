@@ -13,85 +13,84 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Bitai.LDAPWebApi.Controllers
+namespace Bitai.LDAPWebApi.Controllers;
+
+/// <summary>
+/// Web Api controller to process credentials.
+/// </summary>
+[Route("api")]
+[Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
+[ApiController]
+public class AuthenticationsController : ApiControllerBase<AuthenticationsController>
 {
     /// <summary>
-    /// Web Api controller to process credentials.
+    /// Constructor
     /// </summary>
-    [Route("api")]
-    [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
-    [ApiController]
-    public class AuthenticationsController : ApiControllerBase<AuthenticationsController>
+    /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+    /// <param name="logger">See <see cref="ILogger{TCategoryName}"/>.</param>
+    /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
+    public AuthenticationsController(IConfiguration configuration, ILogger<AuthenticationsController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles) { }
+
+
+
+    /// <summary>
+    /// Validate Domain Account Name credential.
+    /// </summary>
+    /// <param name="serverProfile">LDAP Server Profile Id that defines part of the path. See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
+    /// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPCatalogTypes"/></param>
+    /// <param name="accountCredentials">Account credentials to validate. See <see cref="DTO.LDAPAccountCredentials"/></param>
+    /// <param name="requestTag">Valor personalizado para etiquetar la respuesta. Can e null</param>
+    /// <returns><see cref="DTO.LDAPAccountAuthenticationStatus"/></returns>
+    [HttpPost]
+    [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]")]
+    public async Task<ActionResult<DTO.LDAPAccountAuthenticationStatus>> PostAuthenticationAsync(
+        [FromRoute] string serverProfile,
+        [FromRoute] string catalogType,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
+        [FromBody] DTO.LDAPAccountCredentials accountCredentials)
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
-        /// <param name="logger">See <see cref="ILogger{TCategoryName}"/>.</param>
-        /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-        public AuthenticationsController(IConfiguration configuration, ILogger<AuthenticationsController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles) { }
+        Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(requestTag)}={requestTag}");
 
+        Logger.LogInformation("Request body: {@credentials}", accountCredentials.Clone());
 
+        var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
-        /// <summary>
-        /// Validate Domain Account Name credential.
-        /// </summary>
-        /// <param name="serverProfile">LDAP Server Profile Id that defines part of the path. See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
-        /// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPCatalogTypes"/></param>
-        /// <param name="accountCredentials">Account credentials to validate. See <see cref="DTO.LDAPAccountCredentials"/></param>
-        /// <param name="requestTag">Valor personalizado para etiquetar la respuesta. Can e null</param>
-        /// <returns><see cref="DTO.LDAPAccountAuthenticationStatus"/></returns>
-        [HttpPost]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]")]
-        public async Task<ActionResult<DTO.LDAPAccountAuthenticationStatus>> PostAuthenticationAsync(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
-            [FromBody] DTO.LDAPAccountCredentials accountCredentials)
+        var accountAuthenticationStatus = new DTO.LDAPAccountAuthenticationStatus
         {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(requestTag)}={requestTag}");
+            DomainName = accountCredentials.DomainName,
+            AccountName = accountCredentials.AccountName,
+            RequestTag = requestTag
+        };
 
-            Logger.LogInformation("Request body: {@credentials}", accountCredentials.Clone());
+        var attributeFilter = new AttributeFilter(EntryAttribute.sAMAccountName, new FilterValue(accountCredentials.AccountName));
+        var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+        var ldapSearchResult = await ldapSearcher.SearchEntriesAsync(attributeFilter, RequiredEntryAttributes.OnlyObjectSid, null);
 
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
-
-            var accountAuthenticationStatus = new DTO.LDAPAccountAuthenticationStatus
+        if (ldapSearchResult.Entries.Count() == 0)
+        {
+            if (ldapSearchResult.HasErrorInfo)
             {
-                DomainName = accountCredentials.DomainName,
-                AccountName = accountCredentials.AccountName,
-                RequestTag = requestTag
-            };
-
-            var attributeFilter = new AttributeFilter(EntryAttribute.sAMAccountName, new FilterValue(accountCredentials.AccountName));
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
-            var ldapSearchResult = await ldapSearcher.SearchEntriesAsync(attributeFilter, RequiredEntryAttributes.OnlyObjectSid, null);
-
-            if (ldapSearchResult.Entries.Count() == 0)
-            {
-                if (ldapSearchResult.HasErrorInfo)
-                {
-                    throw ldapSearchResult.ErrorObject;
-                }
-                else
-                {
-                    accountAuthenticationStatus.IsAuthenticated = false;
-                    accountAuthenticationStatus.Message = $"The account name {accountCredentials.AccountName} could not be found, verify that the account name exists.";
-                }
+                throw ldapSearchResult.ErrorObject;
             }
             else
             {
-                var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
-                var domainAccountName = $"{accountCredentials.DomainName}\\{accountCredentials.AccountName}";
-                var credentialToAuthenticate = new LDAPHelper.Credentials(domainAccountName, accountCredentials.AccountPassword);
-                var isAuthenticated = await authenticator.AuthenticateAsync(credentialToAuthenticate);
-
-                accountAuthenticationStatus.IsAuthenticated = isAuthenticated;
-                accountAuthenticationStatus.Message = isAuthenticated ? "The credentials are valid." : "Wrong Domain or password.";
+                accountAuthenticationStatus.IsAuthenticated = false;
+                accountAuthenticationStatus.Message = $"The account name {accountCredentials.AccountName} could not be found, verify that the account name exists.";
             }
-
-            Logger.LogInformation("Response body: {@status}", accountAuthenticationStatus);
-
-            return Ok(accountAuthenticationStatus);
         }
+        else
+        {
+            var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
+            var domainAccountName = $"{accountCredentials.DomainName}\\{accountCredentials.AccountName}";
+            var credentialToAuthenticate = new LDAPHelper.Credentials(domainAccountName, accountCredentials.AccountPassword);
+            var isAuthenticated = await authenticator.AuthenticateAsync(credentialToAuthenticate);
+
+            accountAuthenticationStatus.IsAuthenticated = isAuthenticated;
+            accountAuthenticationStatus.Message = isAuthenticated ? "The credentials are valid." : "Wrong Domain or password.";
+        }
+
+        Logger.LogInformation("Response body: {@status}", accountAuthenticationStatus);
+
+        return Ok(accountAuthenticationStatus);
     }
 }

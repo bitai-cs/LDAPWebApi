@@ -10,119 +10,118 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Bitai.LDAPWebApi.Controllers
+namespace Bitai.LDAPWebApi.Controllers;
+
+/// <summary>
+/// Base Web Controller Api that defines the basic behavior of any controller.
+/// </summary>
+public abstract class ApiControllerBase<T> : ControllerBase
 {
 	/// <summary>
-	/// Base Web Controller Api that defines the basic behavior of any controller.
+	/// <see cref="IConfiguration"/>    
 	/// </summary>
-	public abstract class ApiControllerBase<T> : ControllerBase
+	protected IConfiguration Configuration { get; }
+
+	/// <summary>
+	/// Logger
+	/// </summary>
+	protected ILogger<T> Logger { get; }
+
+	/// <summary>
+	/// List of <see cref="Configurations.LDAP.LDAPServerProfile"/>
+	/// </summary>
+	protected Configurations.LDAP.LDAPServerProfiles ServerProfiles { get; }
+
+	/// <summary>
+	/// Route name for each LDAP Catalog.
+	/// </summary>
+	protected DTO.LDAPCatalogTypes CatalogTypeRoutes => new DTO.LDAPCatalogTypes();
+
+
+
+
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+	/// <param name="logger">Logger</param>
+	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
+	protected ApiControllerBase(IConfiguration configuration, ILogger<T> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles)
 	{
-		/// <summary>
-		/// <see cref="IConfiguration"/>    
-		/// </summary>
-		protected IConfiguration Configuration { get; }
-
-		/// <summary>
-		/// Logger
-		/// </summary>
-		protected ILogger<T> Logger { get; }
-
-		/// <summary>
-		/// List of <see cref="Configurations.LDAP.LDAPServerProfile"/>
-		/// </summary>
-		protected Configurations.LDAP.LDAPServerProfiles ServerProfiles { get; }
-
-		/// <summary>
-		/// Route name for each LDAP Catalog.
-		/// </summary>
-		protected DTO.LDAPCatalogTypes CatalogTypeRoutes => new DTO.LDAPCatalogTypes();
+		Configuration = configuration;
+		Logger = logger;
+		ServerProfiles = serverProfiles;
+	}
 
 
 
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
-		/// <param name="logger">Logger</param>
-		/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
-		protected ApiControllerBase(IConfiguration configuration, ILogger<T> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles)
-		{
-			Configuration = configuration;
-			Logger = logger;
-			ServerProfiles = serverProfiles;
-		}
+	/// <summary>
+	/// Get an instance of <see cref="LDAPHelper.ClientConfiguration"/>
+	/// </summary>
+	/// <param name="serverProfile">LDAP server profile ID.</param>
+	/// <param name="useGlobalCatalog">Use or not the Global LDAP Catalog.</param>
+	/// <returns></returns>
+	protected LDAPHelper.ClientConfiguration GetLdapClientConfiguration(string serverProfile, bool useGlobalCatalog)
+	{
+		if (string.IsNullOrEmpty(serverProfile))
+			throw new ArgumentNullException(nameof(serverProfile));
 
+		var ldapServerProfile = this.ServerProfiles.Where(p => p.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
 
+		var connectionInfo = new LDAPHelper.ConnectionInfo(ldapServerProfile.Server, ldapServerProfile.GetPort(useGlobalCatalog), ldapServerProfile.GetUseSsl(useGlobalCatalog), ldapServerProfile.ConnectionTimeout);
 
+		var credentials = new LDAPHelper.Credentials(ldapServerProfile.DomainAccountName, ldapServerProfile.DomainAccountPassword);
 
-		/// <summary>
-		/// Get an instance of <see cref="LDAPHelper.ClientConfiguration"/>
-		/// </summary>
-		/// <param name="serverProfile">LDAP server profile ID.</param>
-		/// <param name="useGlobalCatalog">Use or not the Global LDAP Catalog.</param>
-		/// <returns></returns>
-		protected LDAPHelper.ClientConfiguration GetLdapClientConfiguration(string serverProfile, bool useGlobalCatalog)
-		{
-			if (string.IsNullOrEmpty(serverProfile))
-				throw new ArgumentNullException(nameof(serverProfile));
+		var searchLimits = new LDAPHelper.SearchLimits(ldapServerProfile.GetBaseDN(useGlobalCatalog));
 
-			var ldapServerProfile = this.ServerProfiles.Where(p => p.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
+		return new LDAPHelper.ClientConfiguration(connectionInfo, credentials, searchLimits);
+	}
 
-			var connectionInfo = new LDAPHelper.ConnectionInfo(ldapServerProfile.Server, ldapServerProfile.GetPort(useGlobalCatalog), ldapServerProfile.GetUseSsl(useGlobalCatalog), ldapServerProfile.ConnectionTimeout);
+	/// <summary>
+	/// Get an instance of <see cref="LDAPHelper.Searcher"/>
+	/// </summary>
+	/// <param name="clientConfiguration"><see cref="LDAPHelper.ClientConfiguration"/> to be used by <see cref="LDAPHelper.Searcher"/></param>
+	/// <returns></returns>
+	protected async Task<LDAPHelper.Searcher> GetLdapSearcher(LDAPHelper.ClientConfiguration clientConfiguration)
+	{
+		return await Task.Run(() => new LDAPHelper.Searcher(clientConfiguration));
+	}
 
-			var credentials = new LDAPHelper.Credentials(ldapServerProfile.DomainAccountName, ldapServerProfile.DomainAccountPassword);
+	/// <summary>
+	/// Check if the name of the catalog type is the 
+	/// name of the global catalog.
+	/// </summary>
+	/// <param name="ldapCatalogType">Name of Catalog type.</param>
+	/// <returns></returns>
+	protected bool IsGlobalCatalog(string ldapCatalogType)
+	{
+		if (CatalogTypeRoutes.GlobalCatalog.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
+			return true;
 
-			var searchLimits = new LDAPHelper.SearchLimits(ldapServerProfile.GetBaseDN(useGlobalCatalog));
+		if (CatalogTypeRoutes.LocalCatalog.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
+			return false;
 
-			return new LDAPHelper.ClientConfiguration(connectionInfo, credentials, searchLimits);
-		}
+		throw new Exception($"LDAP Catalog type '{ldapCatalogType}' not found.");
+	}
 
-		/// <summary>
-		/// Get an instance of <see cref="LDAPHelper.Searcher"/>
-		/// </summary>
-		/// <param name="clientConfiguration"><see cref="LDAPHelper.ClientConfiguration"/> to be used by <see cref="LDAPHelper.Searcher"/></param>
-		/// <returns></returns>
-		protected async Task<LDAPHelper.Searcher> GetLdapSearcher(LDAPHelper.ClientConfiguration clientConfiguration)
-		{
-			return await Task.Run(() => new LDAPHelper.Searcher(clientConfiguration));
-		}
+	protected void ValidateIdentifierAttribute([NotNull] ref LDAPHelper.DTO.EntryAttribute? identifierAttribute)
+	{
+		if (!identifierAttribute.HasValue)
+			throw new InvalidOperationException($"{typeof(Binders.OptionalIdentifierAttributeBinder).FullName} could not identify / set {nameof(identifierAttribute)} parameter.");
+	}
 
-		/// <summary>
-		/// Check if the name of the catalog type is the 
-		/// name of the global catalog.
-		/// </summary>
-		/// <param name="ldapCatalogType">Name of Catalog type.</param>
-		/// <returns></returns>
-		protected bool IsGlobalCatalog(string ldapCatalogType)
-		{
-			if (CatalogTypeRoutes.GlobalCatalog.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
-				return true;
+	protected void ValidateRequiredAttributes([NotNull] ref LDAPHelper.DTO.RequiredEntryAttributes? requiredAttributes)
+	{
+		if (!requiredAttributes.HasValue)
+			throw new InvalidOperationException($"{typeof(Binders.OptionalRequiredAttributesBinder).FullName} could not identify / set {nameof(requiredAttributes)} parameter.");
+	}
 
-			if (CatalogTypeRoutes.LocalCatalog.Equals(ldapCatalogType, StringComparison.OrdinalIgnoreCase))
-				return false;
+	protected bool ValidateCombineFiltersParameter(Models.SearchFiltersModel searchFilters)
+	{
+		if (!searchFilters.combineFilters.HasValue)
+			throw new InvalidOperationException($"Failed to identify search filter parameters that are in the URL query string. {typeof(Binders.SearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.SearchFiltersModel)}.");
 
-			throw new Exception($"LDAP Catalog type '{ldapCatalogType}' not found.");
-		}
-
-		protected void ValidateIdentifierAttribute([NotNull] ref LDAPHelper.DTO.EntryAttribute? identifierAttribute)
-		{
-			if (!identifierAttribute.HasValue)
-				throw new InvalidOperationException($"{typeof(Binders.OptionalIdentifierAttributeBinder).FullName} could not identify / set {nameof(identifierAttribute)} parameter.");
-		}
-
-		protected void ValidateRequiredAttributes([NotNull] ref LDAPHelper.DTO.RequiredEntryAttributes? requiredAttributes)
-		{
-			if (!requiredAttributes.HasValue)
-				throw new InvalidOperationException($"{typeof(Binders.OptionalRequiredAttributesBinder).FullName} could not identify / set {nameof(requiredAttributes)} parameter.");
-		}
-
-		protected bool ValidateCombineFiltersParameter(Models.SearchFiltersModel searchFilters)
-		{
-			if (!searchFilters.combineFilters.HasValue)
-				throw new InvalidOperationException($"Failed to identify search filter parameters that are in the URL query string. {typeof(Binders.SearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.SearchFiltersModel)}.");
-
-			return searchFilters.combineFilters.Value;
-		}
+		return searchFilters.combineFilters.Value;
 	}
 }

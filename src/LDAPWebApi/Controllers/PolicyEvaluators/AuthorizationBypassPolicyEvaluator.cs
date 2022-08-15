@@ -8,26 +8,25 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Bitai.LDAPWebApi.Controllers.PolicyEvaluators
+namespace Bitai.LDAPWebApi.Controllers.PolicyEvaluators;
+
+public class AuthorizationBypassPolicyEvaluator : IPolicyEvaluator
 {
-    public class AuthorizationBypassPolicyEvaluator : IPolicyEvaluator
+    public virtual async Task<AuthenticateResult> AuthenticateAsync(AuthorizationPolicy policy, HttpContext context)
     {
-        public virtual async Task<AuthenticateResult> AuthenticateAsync(AuthorizationPolicy policy, HttpContext context)
-        {
-            var bypassScheme = "BypassScheme";
+        var bypassScheme = "BypassScheme";
 
-            var principal = new ClaimsPrincipal();
-            principal.AddIdentity(new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.NameIdentifier, "Anonymous")
-            }, bypassScheme));
+        var principal = new ClaimsPrincipal();
+        principal.AddIdentity(new ClaimsIdentity(new[] {
+            new Claim(ClaimTypes.NameIdentifier, "Anonymous")
+        }, bypassScheme));
 
-            return await Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal,
-                new AuthenticationProperties(), bypassScheme)));
-        }
+        return await Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal,
+            new AuthenticationProperties(), bypassScheme)));
+    }
 
-        public virtual async Task<PolicyAuthorizationResult> AuthorizeAsync(AuthorizationPolicy policy, AuthenticateResult authenticationResult, HttpContext context, object? resource)
-        {
-            return await Task.FromResult(PolicyAuthorizationResult.Success());
-        }
+    public virtual async Task<PolicyAuthorizationResult> AuthorizeAsync(AuthorizationPolicy policy, AuthenticateResult authenticationResult, HttpContext context, object? resource)
+    {
+        return await Task.FromResult(PolicyAuthorizationResult.Success());
     }
 }
