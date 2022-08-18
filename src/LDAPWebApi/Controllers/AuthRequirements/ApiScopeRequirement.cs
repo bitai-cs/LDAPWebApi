@@ -4,21 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Bitai.LDAPWebApi.Controllers.AuthRequirements
+namespace Bitai.LDAPWebApi.Controllers.AuthRequirements;
+
+public class ApiScopeRequirement : IAuthorizationRequirement
 {
-    public class ApiScopeRequirement : IAuthorizationRequirement
+    public IEnumerable<string> Scopes { get; }
+    public string Issuer { get; }
+
+    public ApiScopeRequirement(IEnumerable<string> scopes, string issuer)
     {
-        public IEnumerable<string> Scopes { get; }
-        public string Issuer { get; }
+        if (scopes == null || scopes.Count().Equals(0))
+            throw new ArgumentNullException(nameof(scopes));
 
-        public ApiScopeRequirement(IEnumerable<string> scopes, string issuer)
-        {
-            if (scopes == null || scopes.Count().Equals(0))
-                throw new ArgumentNullException(nameof(scopes));
+        Scopes = scopes;
 
-            Scopes = scopes;
-
-            Issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
-        }
+        Issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
     }
 }

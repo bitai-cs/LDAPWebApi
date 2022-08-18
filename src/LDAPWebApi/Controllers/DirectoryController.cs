@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
@@ -12,344 +13,381 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Bitai.LDAPWebApi.Controllers
+namespace Bitai.LDAPWebApi.Controllers;
+
+/// <summary>
+/// Web API controller for operations with LDAP entries
+/// </summary>
+[Route("api")]
+[Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
+[ApiController]
+public class DirectoryController : ApiControllerBase<DirectoryController>
 {
-    /// <summary>
-    /// Web API controller for operations with LDAP entries
-    /// </summary>
-    [Route("api")]
-    [Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
-    [ApiController]
-    public class DirectoryController : ApiControllerBase<DirectoryController>
-    {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
-        /// <param name="logger">Logger</param>
-        /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>        
-        public DirectoryController(IConfiguration configuration, ILogger<DirectoryController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
-        {
-        }
-
-
-
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/{identifier}")]
-        public async Task<ActionResult<LDAPSearchResult>> GetByIdentifier(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromRoute] string identifier,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
-
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
-
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
-
-            var searchFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
-
-            var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
-
-            if (searchResult.Entries.Count() > 1)
-                throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
-
-            Logger.LogInformation("Response body: {@result}", searchResult);
-
-            return Ok(searchResult);
-        }
-
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
-        [ActionName("filterBy")]
-        public async Task<ActionResult<LDAPSearchResult>> FilterByAsync(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
-
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
-
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
-
-            LDAPSearchResult searchResult;
-            if (searchFilters.secondFilterAttribute.HasValue)
-            {
-                var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
-                var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
-                var searchFilter = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
-
-                searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-            }
-            else
-            {
-                var searchFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
-
-                searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-            }
-
-            var resultCount = searchResult.Entries.Count();
-            if (resultCount == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
-
-            Logger.LogInformation("Search result count: {0}", resultCount);
-
-            return Ok(searchResult);
-        }
-
-        /// <summary>
-        /// Gets an LDAP entry with the data of a user. 
-        /// </summary>
-        /// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
-        /// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/></param>
-        /// <param name="identifier">Value for <paramref name="identifierAttribute"/> attribute that defines a user. It also defines part of the route./></param>
-        /// <param name="identifierAttribute">Optional, default value is <see cref="LDAPHelper.DTO.EntryAttribute.sAMAccountName"/>. It is the attribute by which a user will be identified.</param>
-        /// <param name="requiredAttributes">The type of attribute set to return in the result. See <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/></param>
-        /// <param name="requestTag">Custom value to tag response values.</param>
-        /// <returns><see cref="LDAPSearchResult"/></returns>
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}")]
-        public async Task<ActionResult<LDAPSearchResult>> GetUserByIdentifier(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromRoute] string identifier,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+	/// <param name="logger">Logger</param>
+	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>        
+	public DirectoryController(IConfiguration configuration, ILogger<DirectoryController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
+	{
+	}
+
+
+	/// <summary>
+	/// Search for entries by an identifier field.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Server profile Id.</param>
+	/// <param name="catalogType">LDAP Server catalog type.</param>
+	/// <param name="identifier">Entry identifier value.</param>
+	/// <param name="identifierAttribute">Optional. Attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.sAMAccountName"/> attribute is assumed by default.</param>
+	/// <param name="requiredAttributes">Optional. . If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default.</param>
+	/// <param name="requestTag">Optopnal. Tag to identify the request.</param>
+	/// <returns></returns>
+	/// <exception cref="InvalidOperationException"></exception>
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/{identifier}")]
+	public async Task<ActionResult<LDAPSearchResult>> GetByIdentifier(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+
+		var searchFilter = new AttributeFilter(identifierAttribute!.Value, new FilterValue(identifier));
+
+		var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
+
+		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
+
+		if (searchResult.Entries.Count() > 1)
+			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+
+		Logger.LogInformation("Response body: {@result}", searchResult);
+
+		return Ok(searchResult);
+	}
+
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
+	[ActionName("filterBy")]
+	public async Task<ActionResult<LDAPSearchResult>> FilterByAsync(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+
+		ValidateRequiredAttributes(ref requiredAttributes);
+
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+
+		LDAPSearchResult searchResult;
+		if (searchFilters.secondFilterAttribute.HasValue)
+		{
+			searchFilters.combineFilters = ValidateCombineFiltersParameter(searchFilters);
+
+			var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
+			var searchFilter = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
+
+			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		}
+		else
+		{
+			var searchFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+
+			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		}
+
+		var resultCount = searchResult.Entries.Count();
+		if (resultCount == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
+
+		Logger.LogInformation("Search result count: {0}", resultCount);
+
+		return Ok(searchResult);
+	}
+
+	/// <summary>
+	/// Gets an LDAP entry with the data of a user. 
+	/// </summary>
+	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
+	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/></param>
+	/// <param name="identifier">Value for <paramref name="identifierAttribute"/> attribute that defines a user. It also defines part of the route./></param>
+	/// <param name="identifierAttribute">Optional, default value is <see cref="LDAPHelper.DTO.EntryAttribute.sAMAccountName"/>. It is the attribute by which a user will be identified.</param>
+	/// <param name="requiredAttributes">The type of attribute set to return in the result. See <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/></param>
+	/// <param name="requestTag">Custom value to tag response values.</param>
+	/// <returns><see cref="LDAPSearchResult"/></returns>
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}")]
+	public async Task<ActionResult<LDAPSearchResult>> GetUserByIdentifier(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		ValidateIdentifierAttribute(ref identifierAttribute);
 
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		ValidateRequiredAttributes(ref requiredAttributes);
 
-            var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
-            var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-            var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
+		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
 
-            var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
+		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
+		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-            if (searchResult.Entries.Count() > 1)
-                throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+		var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 
-            Logger.LogInformation("Response body: {@result}", searchResult);
+		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
 
-            return Ok(searchResult);
-        }
+		if (searchResult.Entries.Count() > 1)
+			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Parents")]
-        public async Task<ActionResult<LDAPSearchResult>> GetParentsForUserIdentifier(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromRoute] string identifier,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation("Response body: {@result}", searchResult);
 
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		return Ok(searchResult);
+	}
 
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Parents")]
+	public async Task<ActionResult<LDAPSearchResult>> GetParentsForUserIdentifier(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-            var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
-            var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
+		ValidateIdentifierAttribute(ref identifierAttribute);
 
-            var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
+		ValidateRequiredAttributes(ref requiredAttributes);
 
-            var searchResult = await ldapSearcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
+		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
 
-            if (searchResult.Entries.Count() > 1)
-                throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+		var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
+		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
 
-            Logger.LogInformation("Response body: {@result}", searchResult);
+		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-            return Ok(searchResult);
-        }
+		var searchResult = await ldapSearcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/[action]")]
-        [ActionName("filterBy")]
-        public async Task<ActionResult<LDAPSearchResult>> GetUsersFilteringByAsync(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
 
-            var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		if (searchResult.Entries.Count() > 1)
+			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
-            var ldapSearcher = await GetLdapSearcher(clientConfiguration);
+		Logger.LogInformation("Response body: {@result}", searchResult);
 
-            LDAPSearchResult searchResult;
-            if (searchFilters.secondFilterAttribute.HasValue)
-            {
-                var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
+		return Ok(searchResult);
+	}
 
-                var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
-                var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
-                var combinedFilters = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/[action]")]
+	[ActionName("filterBy")]
+	public async Task<ActionResult<LDAPSearchResult>> GetUsersFilteringByAsync(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-                var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, combinedFilters });
+		ValidateRequiredAttributes(ref requiredAttributes);
 
-                searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-            }
-            else
-            {
-                var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
+		var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-                var attributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
+		var ldapSearcher = await GetLdapSearcher(clientConfiguration);
 
-                var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
+		LDAPSearchResult searchResult;
+		if (searchFilters.secondFilterAttribute.HasValue)
+		{
+			searchFilters.combineFilters = ValidateCombineFiltersParameter(searchFilters);
 
-                searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-            }
+			var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 
-            var resultCount = searchResult.Entries.Count();
-            if (resultCount == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
+			var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
+			var combinedFilters = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
 
-            Logger.LogInformation("Search result count: {0}", resultCount);
+			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, combinedFilters });
 
-            return Ok(searchResult);
-        }
+			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		}
+		else
+		{
+			var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}")]
-        public async Task<ActionResult<LDAPSearchResult>> GetGroupByIdentifier(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromRoute] string identifier,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+			var attributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
 
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		}
 
-            var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
+		var resultCount = searchResult.Entries.Count();
+		if (resultCount == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
 
-            var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
+		Logger.LogInformation("Search result count: {0}", resultCount);
 
-            var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
+		return Ok(searchResult);
+	}
 
-            var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}")]
+	public async Task<ActionResult<LDAPSearchResult>> GetGroupByIdentifier(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
+		ValidateIdentifierAttribute(ref identifierAttribute);
 
-            if (searchResult.Entries.Count() > 1)
-                throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+		ValidateRequiredAttributes(ref requiredAttributes);
 
-            Logger.LogInformation("Response body: {@result}", searchResult);
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-            return Ok(searchResult);
-        }
+		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
 
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}/Parents")]
-        public async Task<ActionResult<LDAPSearchResult>> GetParentsForGroupIdentifier([FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromRoute] string identifier,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
 
-            var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var attributeFilter = new AttributeFilter(identifierAttribute!.Value, new FilterValue(identifier));
 
-            var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-            var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
+		var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
 
-            var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
+		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
 
-            var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
+		if (searchResult.Entries.Count() > 1)
+			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
-            var searchResult = await ldapSearcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		Logger.LogInformation("Response body: {@result}", searchResult);
 
-            if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
+		return Ok(searchResult);
+	}
 
-            if (searchResult.Entries.Count() > 1)
-                throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}/Parents")]
+	public async Task<ActionResult<LDAPSearchResult>> GetParentsForGroupIdentifier([FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-            Logger.LogInformation("Response body: {@result}", searchResult);
+		ValidateIdentifierAttribute(ref identifierAttribute);
 
-            return Ok(searchResult);
-        }
+		ValidateRequiredAttributes(ref requiredAttributes);
 
-        [HttpGet]
-        [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/[action]")]
-        [ActionName("filterBy")]
-        public async Task<ActionResult<LDAPSearchResult>> GetGroupsFilteringByAsync(
-            [FromRoute] string serverProfile,
-            [FromRoute] string catalogType,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-            [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag
-            )
-        {
-            Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-            var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
 
-            var ldapSearcher = await GetLdapSearcher(clientConfiguration);
+		var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
 
-            LDAPSearchResult searchResult;
-            if (searchFilters.secondFilterAttribute.HasValue)
-            {
-                var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
+		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
 
-                var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
-                var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
-                var combinedFilters = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
+		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-                var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, combinedFilters });
+		var searchResult = await ldapSearcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 
-                searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-            }
-            else
-            {
-                var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
+		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
 
-                var attributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
+		if (searchResult.Entries.Count() > 1)
+			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
-                var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
+		Logger.LogInformation("Response body: {@result}", searchResult);
 
-                searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-            }
+		return Ok(searchResult);
+	}
 
-            var resultCount = searchResult.Entries.Count();
-            if (resultCount == 0 && searchResult.HasErrorInfo)
-                throw searchResult.ErrorObject;
+	[HttpGet]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/[action]")]
+	[ActionName("filterBy")]
+	public async Task<ActionResult<LDAPSearchResult>> GetGroupsFilteringByAsync(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag
+		)
+	{
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-            Logger.LogInformation("Search result count: {0}", resultCount);
+		ValidateRequiredAttributes(ref requiredAttributes);
 
-            return Ok(searchResult);
-        }
-    }
+		var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+		var ldapSearcher = await GetLdapSearcher(clientConfiguration);
+
+		LDAPSearchResult searchResult;
+		if (searchFilters.secondFilterAttribute.HasValue)
+		{
+			searchFilters.combineFilters = ValidateCombineFiltersParameter(searchFilters);
+
+			var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
+
+			var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
+			var combinedFilters = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
+
+			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, combinedFilters });
+
+			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		}
+		else
+		{
+			var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
+
+			var attributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+
+			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
+
+			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		}
+
+		var resultCount = searchResult.Entries.Count();
+		if (resultCount == 0 && searchResult.HasErrorInfo)
+			throw searchResult.ErrorObject;
+
+		Logger.LogInformation("Search result count: {0}", resultCount);
+
+		return Ok(searchResult);
+	}
 }

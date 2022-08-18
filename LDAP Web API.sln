@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29920.165
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi", "src\LDAPWebApi\Bitai.LDAPWebApi.csproj", "{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C}"
 EndProject
@@ -12,6 +12,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi.Clients", "client\LDAPWebApi.Client\Bitai.LDAPWebApi.Clients.csproj", "{AF559051-04E2-4FFE-8A36-81A0634B0515}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitai.LDAPWebApi.Clients.Demo", "client\LDAPWebApi.Client.Demo\Bitai.LDAPWebApi.Clients.Demo.csproj", "{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{806D50B9-E731-430F-8D00-DE8BD3D84FA1}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
