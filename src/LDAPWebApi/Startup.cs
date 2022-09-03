@@ -16,6 +16,13 @@ namespace Bitai.LDAPWebApi;
 public class Startup
 {
 	/// <summary>
+	/// Environment variable name for ASPNETCORE_ENVIRONMENT
+	/// </summary>
+	public const string ENVARNAME_ASPNETCORE_ENVIRONMENT = "ASPNETCORE_ENVIRONMENT";
+
+
+
+	/// <summary>
 	/// Full name of <see cref="Startup"/> 
 	/// </summary>
 	public static string FullName = typeof(Startup).FullName ?? nameof(Startup);
