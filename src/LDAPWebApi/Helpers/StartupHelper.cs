@@ -257,6 +257,18 @@ public static class StartupHelpers
 				.SetEvaluationTimeInSeconds(webApiConfiguration.HealthChecksConfiguration.EvaluationTime)
 				.MaximumHistoryEntriesPerEndpoint(webApiConfiguration.HealthChecksConfiguration.MaximunHistoryEntries)
 				.AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}");
+
+#if DEBUG
+			//Avoid SSL certificate validation on development environment
+			settings
+				.UseApiEndpointHttpMessageHandler(handler => {
+					return new HttpClientHandler
+					{
+						ClientCertificateOptions = ClientCertificateOption.Manual,
+						ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+					};
+				});
+#endif
 		})
 			.AddInMemoryStorage();
 	}
@@ -269,12 +281,12 @@ public static class StartupHelpers
 		{
 			builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
 
-			#region Authorization request user interface 
+#region Authorization request user interface 
 			builder.OAuthAppName(webApiConfiguration.WebApiTitle);
 			builder.OAuthClientId(swaggerUIConfiguration.SwaggerUIClientId);
 			builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScope);
 			builder.OAuthUsePkce();
-			#endregion
+#endregion
 		});
 	}
 

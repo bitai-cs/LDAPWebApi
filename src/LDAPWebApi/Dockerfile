@@ -6,15 +6,13 @@ COPY ["src/LDAPWebApi/Bitai.LDAPWebApi.csproj", "src/LDAPWebApi/"]
 RUN dotnet restore "src/LDAPWebApi/Bitai.LDAPWebApi.csproj"
 COPY . .
 WORKDIR "/src/src/LDAPWebApi"
-RUN dotnet build "Bitai.LDAPWebApi.csproj" -c Release -o /app/build
+RUN dotnet build "Bitai.LDAPWebApi.csproj" -c Debug --no-restore -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Bitai.LDAPWebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Bitai.LDAPWebApi.csproj" -c Debug --no-restore -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS final
-ENV ASPNETCORE_URLS=http://+:5100;https://+:5101
-ENV ASPNETCORE_HTTPS_PORT=5101
 WORKDIR /app
 COPY --from=publish /app/publish .
-
+RUN dotnet dev-certs https --trust
 ENTRYPOINT ["dotnet", "Bitai.LDAPWebApi.dll"]

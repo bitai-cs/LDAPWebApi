@@ -16,7 +16,7 @@ try
 
 	var webAppBuilder = WebApplication.CreateBuilder(args);
 	webAppBuilder.Host
-		//.ConfigureDefaults(args)
+		.ConfigureDefaults(args)
 		.UseSerilog((hostBuilderContext, serviceProvider, loggerConfiguration) =>
 		{
 			SetupLoggerConfiguration(configuration, loggerConfiguration);
