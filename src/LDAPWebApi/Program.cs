@@ -1,6 +1,7 @@
 using Bitai.LDAPWebApi;
 using Bitai.LDAPWebApi.Configurations.App;
 using Serilog;
+using Serilog.Extensions.Logging;
 
 var FullName = nameof(Program);
 
@@ -45,7 +46,7 @@ finally
 
 IConfiguration GetConfiguration(string[] args)
 {
-	var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+	var environment = Environment.GetEnvironmentVariable(Startup.ENVARNAME_ASPNETCORE_ENVIRONMENT);
 	var isDevelopment = environment == Environments.Development;
 
 	var configurationBuilder = new ConfigurationBuilder()
@@ -95,55 +96,3 @@ LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, Logge
 			.WriteTo.File(webApiLogConfiguration.LogFilePath, rollingInterval: RollingInterval.Day, flushToDiskInterval: new TimeSpan(0, 1, 0), retainedFileCountLimit: 15)
 			.WriteTo.Console();
 }
-
-///// <summary>
-///// Application entry point.
-///// </summary>
-///// <param name="args">Program arguments.</param>
-//public static void Main(string[] args)
-//{
-//	var configuration = GetConfiguration(args);
-
-//	var loggerConfiguration = new LoggerConfiguration();
-
-//	Log.Logger = SetupLoggerConfiguration(configuration, loggerConfiguration, true)
-//		.CreateBootstrapLogger();
-
-//	try
-//	{
-//		Log.Information("Starting {program}", Program.FullName);
-
-//		CreateHostBuilder(args).Build().Run();
-
-//		Log.Warning("Terminating {program}", Program.FullName);
-//	}
-//	catch (Exception ex)
-//	{
-//		Log.Fatal("Error when creating Host. Below error details.");
-//		Log.Fatal("{@error}", ex);
-//	}
-//	finally
-//	{
-//		Log.CloseAndFlush();
-//	}
-//}
-
-///// <summary>
-///// Initializes a new instance of the Microsoft.Extensions.Hosting.HostBuilder class.
-///// </summary>
-///// <param name="args">Program arguments.</param>
-///// <returns></returns>
-//public static IHostBuilder CreateHostBuilder(string[] args) =>
-//	 Host.CreateDefaultBuilder(args)
-//		.UseSerilog((hostBuilderContext, serviceProvider, loggerConfiguration) =>
-//		{
-//			var configuration = GetConfiguration(args);
-
-//			SetupLoggerConfiguration(configuration, loggerConfiguration, false);
-//		})
-//		.ConfigureWebHostDefaults(webHostBuilder =>
-//		{
-//			webHostBuilder.UseStartup<Startup>();
-//		});
-
-//}
