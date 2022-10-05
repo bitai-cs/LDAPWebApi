@@ -49,7 +49,7 @@
 
 	<ItemGroup>
 	  <None Update="Bitai.LDAPWebApi.xml">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </None>
 	  <None Update="HealthChecksUI.css">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
