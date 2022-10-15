@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPHelper.QueryFilters;
 using Bitai.LDAPWebApi.Configurations.App;
+using Bitai.LDAPWebApi.DTO;
+using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -57,20 +59,30 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	{
 		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		var searcher = GetLdapSearcher(clientConfig);
 
 		var searchFilter = new AttributeFilter(identifierAttribute!.Value, new FilterValue(identifier));
 
-		var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
+		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
 
-		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			Logger.LogError(searchResult.ErrorObject, "Search failed by {@attribute} identifier with value {@identfier}", identifierAttribute, identifier);
+
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+		
+		if (searchResult.Entries.Count() == 0)
+			throw new ResourceNotFoundException($"The user with identifier {identifierAttribute}={identifier} was not found");
 
 		if (searchResult.Entries.Count() > 1)
-			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
-
+			throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+		
 		Logger.LogInformation("Response body: {@result}", searchResult);
 
 		return Ok(searchResult);
@@ -90,9 +102,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		var searcher = GetLdapSearcher(clientConfig);
 
 		LDAPSearchResult searchResult;
 		if (searchFilters.secondFilterAttribute.HasValue)
@@ -103,20 +115,25 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
 			var searchFilter = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
 
-			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 		}
 		else
 		{
 			var searchFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
 
-			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 		}
 
-		var resultCount = searchResult.Entries.Count();
-		if (resultCount == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation) {
+			Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@filterModel}", searchFilters);
 
-		Logger.LogInformation("Search result count: {0}", resultCount);
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+		
+		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
 
 		return Ok(searchResult);
 	}
@@ -125,48 +142,93 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// Gets an LDAP entry with the data of a user. 
 	/// </summary>
 	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
-	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/></param>
-	/// <param name="identifier">Value for <paramref name="identifierAttribute"/> attribute that defines a user. It also defines part of the route./></param>
-	/// <param name="identifierAttribute">Optional, default value is <see cref="LDAPHelper.DTO.EntryAttribute.sAMAccountName"/>. It is the attribute by which a user will be identified.</param>
-	/// <param name="requiredAttributes">The type of attribute set to return in the result. See <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/></param>
+	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/>.</param>
+	/// <param name="identifier">Identifier of the user account that will define the route of this Endpoint. There must be a valid value for the LDAP attributes <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
+	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
 	/// <param name="requestTag">Custom value to tag response values.</param>
-	/// <returns><see cref="LDAPSearchResult"/></returns>
-	[HttpGet]
-	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}")]
-	public async Task<ActionResult<LDAPSearchResult>> GetUserByIdentifier(
+	/// <param name="credential"><see cref="LDAPCredential"/> with new password. The <see cref="LDAPCredential.UserAccount"/> property must correspond to the <paramref name="identifier"/> parameter</param>
+	/// <returns><see cref="LDAPPasswordUpdateResult"/></returns>
+	[HttpPost]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Credential")]
+	public async Task<ActionResult<LDAPPasswordUpdateResult>> SetUserCredential(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
 		[FromRoute] string identifier,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalUserAccountIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
+		[FromBody] LDAPCredential credential)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@cn}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier),identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestTag),requestTag, nameof(credential), credential.UserAccount);
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
-		ValidateRequiredAttributes(ref requiredAttributes);
+		if (!LDAPCredential.Validate(ref credential, true, out var validations))
+			throw new BadRequestException(string.Format("{0} {1}", "The credential is not valid.", validations));
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var serverProfileObject = ServerProfiles.Where(sp => sp.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
 
-		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		string domainName;
+		string userAccount;
+		if (identifierAttribute == EntryAttribute.sAMAccountName && credential.UserAccount.Contains('\\'))
+		{	
+			var strings = credential.UserAccount.Split('\\', StringSplitOptions.None);
+			if (!strings[0].Equals(serverProfileObject.DefaultDomainName, StringComparison.OrdinalIgnoreCase))
+				throw new BadRequestException($"The {strings[0]} domain of the user account {strings[1]} must be the same as the {serverProfile} domain specified in the API route.");
 
+			if (!strings[1].Equals(identifier, StringComparison.OrdinalIgnoreCase))
+				throw new BadHttpRequestException($"The user account {strings[1]} must be the same as the {identifier} identifier specified in the API route.");
+
+			domainName = strings[0];
+			userAccount = strings[1];
+		}
+		else
+		{
+			domainName = serverProfileObject.DefaultDomainName;
+			userAccount = credential.UserAccount;
+		}
+
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var searcher = GetLdapSearcher(clientConfig);
 		var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
-
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
+		var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestTag);
+		if (!searchResult.IsSuccessfulOperation) {
+			Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@filter}.", searchFilter);
 
-		var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
-
-		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+		
+		if (searchResult.Entries.Count() == 0)
+			throw new ResourceNotFoundException($"The user accoun with identifier {attributeFilter} was not found");
 
 		if (searchResult.Entries.Count() > 1)
-			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+			throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier {attributeFilter}.");
 
-		Logger.LogInformation("Response body: {@result}", searchResult);
+		var entry = searchResult.Entries.Single();
 
-		return Ok(searchResult);
+		var dnCredential = new LDAPDistinguishedNameCredential(entry.distinguishedName, credential.Password);
+		var accountManager = new LDAPHelper.AccountManager(GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType)));
+		var pwdUpdateResult = await accountManager.SetAccountPassword(dnCredential, requestTag);
+
+		if (!pwdUpdateResult.IsSuccessfulOperation)
+		{
+			if (pwdUpdateResult.HasErrorObject)
+			{
+				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {@identifier} with {@dnAttr}: {@dn}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
+
+				throw pwdUpdateResult.ErrorObject;
+			}
+			else
+				throw new Exception(pwdUpdateResult.OperationMessage);
+		}
+
+		Logger.LogInformation("Response body: {@result}", pwdUpdateResult);
+		
+		return Ok(pwdUpdateResult);
 	}
 
 	[HttpGet]
@@ -185,23 +247,27 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		var searcher = GetLdapSearcher(clientConfig);
 
 		var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
 
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-		var searchResult = await ldapSearcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		var searchResult = await searcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 
-		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@attribute} = {@value}.", identifier, identifierAttribute);
 
-		if (searchResult.Entries.Count() > 1)
-			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
-
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);		
+		}
+		
 		Logger.LogInformation("Response body: {@result}", searchResult);
 
 		return Ok(searchResult);
@@ -223,7 +289,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(clientConfiguration);
+		var searcher = GetLdapSearcher(clientConfiguration);
 
 		LDAPSearchResult searchResult;
 		if (searchFilters.secondFilterAttribute.HasValue)
@@ -238,7 +304,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, combinedFilters });
 
-			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 		}
 		else
 		{
@@ -248,14 +314,19 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 		}
 
-		var resultCount = searchResult.Entries.Count();
-		if (resultCount == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation) {
+			Logger.LogError(searchResult.ErrorObject, "Error searching for users with the following filter: {@searchFilter}.", searchFilters);
 
-		Logger.LogInformation("Search result count: {0}", resultCount);
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+
+		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
 
 		return Ok(searchResult);
 	}
@@ -276,9 +347,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		var searcher = GetLdapSearcher(clientConfig);
 
 		var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
 
@@ -286,13 +357,23 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-		var searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
+		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
 
-		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			Logger.LogError(searchResult.ErrorObject, "Failed to look up the LDAP entry of a group by its identifier: {@attr}={@id}", identifierAttribute, identifier);
+
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+
+		if (searchResult.Entries.Count() == 0)
+			throw new ResourceNotFoundException($"The LDAP group entry with identifier {identifierAttribute}={identifier} was not found");
 
 		if (searchResult.Entries.Count() > 1)
-			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+			throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
 
 		Logger.LogInformation("Response body: {@result}", searchResult);
 
@@ -314,9 +395,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(ldapClientConfig);
+		var searcher = GetLdapSearcher(clientConfig);
 
 		var onlyGroupsFilter = AttributeFilterCombiner.CreateOnlyGroupsFilterCombiner();
 
@@ -324,13 +405,17 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-		var searchResult = await ldapSearcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		var searchResult = await searcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 
-		if (searchResult.Entries.Count() == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@attribute} = {@value}.", identifier, identifierAttribute);
 
-		if (searchResult.Entries.Count() > 1)
-			throw new InvalidOperationException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
 
 		Logger.LogInformation("Response body: {@result}", searchResult);
 
@@ -354,7 +439,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var clientConfiguration = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var ldapSearcher = await GetLdapSearcher(clientConfiguration);
+		var searcher = GetLdapSearcher(clientConfiguration);
 
 		LDAPSearchResult searchResult;
 		if (searchFilters.secondFilterAttribute.HasValue)
@@ -369,7 +454,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, combinedFilters });
 
-			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 		}
 		else
 		{
@@ -379,14 +464,20 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-			searchResult = await ldapSearcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
 		}
 
-		var resultCount = searchResult.Entries.Count();
-		if (resultCount == 0 && searchResult.HasErrorInfo)
-			throw searchResult.ErrorObject;
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP group entries by  {@filter}", searchFilters);
 
-		Logger.LogInformation("Search result count: {0}", resultCount);
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+
+		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
 
 		return Ok(searchResult);
 	}

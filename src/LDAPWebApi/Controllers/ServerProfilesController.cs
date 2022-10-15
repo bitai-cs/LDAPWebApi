@@ -20,8 +20,8 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
     /// </summary>
     /// <param name="configuration">See <see cref="Microsoft.Extensions.Configuration.IConfiguration"/></param>
     /// <param name="logger">See <see cref="ILogger{TCategoryName}"/></param>
-    /// <param name="ldapServerProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
-    public ServerProfilesController(IConfiguration configuration, ILogger<ServerProfilesController> logger, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, logger, ldapServerProfiles)
+    /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
+    public ServerProfilesController(IConfiguration configuration, ILogger<ServerProfilesController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
     {
     }
 
@@ -31,52 +31,51 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
     [HttpGet]
     public async Task<ActionResult<IEnumerable<string>>> GetProfileIdsAsync()
     {
-        var _return = await Task.Run(() =>
+        var serverProfileIds = await Task.Run(() =>
         {
             return ServerProfiles.Select(p => p.ProfileId);
         });
 
-        return Ok(_return);
+        return Ok(serverProfileIds);
     }
 
     [Route("api/[controller]/{profileId}")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DTO.LDAPServerProfile>>> GetByProfileIdAsync(string profileId)
     {
-        var _return = await Task.Run(() =>
+        var dto = await Task.Run(() =>
         {
-            var _ldapServerProfile = ServerProfiles.Where(p => p.ProfileId.Equals(profileId, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+            var serverProfile = ServerProfiles.Where(p => p.ProfileId.Equals(profileId, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
 
-            if (_ldapServerProfile == null)
+            if (serverProfile == null)
                 return null;
 
             return new DTO.LDAPServerProfile
             {
-                ProfileId = _ldapServerProfile.ProfileId,
-                Server = _ldapServerProfile.Server,
-                Port = _ldapServerProfile.Port,
-                PortForGlobalCatalog = _ldapServerProfile.PortForGlobalCatalog,
-                BaseDN = _ldapServerProfile.BaseDN,
-                BaseDNforGlobalCatalog = _ldapServerProfile.BaseDNforGlobalCatalog,
-                ConnectionTimeout = _ldapServerProfile.ConnectionTimeout,
-                UseSSL = _ldapServerProfile.UseSSL,
-                UseSSLforGlobalCatalog = _ldapServerProfile.UseSSLforGlobalCatalog,
-                DomainAccountName = _ldapServerProfile.DomainAccountName,
-                DomainAccountPassword = string.Empty
+                ProfileId = serverProfile.ProfileId,
+                Server = serverProfile.Server,
+                Port = serverProfile.Port,
+                PortForGlobalCatalog = serverProfile.PortForGlobalCatalog,
+                BaseDN = serverProfile.BaseDN,
+                BaseDNforGlobalCatalog = serverProfile.BaseDNforGlobalCatalog,
+                ConnectionTimeout = serverProfile.ConnectionTimeout,
+                UseSSL = serverProfile.UseSSL,
+                UseSSLforGlobalCatalog = serverProfile.UseSSLforGlobalCatalog,
+                DomainUserAccount = serverProfile.DomainUserAccount
             };
         });
 
-        if (_return == null)
+        if (dto == null)
             return NotFound();
         else
-            return Ok(_return);
+            return Ok(dto);
     }
 
     [Route("api/[controller]")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DTO.LDAPServerProfile>>> GetAsync()
     {
-        var _return = await Task.Run(() =>
+        var dtos = await Task.Run(() =>
         {
             return ServerProfiles.Select(p => new DTO.LDAPServerProfile
             {
@@ -89,11 +88,10 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
                 ConnectionTimeout = p.ConnectionTimeout,
                 UseSSL = p.UseSSL,
                 UseSSLforGlobalCatalog = p.UseSSLforGlobalCatalog,
-                DomainAccountName = p.DomainAccountName,
-                DomainAccountPassword = string.Empty
+                DomainUserAccount = p.DomainUserAccount
             });
         });
 
-        return Ok(_return);
+        return Ok(dtos);
     }
 }

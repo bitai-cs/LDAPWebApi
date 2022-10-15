@@ -71,7 +71,8 @@ public abstract class ApiControllerBase<T> : ControllerBase
 
 		var connectionInfo = new LDAPHelper.ConnectionInfo(ldapServerProfile.Server, ldapServerProfile.GetPort(useGlobalCatalog), ldapServerProfile.GetUseSsl(useGlobalCatalog), ldapServerProfile.ConnectionTimeout);
 
-		var credentials = new LDAPHelper.Credentials(ldapServerProfile.DomainAccountName, ldapServerProfile.DomainAccountPassword);
+		var accountParts = ldapServerProfile.DomainUserAccount.Split("\\");
+		var credentials = new LDAPHelper.DTO.LDAPDomainAccountCredential(accountParts[0], accountParts[1], ldapServerProfile.DomainAccountPassword);
 
 		var searchLimits = new LDAPHelper.SearchLimits(ldapServerProfile.GetBaseDN(useGlobalCatalog));
 
@@ -83,9 +84,9 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	/// </summary>
 	/// <param name="clientConfiguration"><see cref="LDAPHelper.ClientConfiguration"/> to be used by <see cref="LDAPHelper.Searcher"/></param>
 	/// <returns></returns>
-	protected async Task<LDAPHelper.Searcher> GetLdapSearcher(LDAPHelper.ClientConfiguration clientConfiguration)
+	protected LDAPHelper.Searcher GetLdapSearcher(LDAPHelper.ClientConfiguration clientConfiguration)
 	{
-		return await Task.Run(() => new LDAPHelper.Searcher(clientConfiguration));
+		return new LDAPHelper.Searcher(clientConfiguration);
 	}
 
 	/// <summary>

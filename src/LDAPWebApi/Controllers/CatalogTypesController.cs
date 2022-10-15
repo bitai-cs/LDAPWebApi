@@ -23,8 +23,8 @@ public class CatalogTypesController : ApiControllerBase<CatalogTypesController>
     /// </summary>
     /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
     /// <param name="logger">See <see cref="ILogger{TCategoryName}"/></param>
-    /// <param name="ldapServerProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-    public CatalogTypesController(IConfiguration configuration, ILogger<CatalogTypesController> logger, Configurations.LDAP.LDAPServerProfiles ldapServerProfiles) : base(configuration, logger, ldapServerProfiles)
+    /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
+    public CatalogTypesController(IConfiguration configuration, ILogger<CatalogTypesController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
     {
     }
 
