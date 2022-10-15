@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,10 +25,23 @@ public class LDAPServerProfiles : List<LDAPServerProfile>
 }
 
 /// <summary>
-/// Profile that defines an LDAP service.
+/// LDAP Server Profile configurstion model.
+/// Profile that defines an LDAP Server.
 /// </summary>
-public class LDAPServerProfile
+public class LDAPServerProfile : DTO.LDAPServerProfile
 {
+	/// <summary>
+	/// Password of the domain account to connect to the LDAP server.
+	/// </summary>
+	public string DomainAccountPassword { get; set; }
+
+	/// <summary>
+	/// Ping timeout value to set the latency health check.
+	/// </summary>
+	public int HealthCheckPingTimeout { get; set; }
+
+
+
 	/// <summary>
 	/// Constructor
 	/// </summary>
@@ -39,86 +53,17 @@ public class LDAPServerProfile
 		ProfileId = "LOCAL";
 		Server = "localhost";
 		Port = "Default";
-		PortForGlobalCatalog = "Default";
+		UseSSL = true;
 		BaseDN = "DC=local,DC=com";
+		PortForGlobalCatalog = "Default";
+		UseSSLforGlobalCatalog = false;
 		BaseDNforGlobalCatalog = "DC=com";
 		DefaultDomainName = "LOCAL";
 		ConnectionTimeout = 10;
-		UseSSL = false;
-		UseSSLforGlobalCatalog = false;
-		DomainAccountName = "LOCAL\\user";
+		DomainUserAccount = "LOCAL\\user";
 		DomainAccountPassword = "P@ssw0rd";
-		HealthCheckPingTimeout = 2;
+		HealthCheckPingTimeout = 3;
 	}
-
-
-
-	/// <summary>
-	/// Profile identifier.
-	/// </summary>
-	public string ProfileId { get; set; }
-
-	/// <summary>
-	/// LDAP server address.
-	/// </summary>
-	public string Server { get; set; }
-
-	/// <summary>
-	/// LDAP server port for local catalog service.
-	/// </summary>
-	public string Port { get; set; }
-
-	/// <summary>
-	/// LDAP server port for global catalog service.
-	/// </summary>
-	public string PortForGlobalCatalog { get; set; }
-
-	/// <summary>
-	/// Base distinguished name to limit searches on the LDAP server when using the local catalog service.
-	/// For example: DC=it,DC=us,DC=company,DC=com
-	/// </summary>
-	public string BaseDN { get; set; }
-
-	/// <summary>
-	/// Base distinguished name to limit searches on the LDAP server when using the global catalog service.
-	/// For example: DC=company,DC=com
-	/// </summary>
-	public string BaseDNforGlobalCatalog { get; set; }
-
-	/// <summary>
-	/// Default domain name.
-	/// </summary>
-	public string DefaultDomainName { get; set; }
-
-	/// <summary>
-	/// Max time to get connection to the LDAP Server.
-	/// </summary>
-	public short ConnectionTimeout { get; set; }
-
-	/// <summary>
-	/// Use secure socket layer to connect to the LDAP server when using local catalog service.
-	/// </summary>
-	public bool UseSSL { get; set; }
-
-	/// <summary>
-	/// Use secure socket layer to connect to the LDAP server when using global catalog service.
-	/// </summary>
-	public bool UseSSLforGlobalCatalog { get; set; }
-
-	/// <summary>
-	/// Name of the domain account to connect to the LDAP server.
-	/// </summary>
-	public string DomainAccountName { get; set; }
-
-	/// <summary>
-	/// Password of the domain account to connect to the LDAP server.
-	/// </summary>
-	public string DomainAccountPassword { get; set; }
-
-	/// <summary>
-	/// Ping timeout value to set the latency health check.
-	/// </summary>
-	public int HealthCheckPingTimeout { get; set; }
 
 
 
@@ -160,9 +105,9 @@ public class LDAPServerProfile
 	/// </summary>
 	/// <param name="forGlobalCatalog">If using the global catalog service.</param>
 	/// <returns></returns>
-	public string? GetBaseDN(bool forGlobalCatalog)
+	public string GetBaseDN(bool forGlobalCatalog)
 	{
-		return (forGlobalCatalog ? BaseDNforGlobalCatalog : BaseDN);
+		return forGlobalCatalog ? BaseDNforGlobalCatalog : BaseDN;
 	}
 
 	/// <summary>

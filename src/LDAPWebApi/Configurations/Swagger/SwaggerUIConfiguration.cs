@@ -10,6 +10,9 @@ namespace Bitai.LDAPWebApi.Configurations.Swagger;
 /// </summary>
 public class SwaggerUIConfiguration
 {
+    /// <summary>
+    /// Constructor
+    /// </summary>
     public SwaggerUIConfiguration()
 		{
         SwaggerUITargetApiScope = "Bitai.LdapWebApi.Scope.Global";

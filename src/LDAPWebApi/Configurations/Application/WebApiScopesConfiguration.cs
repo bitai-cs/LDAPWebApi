@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Configurations.App;
 
+/// <summary>
+/// Web Api scopes configuration model
+/// </summary>
 public class WebApiScopesConfiguration
 {
     internal const string GlobalScopeAuthorizationPolicyName = "RequiredGlobalScopePolicy";

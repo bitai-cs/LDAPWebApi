@@ -12,12 +12,21 @@ public class AuthorizeCheckOperationFilter : IOperationFilter
 {
     private readonly Swagger.SwaggerUIConfiguration _swaggerUIConfiguration;
 
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="swaggerUIConfiguration">See <see cref="Swagger.SwaggerUIConfiguration"/></param>
     public AuthorizeCheckOperationFilter(Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
     {
         _swaggerUIConfiguration = swaggerUIConfiguration;
     }
 
-    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+	/// <summary>
+	/// Implementation of <see cref="IOperationFilter.Apply(OpenApiOperation, OperationFilterContext)"/>
+	/// </summary>
+	/// <param name="operation">See <see cref="OpenApiOperation"/></param>
+	/// <param name="context">See <see cref="OperationFilterContext"/></param>
+	public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var hasAuthorize = context.MethodInfo.DeclaringType != null && (context.MethodInfo.DeclaringType.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any() || context.MethodInfo.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any());
 
