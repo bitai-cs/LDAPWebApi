@@ -232,22 +232,25 @@ public static class StartupHelpers
 		if (!webApiScopesConfiguration.BypassApiScopesAuthorization && authorityConfiguration.Authority != null)
 			healthChecksBuilder = healthChecksBuilder.AddUrlGroup(new Uri(authorityConfiguration.Authority), name: "OAuth/OpenId Server", tags: new string[] { authorityConfiguration.Authority });
 
-		foreach (var lp in ldapServerProfiles)
+		foreach (var serverProfile in ldapServerProfiles)
 		{
-			var portLc = lp.GetPort(false);
-			var portGc = lp.GetPort(true);
+			var portForLocalCatalog = serverProfile.GetPort(false);
+			var portForGlobalCatalog = serverProfile.GetPort(true);
+
+			string profileTag = $"Profile: {serverProfile.ProfileId}";
+			string defaultDomainTag = $"Default Domain: {serverProfile.DefaultDomainName}";
 
 			healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
 			{
-				options.AddHost(lp.Server, portLc);
-			}, name: $"Connection: {lp.Server}:{portLc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+				options.AddHost(serverProfile.Server, portForLocalCatalog);
+			}, name: $"LDAP Port: {serverProfile.Server}:{portForLocalCatalog}", tags: new string[] { profileTag, defaultDomainTag, $"SSL: {serverProfile.UseSSL}" });
 
 			healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
 			{
-				options.AddHost(lp.Server, portGc);
-			}, name: $"Connection: {lp.Server}:{portGc}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+				options.AddHost(serverProfile.Server, portForGlobalCatalog);
+			}, name: $"LDAP Port: {serverProfile.Server}:{portForGlobalCatalog}", tags: new string[] { profileTag, defaultDomainTag, $"SSL: {serverProfile.UseSSLforGlobalCatalog}" });
 
-			healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(lp.Server, lp.HealthCheckPingTimeout), $"Ping: {lp.Server}", tags: new string[] { lp.ProfileId, lp.DefaultDomainName, $"SSL:{lp.UseSSL}" });
+			healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(serverProfile.Server, serverProfile.HealthCheckPingTimeout), $"LDAP Ping: {serverProfile.Server}", tags: new string[] { profileTag, defaultDomainTag });
 		}
 
 		services.AddHealthChecksUI(settings =>
@@ -306,6 +309,7 @@ public static class StartupHelpers
 		endpoints.MapHealthChecksUI(setupOptions =>
 		{
 			setupOptions.UIPath = $"/{webApiConfiguration.HealthChecksConfiguration.UIPath}";
+			setupOptions.ResourcesPath = $"/{webApiConfiguration.HealthChecksConfiguration.UIPath}/resources";
 			setupOptions.AddCustomStylesheet("HealthChecksUI.css");
 		});
 	}
