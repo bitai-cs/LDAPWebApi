@@ -8,303 +8,344 @@ using Serilog.Sinks.SystemConsole;
 
 namespace Bitai.LDAPWebApi.Clients.Demo
 {
-    class Program
-    {
-        static string WebApiBaseUrl = "https://localhost:5101";
-        static bool WebApiRequiresAccessToken = true;
-        static WebApiClientCredentials ClientCredentials = new WebApiClientCredentials
-        {
-            AuthorityUrl = "https://localhost:44310",
-            ApiScope = "Bitai.LdapWebApi.Scope.Global",
-            ClientId = "Is4.Sts.LdapWebApi.Client",
-            ClientSecret = "232459a4-747c-6e0e-2516-72aba52a7069"
-        };
-        static string Tag { get; set; } = "DEMO";
-        static string Selected_LDAPServerProfile { get; set; } = "Profile1";
+	public class Program
+	{
+		static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
+		//static string WebApiBaseUrl = "https://localhost:5101";
+
+		static bool WebApiRequiresAccessToken = false;
+		
+		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
+		{
+			AuthorityUrl = "https://localhost:44310",
+			ApiScope = "Bitai.LdapWebApi.Scope.Global",
+			ClientId = "Is4.Sts.LdapWebApi.Client",
+			ClientSecret = "232459a4-747c-6e0e-2516-72aba52a7069"
+		};
+		
+		static string RequestLabel { get; set; } = "DEMO";
+		
+		static string Selected_LDAPServerProfile { get; set; } = "CERTUS";
 
 
-        static async Task Main(string[] args)
-        {
-            try
-            {
-                ConfigLogger();
 
-                Console.WriteLine("Presione la tecla enter para iniciar el demo...");
-                Console.ReadLine();
 
-                await CatalogTypesClient_GetAllAsync();
+		static async Task Main(string[] args)
+		{
+			try
+			{
+				ConfigLogger();
 
-                await AuthenticationsClient_AccountAuthenticationAsync();
+				Console.WriteLine("Presione la tecla enter para iniciar el demo...");
+				Console.ReadLine();
 
-                await ServerProfilesClient_GetProfileIdsAsync();
+				//await ServerProfilesClient_GetProfileIdsAsync();
 
-                await ServerProfilesClient_GetAllAsync();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex);
-            }
-            finally
-            {
-                Console.ReadLine();
-            }
-        }
+				//await ServerProfilesClient_GetAllAsync();
 
-        static async Task CatalogTypesClient_GetAllAsync()
-        {
-            try
-            {
-                var client = new LDAPCatalogTypesWebApiClient(WebApiBaseUrl, ClientCredentials);
+				//await CatalogTypesClient_GetAllAsync();
 
-                LogInfoOfType(client.GetType());
+				await AuthenticationsClient_AccountAuthenticationAsync();
 
-                LogInfo($"{nameof(client.GetAllAsync)}...");
-                var httpResponse = await client.GetAllAsync(WebApiRequiresAccessToken);
-                if (!httpResponse.IsSuccessResponse)
-                {
-                    client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
-                }
-                else
-                {
-                    var dto = await client.GetDTOFromResponseAsync<DTO.LDAPCatalogTypes>(httpResponse);
+				await UserDirectoryClient_SearchAsync();
+			}
+			catch (Exception ex)
+			{
+				LogError(ex);
+			}
+			finally
+			{
+				Console.ReadLine();
+			}
+		}
 
-                    LogInfo($"{nameof(DTO.LDAPCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
-                    LogInfo($"{nameof(DTO.LDAPCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
 
-                    LogInfo("Set Parameters.CatalogTypes property values.");
-                }
-            }
-            catch (WebApiRequestException ex)
-            {
-                LogWebApiRequestError(ex);
-            }
-        }
 
-        static async Task AuthenticationsClient_AccountAuthenticationAsync()
-        {
-            try
-            {
-                var client = new LDAPAuthenticationsWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, true, ClientCredentials);
 
-                LogInfoOfType(client.GetType());
+		static async Task CatalogTypesClient_GetAllAsync()
+		{
+			try
+			{
+				var client = new LDAPCatalogTypesWebApiClient(WebApiBaseUrl, ClientCredentials);
 
-                var accountCredentials = new DTO.LDAPAccountCredentials
-                {
-                    DomainName = "DOMAIN",
-                    AccountName = "usr_ext012",
-                    AccountPassword = "Pq$",
-                };
+				LogInfoOfType(client.GetType());
 
-                LogInfo($"{nameof(client.AccountAuthenticationAsync)}...");
-                var httpResponse = await client.AccountAuthenticationAsync(accountCredentials, WebApiRequiresAccessToken);
-                if (!httpResponse.IsSuccessResponse)
-                {
-                    client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
-                }
-                else
-                {
-                    var status = await client.GetDTOFromResponseAsync<DTO.LDAPAccountAuthenticationStatus>(httpResponse);
+				LogInfo($"{nameof(client.GetAllAsync)}...");
+				var httpResponse = await client.GetAllAsync(WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var dto = await client.GetDTOFromResponseAsync<DTO.LDAPCatalogTypes>(httpResponse);
 
-                    LogInfo($"CustomTag:{status.RequestTag} | DomainName:{status.DomainName} | AccountName:{status.AccountName} | Authenticated:{status.IsAuthenticated} | Message:{status.Message}");
-                }
-            }
-            catch (WebApiRequestException ex)
-            {
-                LogWebApiRequestError(ex);
-            }
-        }
+					LogInfo($"{nameof(DTO.LDAPCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
+					LogInfo($"{nameof(DTO.LDAPCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
 
-        static async Task ServerProfilesClient_GetProfileIdsAsync()
-        {
-            try
-            {
-                var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
+					LogInfo("Set Parameters.CatalogTypes property values.");
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
 
-                LogInfoOfType(client.GetType());
+		static async Task AuthenticationsClient_AccountAuthenticationAsync()
+		{
+			try
+			{
+				var client = new LDAPAuthenticationsWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
 
-                LogInfo($"{nameof(client.GetProfileIdsAsync)}...");
-                var httpResponse = await client.GetProfileIdsAsync(WebApiRequiresAccessToken);
-                if (!httpResponse.IsSuccessResponse)
-                {
-                    client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
-                }
-                else
-                {
-                    var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync<string>(httpResponse);
-                    foreach (var profileId in enumerableDTO)
-                    {
-                        LogInfo($"ProfileId: {profileId}");
-                    }
-                }
-            }
-            catch (WebApiRequestException ex)
-            {
-                LogWebApiRequestError(ex);
-            }
-        }
+				LogInfoOfType(client.GetType());
 
-        static async Task ServerProfilesClient_GetAllAsync()
-        {
-            try
-            {
-                var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
+				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("CERTUS", "vbastidas", "B@st1d@s");
 
-                LogInfoOfType(client.GetType());
+				LogInfo($"{nameof(client.AccountAuthenticationAsync)}...");
+				var httpResponse = await client.AccountAuthenticationAsync(accountCredentials, RequestLabel, WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPDomainAccountAuthenticationResult>(httpResponse);
 
-                LogInfo($"{nameof(client.GetAllAsync)}...");
-                var httpResponse = await client.GetAllAsync(WebApiRequiresAccessToken);
-                if (!httpResponse.IsSuccessResponse)
-                {
-                    client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
-                }
-                else
-                {
-                    var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync<DTO.LDAPServerProfile>(httpResponse);
-                    foreach (var ldapServerProfile in enumerableDTO)
-                    {
-                        LogInfo($"ProfileId: {ldapServerProfile.ProfileId}");
-                        LogInfo($"Server: {ldapServerProfile.Server}");
-                        LogInfo($"Port: {ldapServerProfile.Port}");
-                        LogInfo($"PortForGlobalCatalog: {ldapServerProfile.PortForGlobalCatalog}");
-                        LogInfo($"BaseDN: {ldapServerProfile.BaseDN}");
-                        LogInfo($"BaseDNforGlobalCatalog: {ldapServerProfile.BaseDNforGlobalCatalog}");
-                        LogInfo($"UseSSL: {ldapServerProfile.UseSSL}");
-                        LogInfo($"UseSSLforGlobalCatalog: {ldapServerProfile.UseSSLforGlobalCatalog}");
-                        LogInfo($"ConnectionTimeout: {ldapServerProfile.ConnectionTimeout}");
-                        LogInfo($"DomainAccountName: {ldapServerProfile.DomainAccountName}");
-                        LogInfo($"DomainAccountPassword: {ldapServerProfile.DomainAccountPassword}");
-                        Console.WriteLine();
-                    }
-                }
-            }
-            catch (WebApiRequestException ex)
-            {
-                LogWebApiRequestError(ex);
-            }
-        }
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
 
-        static void ConfigLogger()
-        {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Console()
-                .CreateLogger();
-        }
+		static async Task UserDirectoryClient_SearchAsync()
+		{
+			try
+			{
+				var client = new LDAPDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
 
-        static void NewBlankLines(int lines)
-        {
-            for (var _l = 0; _l < lines; _l++)
-                Console.WriteLine();
-        }
+				LogInfoOfType(client.GetType());
 
-        static void LogInfoOfCaller([CallerMemberName] string memberName = null)
-        {
-            Log.Information("{0}...", memberName.ToUpper());
-        }
+				LogInfo($"{nameof(client.SearchByIdentifierAsync)}...");
+				var httpResponse = await client.SearchByIdentifierAsync("vbastidas", RequestLabel, false);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPSearchResult>(httpResponse);
 
-        static void LogInfoOfType(Type type)
-        {
-            Log.Information("{0} **************************", type.FullName);
-        }
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
 
-        static void LogInfo(string message)
-        {
-            Log.Information(message);
-        }
+		static async Task ServerProfilesClient_GetProfileIdsAsync()
+		{
+			try
+			{
+				var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
 
-        static void LogWarning(string message)
-        {
-            Log.Warning(message);
-        }
+				LogInfoOfType(client.GetType());
 
-        static void LogError(string message)
-        {
-            Log.Error(message);
-        }
+				LogInfo($"{nameof(LDAPServerProfilesWebApiClient.GetProfileIdsAsync)}...");
+				var httpResponse = await client.GetProfileIdsAsync(WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync<string>(httpResponse);
+					foreach (var profileId in enumerableDTO)
+					{
+						LogInfo($"ProfileId: {profileId}");
+					}
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
 
-        static void LogError(Exception ex)
-        {
-            Log.Error($"Message: {ex.Message}");
-            Log.Error($"Source: {ex.Source}");
-            Log.Error(ex.StackTrace);
-            Console.WriteLine();
-            if (ex.InnerException == null) return;
+		static async Task ServerProfilesClient_GetAllAsync()
+		{
+			try
+			{
+				var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
 
-            Log.Error($"Message: {ex.InnerException.Message}");
-            Log.Error($"Source: {ex.InnerException.Source}");
-            Log.Error(ex.InnerException.StackTrace);
-            Console.WriteLine();
-            if (ex.InnerException.InnerException == null) return;
+				LogInfoOfType(client.GetType());
 
-            Log.Error($"Message: {ex.InnerException.InnerException.Message}");
-            Log.Error($"Source: {ex.InnerException.InnerException.Message}");
-            Log.Error(ex.InnerException.InnerException.StackTrace);
-            Console.WriteLine();
-        }
+				LogInfo($"{nameof(client.GetAllAsync)}...");
+				var httpResponse = await client.GetAllAsync(WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var enumerableDTO = await client.GetEnumerableDTOFromResponseAsync<DTO.LDAPServerProfile>(httpResponse);
+					foreach (var ldapServerProfile in enumerableDTO)
+					{
+						LogInfo($"ProfileId: {ldapServerProfile.ProfileId}");
+						LogInfo($"Server: {ldapServerProfile.Server}");
+						LogInfo($"Port: {ldapServerProfile.Port}");
+						LogInfo($"PortForGlobalCatalog: {ldapServerProfile.PortForGlobalCatalog}");
+						LogInfo($"BaseDN: {ldapServerProfile.BaseDN}");
+						LogInfo($"BaseDNforGlobalCatalog: {ldapServerProfile.BaseDNforGlobalCatalog}");
+						LogInfo($"UseSSL: {ldapServerProfile.UseSSL}");
+						LogInfo($"UseSSLforGlobalCatalog: {ldapServerProfile.UseSSLforGlobalCatalog}");
+						LogInfo($"ConnectionTimeout: {ldapServerProfile.ConnectionTimeout}");
+						LogInfo($"DomainUserAccount: {ldapServerProfile.DomainUserAccount}");
+						Console.WriteLine();
+					}
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
 
-        static void LogWebApiRequestError(WebApiRequestException ex)
-        {
-            LogInfoOfCaller();
+		static void ConfigLogger()
+		{
+			Log.Logger = new LoggerConfiguration()
+				.WriteTo.Console()
+				.CreateLogger();
+		}
 
-            Log.Error("{@error}", ex);
+		static void NewBlankLines(int lines)
+		{
+			for (var _l = 0; _l < lines; _l++)
+				Console.WriteLine();
+		}
 
-            NewBlankLines(1);
+		static void LogInfoOfCaller([CallerMemberName] string? memberName = null)
+		{
+			if (memberName == null)
+				throw new Exception("The name of the calling member cannot be identified!");
 
-            LogError("Below a resume of the error:");
+			Log.Information("{0}...", memberName.ToUpper());
+		}
 
-            NewBlankLines(1);
+		static void LogInfoOfType(Type type)
+		{
+			Log.Information("{0} **************************", type.FullName);
+		}
 
-            LogError($"Exception type: {ex.GetType().FullName}");
-            LogError($"Error message: {ex.Message}");
+		static void LogInfo(string message)
+		{
+			Log.Information(message);
+		}
 
-            var typeOfContent = ex.NoSuccessResponse.GetType();
-            LogError($"Type of response content: {typeOfContent.FullName}");
+		static void LogInfo<T>(T model)
+		{
+			Log.Information<T>("{@result}", model);
+		}
 
-            if (typeOfContent == typeof(NoSuccessResponseWithJsonStringContent))
-            {
-                var noSuccessResponse = (NoSuccessResponseWithJsonStringContent)ex.NoSuccessResponse;
+		static void LogWarning(string message)
+		{
+			Log.Warning(message);
+		}
 
-                LogError(noSuccessResponse.ReasonPhrase);
-                LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
-                LogError(noSuccessResponse.ContentMediaType.ToString());
-                LogError(noSuccessResponse.Content);
-            }
-            else if (typeOfContent == typeof(NoSuccessResponseWithJsonExceptionContent))
-            {
-                var noSuccessResponse = (NoSuccessResponseWithJsonExceptionContent)ex.NoSuccessResponse;
+		static void LogError(string message)
+		{
+			Log.Error(message);
+		}
 
-                LogError(noSuccessResponse.ReasonPhrase);
-                LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
+		static void LogError(Exception ex)
+		{
+			Log.Error($"Message: {ex.Message}");
+			Log.Error($"Source: {ex.Source}");
+			Log.Error(ex.StackTrace ?? string.Empty);
+			Console.WriteLine();
+			if (ex.InnerException == null) return;
 
-                var _exceptionJsonFormat = noSuccessResponse.Content;
-                while (_exceptionJsonFormat != null)
-                {
-                    LogError(_exceptionJsonFormat.GetType().FullName);
-                    LogError(_exceptionJsonFormat.Message);
-                    LogError(_exceptionJsonFormat.Source);
-                    LogError(_exceptionJsonFormat.StackTrace);
+			Log.Error($"Message: {ex.InnerException.Message}");
+			Log.Error($"Source: {ex.InnerException.Source}");
+			Log.Error(ex.InnerException.StackTrace ?? string.Empty);
+			Console.WriteLine();
+			if (ex.InnerException.InnerException == null) return;
 
-                    NewBlankLines(1);
+			Log.Error($"Message: {ex.InnerException.InnerException.Message}");
+			Log.Error($"Source: {ex.InnerException.InnerException.Message}");
+			Log.Error(ex.InnerException.InnerException.StackTrace ?? string.Empty);
+			Console.WriteLine();
+		}
 
-                    _exceptionJsonFormat = _exceptionJsonFormat.InnerMiddlewareException;
-                }
-            }
-            else if (typeOfContent == typeof(NoSuccessResponseWithHtmlContent))
-            {
-                var noSuccessResponse = (NoSuccessResponseWithHtmlContent)ex.NoSuccessResponse;
+		static void LogWebApiRequestError(WebApiRequestException ex)
+		{
+			LogInfoOfCaller();
 
-                LogError(noSuccessResponse.ReasonPhrase);
-                LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
-                LogError(noSuccessResponse.Content);
-            }
-            else if (typeOfContent == typeof(NoSuccessResponseWithEmptyContent))
-            {
-                var noSuccessResponse = (NoSuccessResponseWithEmptyContent)ex.NoSuccessResponse;
+			Log.Error("{@error}", ex);
 
-                LogError(noSuccessResponse.ReasonPhrase);
-                LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
-                LogError(noSuccessResponse.WebServer);
-                LogError(noSuccessResponse.Date);
-            }
-        }
-    }
+			NewBlankLines(1);
+
+			LogError("Below a resume of the error:");
+
+			NewBlankLines(1);
+
+			LogError($"Exception type: {ex.GetType().FullName}");
+			LogError($"Error message: {ex.Message}");
+
+			var typeOfContent = ex.NoSuccessResponse.GetType();
+			LogError($"Type of response content: {typeOfContent.FullName}");
+
+			if (typeOfContent == typeof(NoSuccessResponseWithJsonStringContent))
+			{
+				var noSuccessResponse = (NoSuccessResponseWithJsonStringContent)ex.NoSuccessResponse;
+
+				LogError(noSuccessResponse.ReasonPhrase);
+				LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
+				LogError(noSuccessResponse.ContentMediaType.ToString());
+				LogError(noSuccessResponse.Content);
+			}
+			else if (typeOfContent == typeof(NoSuccessResponseWithJsonExceptionContent))
+			{
+				var noSuccessResponse = (NoSuccessResponseWithJsonExceptionContent)ex.NoSuccessResponse;
+
+				LogError(noSuccessResponse.ReasonPhrase);
+				LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
+
+				var exceptionJsonFormat = noSuccessResponse.Content;
+				while (exceptionJsonFormat != null)
+				{
+					LogError(exceptionJsonFormat.GetType().FullName ?? throw new Exception("The type of error contained in the response cannot be identified!"));
+					LogError(exceptionJsonFormat.Message);
+					LogError(exceptionJsonFormat.Source);
+					LogError(exceptionJsonFormat.StackTrace);
+
+					NewBlankLines(1);
+
+					exceptionJsonFormat = exceptionJsonFormat.InnerMiddlewareException;
+				}
+			}
+			else if (typeOfContent == typeof(NoSuccessResponseWithHtmlContent))
+			{
+				var noSuccessResponse = (NoSuccessResponseWithHtmlContent)ex.NoSuccessResponse;
+
+				LogError(noSuccessResponse.ReasonPhrase);
+				LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
+				LogError(noSuccessResponse.Content);
+			}
+			else if (typeOfContent == typeof(NoSuccessResponseWithEmptyContent))
+			{
+				var noSuccessResponse = (NoSuccessResponseWithEmptyContent)ex.NoSuccessResponse;
+
+				LogError(noSuccessResponse.ReasonPhrase);
+				LogError(((int)noSuccessResponse.HttpStatusCode).ToString());
+				LogError(noSuccessResponse.WebServer);
+				LogError(noSuccessResponse.Date);
+			}
+		}
+	}
 }

@@ -72,11 +72,11 @@ public abstract class ApiControllerBase<T> : ControllerBase
 		var connectionInfo = new LDAPHelper.ConnectionInfo(ldapServerProfile.Server, ldapServerProfile.GetPort(useGlobalCatalog), ldapServerProfile.GetUseSsl(useGlobalCatalog), ldapServerProfile.ConnectionTimeout);
 
 		var accountParts = ldapServerProfile.DomainUserAccount.Split("\\");
-		var credentials = new LDAPHelper.DTO.LDAPDomainAccountCredential(accountParts[0], accountParts[1], ldapServerProfile.DomainAccountPassword);
+		var credential = new LDAPHelper.DTO.LDAPDomainAccountCredential(accountParts[0], accountParts[1], ldapServerProfile.DomainAccountPassword);
 
 		var searchLimits = new LDAPHelper.SearchLimits(ldapServerProfile.GetBaseDN(useGlobalCatalog));
 
-		return new LDAPHelper.ClientConfiguration(connectionInfo, credentials, searchLimits);
+		return new LDAPHelper.ClientConfiguration(connectionInfo, credential, searchLimits);
 	}
 
 	/// <summary>
@@ -106,22 +106,38 @@ public abstract class ApiControllerBase<T> : ControllerBase
 		throw new Exception($"LDAP Catalog type '{ldapCatalogType}' not found.");
 	}
 
+	/// <summary>
+	/// Validates if the <see cref="Binders.OptionalIdentifierAttributeBinder"/> was able to identify and/or assign a value to <paramref name="identifierAttribute"/>.
+	/// </summary>
+	/// <param name="identifierAttribute">Variable to be evaluated.</param>
+	/// <exception cref="InvalidOperationException">When <paramref name="identifierAttribute"/> has no value.</exception>
 	protected void ValidateIdentifierAttribute([NotNull] ref LDAPHelper.DTO.EntryAttribute? identifierAttribute)
 	{
 		if (!identifierAttribute.HasValue)
 			throw new InvalidOperationException($"{typeof(Binders.OptionalIdentifierAttributeBinder).FullName} could not identify / set {nameof(identifierAttribute)} parameter.");
 	}
 
+	/// <summary>
+	/// Validates if the <see cref="Binders.OptionalRequiredAttributesBinder"/> was able to identify and/or assign a value to <paramref name="requiredAttributes"/>.
+	/// </summary>
+	/// <param name="requiredAttributes">Variable to be evaluated.</param>
+	/// <exception cref="InvalidOperationException">When <paramref name="requiredAttributes"/> has no value.</exception>
 	protected void ValidateRequiredAttributes([NotNull] ref LDAPHelper.DTO.RequiredEntryAttributes? requiredAttributes)
 	{
 		if (!requiredAttributes.HasValue)
 			throw new InvalidOperationException($"{typeof(Binders.OptionalRequiredAttributesBinder).FullName} could not identify / set {nameof(requiredAttributes)} parameter.");
 	}
 
+	/// <summary>
+	/// Validates if the <see cref="Binders.SearchFiltersBinder"/> was able to initialize  <paramref name="searchFilters"/> variable and then return the value of <see cref="Models.SearchFiltersModel.combineFilters"/> property.
+	/// </summary>
+	/// <param name="searchFilters">Variable to be evaluated.</param>
+	/// <returns>Value of <see cref="Models.SearchFiltersModel.combineFilters"/> property of the <paramref name="searchFilters"/> parameter.</returns>
+	/// <exception cref="InvalidOperationException">When <paramref name="searchFilters"/> was not correctly initialized.</exception>
 	protected bool ValidateCombineFiltersParameter(Models.SearchFiltersModel searchFilters)
 	{
 		if (!searchFilters.combineFilters.HasValue)
-			throw new InvalidOperationException($"Failed to identify search filter parameters that are in the URL query string. {typeof(Binders.SearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.SearchFiltersModel)}.");
+			throw new InvalidOperationException($"{typeof(Binders.SearchFiltersBinder).FullName} failed to identify search filter parameters that are in the URL query string. {typeof(Binders.SearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.SearchFiltersModel)}.");
 
 		return searchFilters.combineFilters.Value;
 	}

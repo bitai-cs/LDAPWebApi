@@ -1,4 +1,5 @@
 ﻿using Bitai.LDAPHelper.DTO;
+using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Linq;
@@ -13,6 +14,8 @@ public class OptionalIdentifierAttributeBinder : IModelBinder
 		if (bindingContext == null)
 			throw new ArgumentNullException(nameof(bindingContext));
 
+		var defaultIdentifierAttribute = EntryAttribute.sAMAccountName;
+
 		var modelType = bindingContext.ModelMetadata.UnderlyingOrModelType;
 		if (!modelType.Equals(typeof(EntryAttribute)))
 			throw new InvalidOperationException($"{typeof(OptionalIdentifierAttributeBinder).FullName} cannot bind {modelType.FullName} model type.");
@@ -22,7 +25,7 @@ public class OptionalIdentifierAttributeBinder : IModelBinder
 		if (bindingContext.ModelMetadata.Name != null && !bindingContext.ValueProvider.ContainsPrefix(bindingContext.ModelMetadata.Name))
 		{
 			//Assign default value
-			modelInstance = EntryAttribute.sAMAccountName;
+			modelInstance = defaultIdentifierAttribute;
 
 			bindingContext.Result = ModelBindingResult.Success(modelInstance);
 
@@ -31,8 +34,12 @@ public class OptionalIdentifierAttributeBinder : IModelBinder
 
 		var argumentValue = bindingContext.ModelMetadata.Name == null ? null : bindingContext.ValueProvider.GetValue(bindingContext.ModelMetadata.Name).FirstOrDefault();
 
-		if (!Enum.TryParse<EntryAttribute>(argumentValue, true, out var entryAttribute))
-			throw new InvalidCastException($"Cannot get '{nameof(EntryAttribute)}' from value '{argumentValue}'");
+		EntryAttribute entryAttribute;
+		if (string.IsNullOrEmpty(argumentValue))
+			entryAttribute = defaultIdentifierAttribute;
+		else
+			if (!Enum.TryParse(argumentValue, true, out entryAttribute))
+				throw new BadRequestException($"Cannot instantiate an '{nameof(EntryAttribute)}' using the value '{argumentValue}'");
 
 		modelInstance = entryAttribute;
 

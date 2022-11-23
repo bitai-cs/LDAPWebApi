@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Bitai.WebApi.Server;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,6 +13,8 @@ public class OptionalRequiredAttributesBinder : IModelBinder
 	{
 		if (bindingContext == null)
 			throw new ArgumentNullException(nameof(bindingContext));
+
+		var defaultRequiredAttributes = LDAPHelper.DTO.RequiredEntryAttributes.Few;
 
 		var modelType = bindingContext.ModelMetadata.UnderlyingOrModelType;
 		if (!modelType.Equals(typeof(LDAPHelper.DTO.RequiredEntryAttributes)))
@@ -31,8 +34,12 @@ public class OptionalRequiredAttributesBinder : IModelBinder
 
 		var argumentValue = bindingContext.ModelMetadata.Name == null ? null : bindingContext.ValueProvider.GetValue(bindingContext.ModelMetadata.Name).FirstOrDefault();
 
-		if (!Enum.TryParse<LDAPHelper.DTO.RequiredEntryAttributes>(argumentValue, true, out var requiredEntryAttributes))
-			throw new InvalidCastException($"Cannot get '{nameof(LDAPHelper.DTO.RequiredEntryAttributes)}' from value '{argumentValue}'");
+		LDAPHelper.DTO.RequiredEntryAttributes requiredEntryAttributes;
+		if (string.IsNullOrEmpty(argumentValue))
+			requiredEntryAttributes = defaultRequiredAttributes;
+		else
+			if (!Enum.TryParse(argumentValue, true, out requiredEntryAttributes))
+				throw new BadRequestException($"Cannot get '{nameof(LDAPHelper.DTO.RequiredEntryAttributes)}' from value '{argumentValue}'");
 
 		modelInstance = requiredEntryAttributes;
 
