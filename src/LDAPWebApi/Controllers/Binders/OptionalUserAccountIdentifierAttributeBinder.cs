@@ -1,4 +1,5 @@
 ﻿using Bitai.LDAPHelper.DTO;
+using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Linq;
@@ -12,6 +13,8 @@ public class OptionalUserAccountIdentifierAttributeBinder : IModelBinder
 	{
 		if (bindingContext == null)
 			throw new ArgumentNullException(nameof(bindingContext));
+
+		var defaultIdentifierAttribute = EntryAttribute.sAMAccountName;
 
 		var modelType = bindingContext.ModelMetadata.UnderlyingOrModelType;
 		if (!modelType.Equals(typeof(EntryAttribute)))
@@ -31,8 +34,12 @@ public class OptionalUserAccountIdentifierAttributeBinder : IModelBinder
 
 		var argumentValue = bindingContext.ModelMetadata.Name == null ? null : bindingContext.ValueProvider.GetValue(bindingContext.ModelMetadata.Name).FirstOrDefault();
 
-		if (!Enum.TryParse<EntryAttribute>(argumentValue, true, out var entryAttribute))
-			throw new InvalidCastException($"Cannot get '{nameof(EntryAttribute)}' from value '{argumentValue}'");
+		EntryAttribute entryAttribute;
+		if (string.IsNullOrEmpty(argumentValue))
+			entryAttribute = EntryAttribute.sAMAccountName;
+		else
+			if (!Enum.TryParse(argumentValue, true, out entryAttribute))
+				throw new BadRequestException($"Cannot instantiate an '{nameof(EntryAttribute)}' using the value '{argumentValue}'");
 
 		if (!(entryAttribute == EntryAttribute.sAMAccountName || entryAttribute == EntryAttribute.distinguishedName))
 			throw new WebApi.Server.BadRequestException($"The LDAP attribute to identify a user account must be only {EntryAttribute.sAMAccountName} or {EntryAttribute.distinguishedName}");

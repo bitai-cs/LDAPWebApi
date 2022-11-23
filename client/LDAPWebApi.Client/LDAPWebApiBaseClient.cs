@@ -1,12 +1,6 @@
 ﻿using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
-using IdentityModel.Client;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Clients
 {
@@ -19,7 +13,7 @@ namespace Bitai.LDAPWebApi.Clients
         /// LDAP Server profile Id, which is defined in appsettings.json 
         /// of LDAPWebApi. 
         /// </summary>
-        public string LDAPServerProfile { get; set; }
+        public string? LDAPServerProfile { get; set; }
         /// <summary>
         /// True, if the client will connect to the server's global catalog,
         /// otherwise, it will connect to the server's local catalog.
@@ -42,9 +36,10 @@ namespace Bitai.LDAPWebApi.Clients
         /// </summary>
         /// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL</param>
         /// <param name="clientCredentials">Security parameters to get an access token from Identiti Server.</param>
-        protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, WebApiClientCredentials clientCredentials) : base(ldapWebApiBaseUrl, clientCredentials)
+        protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, WebApiClientCredential? clientCredentials) : base(ldapWebApiBaseUrl, clientCredentials)
         {
         }
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -52,7 +47,7 @@ namespace Bitai.LDAPWebApi.Clients
         /// <param name="ldapServerProfile">LDAP Server Profile Id</param>
         /// <param name="useLdapServerGlobalCatalog">Wheter the global catalog or the local catalog will be used.</param>
         /// <param name="clientCredentials">Security parameters to get an access token from Identiti Server.</param>
-        protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredentials clientCredentials) : this(ldapWebApiBaseUrl, clientCredentials)
+        protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredential? clientCredentials) : this(ldapWebApiBaseUrl, clientCredentials)
         {
             LDAPServerProfile = ldapServerProfile;
             UseLDAPServerGlobalCatalog = useLdapServerGlobalCatalog;
@@ -64,12 +59,13 @@ namespace Bitai.LDAPWebApi.Clients
         /// <summary>
         /// Get value for an optional <see cref="EntryAttribute"/> query string parameter.
         /// </summary>
-        /// <param name="nullable">Nullable <see cref="EntryAttribute"/></param>
+        /// <param name="optionalEntryAttribute">Nullable <see cref="EntryAttribute"/></param>
         /// <returns></returns>
-        public string GetOptionalEntryAttributeName(EntryAttribute? nullable)
+        public string GetOptionalEntryAttributeName(EntryAttribute? optionalEntryAttribute)
         {
-            return nullable.HasValue ? nullable.ToString() : string.Empty;
+            return optionalEntryAttribute.HasValue ? optionalEntryAttribute.Value.ToString() : string.Empty;
         }
+
         /// <summary>
         /// Get value for an optional <see cref="RequiredEntryAttributes"/> query string parameter.
         /// </summary>
@@ -77,8 +73,9 @@ namespace Bitai.LDAPWebApi.Clients
         /// <returns></returns>
         public string GetOptionalRequiredEntryAttributesName(RequiredEntryAttributes? nullable)
         {
-            return nullable.HasValue ? nullable.ToString() : string.Empty;
+            return nullable.HasValue ? nullable.Value.ToString() : string.Empty;
         }
+
         /// <summary>
         /// Get value for an optional <see cref="bool"/> query string parameter.
         /// </summary>
@@ -86,7 +83,7 @@ namespace Bitai.LDAPWebApi.Clients
         /// <returns></returns>
         public string GetOptionalBooleanValue(bool? nullable)
         {
-            return nullable.HasValue ? nullable.ToString() : string.Empty;
+            return nullable.HasValue ? nullable.Value.ToString() : string.Empty;
         }
 
 

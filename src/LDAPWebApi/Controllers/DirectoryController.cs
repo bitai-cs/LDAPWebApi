@@ -37,16 +37,17 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 
 	/// <summary>
-	/// Search for entries by an identifier field.
+	/// Get an directory entry by its identifier.
 	/// </summary>
 	/// <param name="serverProfile">LDAP Server profile Id.</param>
 	/// <param name="catalogType">LDAP Server catalog type.</param>
-	/// <param name="identifier">Entry identifier value.</param>
-	/// <param name="identifierAttribute">Optional. Attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.sAMAccountName"/> attribute is assumed by default.</param>
-	/// <param name="requiredAttributes">Optional. . If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default.</param>
-	/// <param name="requestTag">Optopnal. Tag to identify the request.</param>
-	/// <returns></returns>
-	/// <exception cref="InvalidOperationException"></exception>
+	/// <param name="identifier">Directory entry identifier value.</param>
+	/// <param name="identifierAttribute">Attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.sAMAccountName"/> attribute is assumed by default. This is an optional query string parameter.</param>
+	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+	/// <returns><see cref="LDAPSearchResult"/></returns>
+	/// <exception cref="ResourceNotFoundException">When no directory entry found.</exception>
+	/// <exception cref="BadRequestException">When more than one directory entry is found.</exception>
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/{identifier}")]
 	public async Task<ActionResult<LDAPSearchResult>> GetByIdentifier(
@@ -55,9 +56,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string identifier,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
 		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
@@ -65,11 +66,11 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searchFilter = new AttributeFilter(identifierAttribute!.Value, new FilterValue(identifier));
 
-		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
+		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestLabel);
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Search failed by {@attribute} identifier with value {@identfier}", identifierAttribute, identifier);
+			Logger.LogError(searchResult.ErrorObject, "Search failed by {@identifierAttribute} identifier with value {identifier}", identifierAttribute, identifier);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
@@ -88,6 +89,16 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(searchResult);
 	}
 
+	/// <summary>
+	/// Search directory entries based on the specified filters.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Server profile Id.</param>
+	/// <param name="catalogType">LDAP Server catalog type.</param>
+	/// <param name="searchFilters"><see cref="Models.SearchFiltersModel"/> that encapsulates attribute filters in query string.</param>
+	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+	/// <returns><see cref="LDAPSearchResult"/></returns>
+	/// <exception cref="ApplicationException">When an <see cref="LDAPHelper"/> operation does not complete successfully.</exception>
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
 	[ActionName("filterBy")]
@@ -96,9 +107,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
@@ -115,22 +126,22 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
 			var searchFilter = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
 
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 		else
 		{
 			var searchFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
 
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 
 		if (!searchResult.IsSuccessfulOperation) {
-			Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@filterModel}", searchFilters);
+			Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@searchFilters}", searchFilters);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
 			else
-				throw new Exception(searchResult.OperationMessage);
+				throw new ApplicationException(searchResult.OperationMessage);
 		}
 		
 		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
@@ -139,13 +150,13 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	}
 
 	/// <summary>
-	/// Gets an LDAP entry with the data of a user. 
+	/// Set user account password. 
 	/// </summary>
 	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
 	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/>.</param>
 	/// <param name="identifier">Identifier of the user account that will define the route of this Endpoint. There must be a valid value for the LDAP attributes <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
 	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
-	/// <param name="requestTag">Custom value to tag response values.</param>
+	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
 	/// <param name="credential"><see cref="LDAPCredential"/> with new password. The <see cref="LDAPCredential.UserAccount"/> property must correspond to the <paramref name="identifier"/> parameter</param>
 	/// <returns><see cref="LDAPPasswordUpdateResult"/></returns>
 	[HttpPost]
@@ -155,10 +166,10 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string catalogType,
 		[FromRoute] string identifier,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalUserAccountIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
 		[FromBody] LDAPCredential credential)
 	{
-		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@cn}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier),identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestTag),requestTag, nameof(credential), credential.UserAccount);
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@cn}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier),identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel),requestLabel, nameof(credential), credential.UserAccount);
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -192,9 +203,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
-		var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestTag);
+		var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
 		if (!searchResult.IsSuccessfulOperation) {
-			Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@filter}.", searchFilter);
+			Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@searchFilter}", searchFilter);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
@@ -212,13 +223,13 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var dnCredential = new LDAPDistinguishedNameCredential(entry.distinguishedName, credential.Password);
 		var accountManager = new LDAPHelper.AccountManager(GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType)));
-		var pwdUpdateResult = await accountManager.SetAccountPassword(dnCredential, requestTag);
+		var pwdUpdateResult = await accountManager.SetAccountPassword(dnCredential, requestLabel);
 
 		if (!pwdUpdateResult.IsSuccessfulOperation)
 		{
 			if (pwdUpdateResult.HasErrorObject)
 			{
-				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {@identifier} with {@dnAttr}: {@dn}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
+				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {identifier} with {@distinguishedName}: {distinguishedName}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
 
 				throw pwdUpdateResult.ErrorObject;
 			}
@@ -226,7 +237,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 				throw new Exception(pwdUpdateResult.OperationMessage);
 		}
 
-		Logger.LogInformation("Response body: {@result}", pwdUpdateResult);
+		Logger.LogInformation("Response body: {@pwdUpdateResult}", pwdUpdateResult);
 		
 		return Ok(pwdUpdateResult);
 	}
@@ -239,9 +250,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string identifier,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation("Request path: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {identifierRoute}={identifier}, {identifierAttributeQuery}={identifierAttribute}, {requiredAttributesQuery}={requiredAttributes}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier,  nameof(identifierAttribute), identifierAttribute, nameof(requiredAttributes), requiredAttributes, nameof(requestLabel), requestLabel);
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -256,11 +267,11 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-		var searchResult = await searcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		var searchResult = await searcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@attribute} = {@value}.", identifier, identifierAttribute);
+			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
@@ -268,7 +279,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 				throw new Exception(searchResult.OperationMessage);		
 		}
 		
-		Logger.LogInformation("Response body: {@result}", searchResult);
+		Logger.LogInformation("Response body: {@searchResult}", searchResult);
 
 		return Ok(searchResult);
 	}
@@ -281,9 +292,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
@@ -304,7 +315,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, combinedFilters });
 
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 		else
 		{
@@ -314,11 +325,11 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 
 		if (!searchResult.IsSuccessfulOperation) {
-			Logger.LogError(searchResult.ErrorObject, "Error searching for users with the following filter: {@searchFilter}.", searchFilters);
+			Logger.LogError(searchResult.ErrorObject, "Error searching for users with the following filter: {@searchFilters}", searchFilters);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
@@ -339,9 +350,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string identifier,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -357,11 +368,11 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestTag);
+		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestLabel);
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to look up the LDAP entry of a group by its identifier: {@attr}={@id}", identifierAttribute, identifier);
+			Logger.LogError(searchResult.ErrorObject, "Failed to look up the LDAP entry of a group by its identifier: {@identifierAttribute}={identifier}", identifierAttribute, identifier);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
@@ -387,9 +398,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string identifier,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag)
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -405,11 +416,11 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-		var searchResult = await searcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+		var searchResult = await searcher.SearchParentEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@attribute} = {@value}.", identifier, identifierAttribute);
+			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
@@ -430,10 +441,10 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestTag
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel
 		)
 	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestTag)}={requestTag}");
+		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
 		ValidateRequiredAttributes(ref requiredAttributes);
 
@@ -454,7 +465,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, combinedFilters });
 
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 		else
 		{
@@ -464,12 +475,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyGroupsFilter, attributeFilter });
 
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestTag);
+			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP group entries by  {@filter}", searchFilters);
+			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP group entries by  {@searchFilters}", searchFilters);
 
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;

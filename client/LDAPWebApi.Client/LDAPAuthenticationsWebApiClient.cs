@@ -18,33 +18,34 @@ namespace Bitai.LDAPWebApi.Clients
         /// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
         /// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
         /// <param name="useLdapServerGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
-        /// <param name="clientCredentials">Client credentials to request an access token  from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
-        public LDAPAuthenticationsWebApiClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredentials clientCredentials = null) : base(ldapWebApiBaseUrl, ldapServerProfile, useLdapServerGlobalCatalog, clientCredentials)
+        /// <param name="clientCredential">Client credentials to request an access token  from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
+        public LDAPAuthenticationsWebApiClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredential? clientCredential = null) : base(ldapWebApiBaseUrl, ldapServerProfile, useLdapServerGlobalCatalog, clientCredential)
         {
         }
 
 
 
-        /// <summary>
-        /// Send a post request to LDAP Web Api Authentications controller.
-        /// </summary>
-        /// <param name="accountCredential">Account credentials or Network credentials</param>
-        /// <param name="setAuthorizationHeaderWithBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
-        /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-        /// <returns></returns>
-        public async Task<IHttpResponse> AccountAuthenticationAsync(DTO.LDAPAccountCredentials accountCredential, bool setAuthorizationHeaderWithBearerToken = true, CancellationToken cancellationToken = default)
+		/// <summary>
+		/// Send a post request to LDAP Web Api Authentications controller.
+		/// </summary>
+		/// <param name="ldapCredential">Account credentials or Network credentials</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// <returns><see cref="IHttpResponse"/></returns>
+		public async Task<IHttpResponse> AccountAuthenticationAsync(Bitai.LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
         {
-            var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}";
+            var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}?requestLabel={requestLabel}";
 
-            using (var httpClient = await CreateHttpClient(setAuthorizationHeaderWithBearerToken))
+            using (var httpClient = await CreateHttpClient(setBearerToken))
             {
-                var content = new ObjectContent<DTO.LDAPAccountCredentials>(accountCredential, new JsonMediaTypeFormatter());
+                var content = new ObjectContent<LDAPHelper.DTO.LDAPDomainAccountCredential>(ldapCredential, new JsonMediaTypeFormatter());
 
                 var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
                 if (!responseMessage.IsSuccessStatusCode)
                     return await responseMessage.ToUnsuccessfulHttpResponseAsync();
                 else
-                    return await responseMessage.ToSuccessfulHttpResponseAsync<DTO.LDAPAccountAuthenticationStatus>();
+                    return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPHelper.DTO.LDAPDomainAccountAuthenticationResult>();
             }
         }
     }

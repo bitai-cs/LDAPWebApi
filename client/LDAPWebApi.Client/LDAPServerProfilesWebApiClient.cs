@@ -17,23 +17,24 @@ namespace Bitai.LDAPWebApi.Clients
         /// </summary>
         /// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
         /// <param name="clientCredentials">Client credentials to request an access token  from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
-        public LDAPServerProfilesWebApiClient(string ldapWebApiBaseUrl, WebApiClientCredentials clientCredentials) : base(ldapWebApiBaseUrl, clientCredentials)
+        public LDAPServerProfilesWebApiClient(string ldapWebApiBaseUrl, WebApiClientCredential? clientCredentials = null) : base(ldapWebApiBaseUrl, clientCredentials)
         {
         }
 
 
 
-        /// <summary>
-        /// Send a GET request to [controller]/GetProfileIds
-        /// </summary>
-        /// <param name="setAuthorizationHeaderWithBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
-        /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-        /// <returns><see cref="IHttpResponse"/></returns>
-        public async Task<IHttpResponse> GetProfileIdsAsync(bool setAuthorizationHeaderWithBearerToken = true, CancellationToken cancellationToken = default)
+		/// <summary>
+		/// Send a GET request to [controller]/GetProfileIds
+		/// </summary>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// 
+		/// <returns><see cref="IHttpResponse"/></returns>
+		public async Task<IHttpResponse> GetProfileIdsAsync(bool setBearerToken = true, CancellationToken cancellationToken = default)
         {
             var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}/GetProfileIds";
 
-            using (var httpClient = await CreateHttpClient(setAuthorizationHeaderWithBearerToken))
+            using (var httpClient = await CreateHttpClient(setBearerToken))
             {
                 var responseMessage = await httpClient.GetAsync(uri, cancellationToken);
                 if (!responseMessage.IsSuccessStatusCode)
@@ -47,17 +48,17 @@ namespace Bitai.LDAPWebApi.Clients
         /// Send a GET request to [controller]/<paramref name="serverProfileId"/>
         /// </summary>
         /// <param name="serverProfileId">LDAP Server profile Id.</param>
-        /// <param name="setAuthorizationHeaderWithBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+        /// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
         /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
         /// <returns><see cref="IHttpResponse"/></returns>
-        public async Task<IHttpResponse> GetByProfileIdAsync(string serverProfileId, bool setAuthorizationHeaderWithBearerToken = true, CancellationToken cancellationToken = default)
+        public async Task<IHttpResponse> GetByProfileIdAsync(string serverProfileId, bool setBearerToken = true, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(serverProfileId))
                 throw new ArgumentNullException(nameof(serverProfileId));
 
             var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}/{serverProfileId}";
 
-            using (var httpClient = await CreateHttpClient(setAuthorizationHeaderWithBearerToken))
+            using (var httpClient = await CreateHttpClient(setBearerToken))
             {
                 var responseMessage = await httpClient.GetAsync(uri, cancellationToken);
                 if (!responseMessage.IsSuccessStatusCode)
@@ -70,13 +71,13 @@ namespace Bitai.LDAPWebApi.Clients
         /// <summary>
         /// Sen a GET request to [controller]
         /// </summary>
-        /// <param name="setAuthorizationHeaderWithBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+        /// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
         /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
         /// <returns><see cref="IHttpResponse"/></returns>
-        public async Task<IHttpResponse> GetAllAsync(bool setAuthorizationHeaderWithBearerToken = true, CancellationToken cancellationToken = default)
+        public async Task<IHttpResponse> GetAllAsync(bool setBearerToken = true, CancellationToken cancellationToken = default)
         {
             var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}";
-            using (var httpClient = await CreateHttpClient(setAuthorizationHeaderWithBearerToken))
+            using (var httpClient = await CreateHttpClient(setBearerToken))
             {
                 var responseMessage = await httpClient.GetAsync(uri, cancellationToken);
                 if (!responseMessage.IsSuccessStatusCode)
