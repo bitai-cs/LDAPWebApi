@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Net.Http.Formatting;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
+using Microsoft.VisualBasic;
 
 namespace Bitai.LDAPWebApi.Clients
 {
@@ -27,6 +32,26 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 
+		public Task<IHttpResponse> SearchFilteringByAsync(string samAccountName, bool setBearerToken = true, string requestLabel = null)
+		{
+			return SearchFilteringByAsync(null, samAccountName, null, null, null, null, requestLabel, setBearerToken, default);
+		}
+
+		public Task<IHttpResponse> SearchFilteringByAsync(string samAccountName, RequiredEntryAttributes requiredAttributes, bool setBearerToken = true, string requestLabel = null)
+		{
+			return SearchFilteringByAsync(null, samAccountName, null, null, null, requiredAttributes, requestLabel, setBearerToken, default);
+		}
+
+		public Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, bool setBearerToken = true, string requestLabel = null)
+		{
+			return SearchFilteringByAsync(filterAttribute, filterValue, null, null, null, null, requestLabel, setBearerToken, default);
+		}
+
+		public Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, RequiredEntryAttributes requiredAttributes, bool setBearerToken = true, string requestLabel = null)
+		{
+			return SearchFilteringByAsync(filterAttribute, filterValue, null, null, null, requiredAttributes, requestLabel, setBearerToken, default);
+		}
+
 		/// <summary>
 		/// Search for one or more user accounts using search filters.
 		/// </summary>
@@ -40,7 +65,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
 		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
-		public async Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, EntryAttribute? secondFilterAttribute = null, string? secondFilterValue = null, bool? combineFilters = null, RequiredEntryAttributes? requiredAttributes = null, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+		public async Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute? filterAttribute, string filterValue, EntryAttribute? secondFilterAttribute = null, string? secondFilterValue = null, bool? combineFilters = null, RequiredEntryAttributes? requiredAttributes = null, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/Users/filterBy?filterAttribute={filterAttribute}&filterValue={filterValue}&secondFilterAttribute={GetOptionalEntryAttributeName(secondFilterAttribute)}&secondFilterValue={secondFilterValue}&combineFilters={GetOptionalBooleanValue(combineFilters)}&requiredAttributes={GetOptionalRequiredEntryAttributesName(requiredAttributes)}&requestLabel={requestLabel}";
 
@@ -51,6 +76,26 @@ namespace Bitai.LDAPWebApi.Clients
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
 					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPSearchResult>();
+			}
+		}
+
+		public Task<IHttpResponse> SetPasswordAsync(LDAPCredential credential, bool setBearerToken = true, string requestLabel = null, CancellationToken cancellationToken = default)
+		{
+			return SetPasswordAsync(credential, null, setBearerToken, requestLabel, cancellationToken);
+		}
+
+		public async Task<IHttpResponse> SetPasswordAsync(LDAPCredential credential, EntryAttribute? identifierAttribute = null, bool setBearerToken = true, string requestLabel = null, CancellationToken cancellationToken = default)
+		{
+			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/Users/{credential.UserAccount}/Credential?identifierAttribute={GetOptionalEntryAttributeName(identifierAttribute)}&requestLabel={requestLabel}";
+
+			using (var httpClient = await CreateHttpClient(setBearerToken))
+			{
+				var content = new ObjectContent<LDAPCredential>(credential, new JsonMediaTypeFormatter());
+				var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
+				if (!responseMessage.IsSuccessStatusCode)
+					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
+				else
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPPasswordUpdateResult>();
 			}
 		}
 	}

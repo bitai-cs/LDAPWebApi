@@ -33,10 +33,10 @@ public class CatalogTypesController : ApiControllerBase<CatalogTypesController>
     /// <summary>
     /// Get defined LDAP Catalog names
     /// </summary>
-    /// <returns><see cref="DTO.LDAPCatalogTypes"/></returns>
+    /// <returns><see cref="DTO.LDAPServerCatalogTypes"/></returns>
     [Route("api/[controller]")]
     [HttpGet]
-    public Task<DTO.LDAPCatalogTypes> GetAsync()
+    public Task<DTO.LDAPServerCatalogTypes> GetAsync()
     {
         return Task.FromResult(CatalogTypeRoutes);
     }

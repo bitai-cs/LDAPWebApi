@@ -77,13 +77,13 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
-		
+
 		if (searchResult.Entries.Count() == 0)
 			throw new ResourceNotFoundException($"The user with identifier {identifierAttribute}={identifier} was not found");
 
 		if (searchResult.Entries.Count() > 1)
 			throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
-		
+
 		Logger.LogInformation("Response body: {@result}", searchResult);
 
 		return Ok(searchResult);
@@ -135,7 +135,8 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 
-		if (!searchResult.IsSuccessfulOperation) {
+		if (!searchResult.IsSuccessfulOperation)
+		{
 			Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@searchFilters}", searchFilters);
 
 			if (searchResult.HasErrorObject)
@@ -143,7 +144,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			else
 				throw new ApplicationException(searchResult.OperationMessage);
 		}
-		
+
 		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
 
 		return Ok(searchResult);
@@ -153,7 +154,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// Set user account password. 
 	/// </summary>
 	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
-	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPCatalogTypes"/>.</param>
+	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
 	/// <param name="identifier">Identifier of the user account that will define the route of this Endpoint. There must be a valid value for the LDAP attributes <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
 	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
 	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
@@ -169,7 +170,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
 		[FromBody] LDAPCredential credential)
 	{
-		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@cn}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier),identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel),requestLabel, nameof(credential), credential.UserAccount);
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@cn}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel), requestLabel, nameof(credential), credential.UserAccount);
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -181,7 +182,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		string domainName;
 		string userAccount;
 		if (identifierAttribute == EntryAttribute.sAMAccountName && credential.UserAccount.Contains('\\'))
-		{	
+		{
 			var strings = credential.UserAccount.Split('\\', StringSplitOptions.None);
 			if (!strings[0].Equals(serverProfileObject.DefaultDomainName, StringComparison.OrdinalIgnoreCase))
 				throw new BadRequestException($"The {strings[0]} domain of the user account {strings[1]} must be the same as the {serverProfile} domain specified in the API route.");
@@ -204,7 +205,8 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
 		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 		var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
-		if (!searchResult.IsSuccessfulOperation) {
+		if (!searchResult.IsSuccessfulOperation)
+		{
 			Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@searchFilter}", searchFilter);
 
 			if (searchResult.HasErrorObject)
@@ -212,7 +214,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
-		
+
 		if (searchResult.Entries.Count() == 0)
 			throw new ResourceNotFoundException($"The user accoun with identifier {attributeFilter} was not found");
 
@@ -229,7 +231,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		{
 			if (pwdUpdateResult.HasErrorObject)
 			{
-				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {identifier} with {@distinguishedName}: {distinguishedName}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
+				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {identifier} with distinguishedName {distinguishedName}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
 
 				throw pwdUpdateResult.ErrorObject;
 			}
@@ -238,7 +240,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		}
 
 		Logger.LogInformation("Response body: {@pwdUpdateResult}", pwdUpdateResult);
-		
+
 		return Ok(pwdUpdateResult);
 	}
 
@@ -252,7 +254,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
-		Logger.LogInformation("Request path: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {identifierRoute}={identifier}, {identifierAttributeQuery}={identifierAttribute}, {requiredAttributesQuery}={requiredAttributes}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier,  nameof(identifierAttribute), identifierAttribute, nameof(requiredAttributes), requiredAttributes, nameof(requestLabel), requestLabel);
+		Logger.LogInformation("Request path: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {identifierRoute}={identifier}, {identifierAttributeQuery}={identifierAttribute}, {requiredAttributesQuery}={requiredAttributes}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requiredAttributes), requiredAttributes, nameof(requestLabel), requestLabel);
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -276,9 +278,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			if (searchResult.HasErrorObject)
 				throw searchResult.ErrorObject;
 			else
-				throw new Exception(searchResult.OperationMessage);		
+				throw new Exception(searchResult.OperationMessage);
 		}
-		
+
 		Logger.LogInformation("Response body: {@searchResult}", searchResult);
 
 		return Ok(searchResult);
@@ -290,7 +292,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	public async Task<ActionResult<LDAPSearchResult>> GetUsersFilteringByAsync(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalSearchFiltersBinder))] Models.OptionalSearchFiltersModel searchFilters,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
 	{
@@ -309,7 +311,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 
-			var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+			var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
 			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
 			var combinedFilters = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
 
@@ -321,14 +323,15 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		{
 			var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 
-			var attributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+			var attributeFilter = new AttributeFilter(searchFilters.filterAttribute.Value, new FilterValue(searchFilters.filterValue));
 
 			var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
 
 			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
 
-		if (!searchResult.IsSuccessfulOperation) {
+		if (!searchResult.IsSuccessfulOperation)
+		{
 			Logger.LogError(searchResult.ErrorObject, "Error searching for users with the following filter: {@searchFilters}", searchFilters);
 
 			if (searchResult.HasErrorObject)

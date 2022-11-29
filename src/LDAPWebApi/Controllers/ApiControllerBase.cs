@@ -35,7 +35,7 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	/// <summary>
 	/// Route name for each LDAP Catalog.
 	/// </summary>
-	protected DTO.LDAPCatalogTypes CatalogTypeRoutes => new DTO.LDAPCatalogTypes();
+	protected DTO.LDAPServerCatalogTypes CatalogTypeRoutes => new DTO.LDAPServerCatalogTypes();
 
 
 
@@ -138,6 +138,20 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	{
 		if (!searchFilters.combineFilters.HasValue)
 			throw new InvalidOperationException($"{typeof(Binders.SearchFiltersBinder).FullName} failed to identify search filter parameters that are in the URL query string. {typeof(Binders.SearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.SearchFiltersModel)}.");
+
+		return searchFilters.combineFilters.Value;
+	}
+
+	/// <summary>
+	/// Validates if the <see cref="Binders.OptionalSearchFiltersBinder"/> was able to initialize  <paramref name="searchFilters"/> variable and then return the value of <see cref="Models.OptionalSearchFiltersModel.combineFilters"/> property.
+	/// </summary>
+	/// <param name="searchFilters">Variable to be evaluated.</param>
+	/// <returns>Value of <see cref="Models.OptionalSearchFiltersModel.combineFilters"/> property of the <paramref name="searchFilters"/> parameter.</returns>
+	/// <exception cref="InvalidOperationException">When <paramref name="searchFilters"/> was not correctly initialized.</exception>
+	protected bool ValidateCombineFiltersParameter(Models.OptionalSearchFiltersModel searchFilters)
+	{
+		if (!searchFilters.combineFilters.HasValue)
+			throw new InvalidOperationException($"{typeof(Binders.OptionalSearchFiltersBinder).FullName} failed to identify search filter parameters that are in the URL query string. {typeof(Binders.OptionalSearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.OptionalSearchFiltersModel)}.");
 
 		return searchFilters.combineFilters.Value;
 	}
