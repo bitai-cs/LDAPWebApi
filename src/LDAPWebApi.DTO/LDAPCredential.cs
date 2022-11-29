@@ -15,7 +15,8 @@ public class LDAPCredential
 
 
 	/// <summary>
-	/// Constructor
+	/// Default constructor.
+	/// DO NOT REMOVE. Commonly used for deserialization of data.
 	/// </summary>
 	public LDAPCredential()
 	{

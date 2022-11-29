@@ -39,7 +39,7 @@ namespace Bitai.LDAPWebApi.Clients
                 if (!responseMessage.IsSuccessStatusCode)
                     return await responseMessage.ToUnsuccessfulHttpResponseAsync();
                 else
-                    return await responseMessage.ToSuccessfulHttpResponseAsync<DTO.LDAPCatalogTypes>();
+                    return await responseMessage.ToSuccessfulHttpResponseAsync<DTO.LDAPServerCatalogTypes>();
             }
         }
     }

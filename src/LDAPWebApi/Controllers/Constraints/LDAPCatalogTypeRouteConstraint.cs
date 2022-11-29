@@ -7,7 +7,7 @@ namespace Bitai.LDAPWebApi.Controllers.Constraints;
 
 public class LDAPCatalogTypeRouteConstraint : IRouteConstraint
 {
-    private readonly DTO.LDAPCatalogTypes _ldapCatalogTypeRoutes = new DTO.LDAPCatalogTypes();
+    private readonly DTO.LDAPServerCatalogTypes _ldapCatalogTypeRoutes = new DTO.LDAPServerCatalogTypes();
 
 
 

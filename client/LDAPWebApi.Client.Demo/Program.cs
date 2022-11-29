@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
 using Serilog;
 using Serilog.Sinks.SystemConsole;
@@ -10,11 +11,11 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
 	public class Program
 	{
-		static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
-		//static string WebApiBaseUrl = "https://localhost:5101";
+		//static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
+		static string WebApiBaseUrl = "https://localhost:5101";
 
 		static bool WebApiRequiresAccessToken = false;
-		
+
 		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
 		{
 			AuthorityUrl = "https://localhost:44310",
@@ -22,9 +23,9 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			ClientId = "Is4.Sts.LdapWebApi.Client",
 			ClientSecret = "232459a4-747c-6e0e-2516-72aba52a7069"
 		};
-		
+
 		static string RequestLabel { get; set; } = "DEMO";
-		
+
 		static string Selected_LDAPServerProfile { get; set; } = "CERTUS";
 
 
@@ -45,9 +46,15 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				//await CatalogTypesClient_GetAllAsync();
 
-				await AuthenticationsClient_AccountAuthenticationAsync();
+				//await AuthenticationsClient_AccountAuthenticationAsync();
 
-				await UserDirectoryClient_SearchAsync();
+				//await DirectoryClient_SearchByIdentifierAsync();
+
+				//await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
+
+				//await UserDirectoryClient_FilterByIdentifierAsync("??????");
+
+				await UserDirectoryClient_SetPasswordAsync();
 			}
 			catch (Exception ex)
 			{
@@ -78,10 +85,10 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				}
 				else
 				{
-					var dto = await client.GetDTOFromResponseAsync<DTO.LDAPCatalogTypes>(httpResponse);
+					var dto = await client.GetDTOFromResponseAsync<DTO.LDAPServerCatalogTypes>(httpResponse);
 
-					LogInfo($"{nameof(DTO.LDAPCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
-					LogInfo($"{nameof(DTO.LDAPCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
+					LogInfo($"{nameof(DTO.LDAPServerCatalogTypes.LocalCatalog)}: {dto.LocalCatalog}");
+					LogInfo($"{nameof(DTO.LDAPServerCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
 
 					LogInfo("Set Parameters.CatalogTypes property values.");
 				}
@@ -121,7 +128,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			}
 		}
 
-		static async Task UserDirectoryClient_SearchAsync()
+		static async Task DirectoryClient_SearchByIdentifierAsync()
 		{
 			try
 			{
@@ -138,6 +145,64 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				else
 				{
 					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPSearchResult>(httpResponse);
+
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
+
+		static async Task UserDirectoryClient_FilterByIdentifierAsync(string samAccountName)
+		{
+			try
+			{
+				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+
+				LogInfoOfType(client.GetType());
+
+				LogInfo($"{nameof(client.SearchFilteringByAsync)}...");
+				var httpResponse = await client.SearchFilteringByAsync(samAccountName, false, RequestLabel);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPSearchResult>(httpResponse);
+
+					LogInfo($"Se encontró {result.Entries.Count()} registro(s).");
+
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
+
+		static async Task UserDirectoryClient_SetPasswordAsync()
+		{
+			try
+			{
+				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+
+				LogInfoOfType(client.GetType());
+
+				var credential = new LDAPCredential("000127868", "1A2B3C");
+
+				LogInfo($"{nameof(client.SetPasswordAsync)}...");
+				var httpResponse = await client.SetPasswordAsync(credential, false, RequestLabel);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al resetear la contraseña", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPPasswordUpdateResult>(httpResponse);
 
 					LogInfo(result);
 				}
@@ -239,6 +304,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 		static void LogInfoOfType(Type type)
 		{
+			Console.WriteLine();
 			Log.Information("{0} **************************", type.FullName);
 		}
 

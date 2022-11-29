@@ -37,7 +37,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	/// Validate Domain Account Name credential.
 	/// </summary>
 	/// <param name="serverProfile">LDAP Server Profile Id that defines part of the path. See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
-	/// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPCatalogTypes"/></param>
+	/// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPServerCatalogTypes"/></param>
 	/// <param name="credential">Account credential to validate. See <see cref="LDAPDomainAccountCredential"/></param>
 	/// <param name="requestLabel">Valor personalizado para etiquetar la respuesta. Can e null</param>
 	/// <returns><see cref="LDAPDomainAccountAuthenticationResult"/></returns>
