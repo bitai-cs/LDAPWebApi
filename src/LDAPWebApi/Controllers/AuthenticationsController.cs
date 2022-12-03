@@ -43,7 +43,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	/// <returns><see cref="LDAPDomainAccountAuthenticationResult"/></returns>
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]")]
-	public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> PostAuthenticationAsync(
+	public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> PostDomainAccountAuthenticationAsync(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
@@ -55,52 +55,21 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
 		var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
 
-		var attributeFilter = new AttributeFilter(EntryAttribute.sAMAccountName, new FilterValue(credential.AccountName));
-		var searcher = GetLdapSearcher(ldapClientConfig);
-		var searchResult = await searcher.SearchEntriesAsync(attributeFilter, RequiredEntryAttributes.OnlyObjectSid, null);
-		if (!searchResult.IsSuccessfulOperation)
-		{
-			Logger.LogError("Failed to authenticate {domainAccountName} account.", credential.DomainAccountName);
+		var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
 
-			if (searchResult.HasErrorObject)
-				throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
+		var authenticationResult = await authenticator.AuthenticateAsync(credential, ldapClientConfig.SearchLimits, ldapClientConfig.DomainAccountCredential, requestLabel);
+		if (!authenticationResult.IsSuccessfulOperation)
+		{
+			Logger.LogError("Failed to authenticate user account {domainAccountName}.", credential.DomainAccountName);
+
+			if (authenticationResult.HasErrorObject)
+				throw authenticationResult.ErrorObject;
 			else
-				throw new Exception(searchResult.OperationMessage);
+				throw new Exception(authenticationResult.OperationMessage);
 		}
 
-		LDAPDomainAccountAuthenticationResult authenticationResult;
-		if (searchResult.Entries.Count() == 0)
-		{
-			authenticationResult = new LDAPDomainAccountAuthenticationResult(credential.SecureClone(), false, requestLabel);
-			authenticationResult.SetSuccessfullOperation($"The domain user account {credential.DomainName}\\{credential.AccountName} could not be found.");
+		Logger.LogInformation("Response body: {@authenticationResult}", authenticationResult);
 
-			return authenticationResult;
-		}
-		else if (searchResult.Entries.Count() > 1)
-		{
-			authenticationResult = new LDAPDomainAccountAuthenticationResult(credential.SecureClone(), false, requestLabel);
-			authenticationResult.SetSuccessfullOperation($"Multiple {credential.DomainName}\\{credential.AccountName} accounts were found. Accounts must be unique. Verify the parameters with which the search for user accounts is carried out.");
-
-			return authenticationResult;
-		}
-		else //Only one LDAP entry found
-		{
-			var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
-
-			authenticationResult = await authenticator.AuthenticateAsync(credential, requestLabel);
-			if (!authenticationResult.IsSuccessfulOperation)
-			{
-				Logger.LogError("Failed to authenticate user account {domainAccountName}.", credential.DomainAccountName);
-
-				if (authenticationResult.HasErrorObject)
-					throw authenticationResult.ErrorObject;
-				else
-					throw new Exception(authenticationResult.OperationMessage);
-			}
-
-			Logger.LogInformation("Response body: {@authenticationResult}", authenticationResult);
-
-			return Ok(authenticationResult);
-		}
+		return Ok(authenticationResult);
 	}
 }

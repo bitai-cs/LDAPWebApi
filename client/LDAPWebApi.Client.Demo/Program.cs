@@ -40,19 +40,19 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				Console.WriteLine("Presione la tecla enter para iniciar el demo...");
 				Console.ReadLine();
 
-				//await ServerProfilesClient_GetProfileIdsAsync();
+				await ServerProfilesClient_GetProfileIdsAsync();
 
-				//await ServerProfilesClient_GetAllAsync();
+				await ServerProfilesClient_GetAllAsync();
 
-				//await CatalogTypesClient_GetAllAsync();
+				await CatalogTypesClient_GetAllAsync();
 
-				//await AuthenticationsClient_AccountAuthenticationAsync();
+				await AuthenticationsClient_AccountAuthenticationAsync();
 
-				//await DirectoryClient_SearchByIdentifierAsync();
+				await DirectoryClient_SearchByIdentifierAsync();
 
-				//await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
+				await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
 
-				//await UserDirectoryClient_FilterByIdentifierAsync("??????");
+				await UserDirectoryClient_FilterByIdentifierAsync("??????");
 
 				await UserDirectoryClient_SetPasswordAsync();
 			}
@@ -107,7 +107,10 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				LogInfoOfType(client.GetType());
 
-				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("CERTUS", "vbastidas", "B@st1d@s");
+				Console.WriteLine($"Enter the password of the CERTUS\\vbastidas account.");
+				Console.WriteLine("(It is not nescessary to enter the real password)");
+
+				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("CERTUS", "vbastidas", requestAccountPassword("CERTUS\\vbastidas"));
 
 				LogInfo($"{nameof(client.AccountAuthenticationAsync)}...");
 				var httpResponse = await client.AccountAuthenticationAsync(accountCredentials, RequestLabel, WebApiRequiresAccessToken);
@@ -348,11 +351,18 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			Console.WriteLine();
 		}
 
+		static void LogError<T>(T model)
+		{
+			Log.Error<T>("{@result}", model);
+		}
+
 		static void LogWebApiRequestError(WebApiRequestException ex)
 		{
 			LogInfoOfCaller();
 
-			Log.Error("{@error}", ex);
+			LogError(ex);
+
+			//ex.NoSuccessResponse.ContentMediaType
 
 			NewBlankLines(1);
 
@@ -412,6 +422,63 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				LogError(noSuccessResponse.WebServer);
 				LogError(noSuccessResponse.Date);
 			}
+		}
+
+		private static string requestAccountPassword(string account)
+		{
+		REQUEST_PASSWORD:
+
+			Console.WriteLine($"ENTER PASSWORD FOR {account}:");
+
+			var password = readPassword('*');
+
+			if (string.IsNullOrEmpty(password) || string.IsNullOrWhiteSpace(password)) goto REQUEST_PASSWORD;
+
+			Log.Information($"Password entered.");
+
+			return password;
+		}
+
+		public static string readPassword(char passwordChar)
+		{
+			const int _ENTER = 13, _BACKSP = 8, _CTRLBACKSP = 127;
+			int[] _FILTERED = { 0, 27, 9, 10 /*, 32 space, if you care */ }; // const
+
+			var _pass = new Stack<char>();
+			char _chr = (char)0;
+
+			while ((_chr = Console.ReadKey(true).KeyChar) != _ENTER)
+			{
+				if (_chr == _BACKSP)
+				{
+					if (_pass.Count > 0)
+					{
+						System.Console.Write("\b \b");
+						_pass.Pop();
+					}
+				}
+				else if (_chr == _CTRLBACKSP)
+				{
+					while (_pass.Count > 0)
+					{
+						System.Console.Write("\b \b");
+						_pass.Pop();
+					}
+				}
+				else if (_FILTERED.Count(x => _chr == x) > 0)
+				{
+					//Nothing to do
+				}
+				else
+				{
+					_pass.Push((char)_chr);
+					System.Console.Write(passwordChar);
+				}
+			}
+
+			System.Console.WriteLine();
+
+			return new string(_pass.Reverse().ToArray());
 		}
 	}
 }
