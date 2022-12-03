@@ -3,15 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>6.1.1</Version>
+    <Version>6.1.2</Version>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
     <Copyright></Copyright>
     <PackageIcon>api1_64.png</PackageIcon>
-    <AssemblyVersion>6.1.1.2</AssemblyVersion>
-    <FileVersion>6.1.1.2</FileVersion>
+    <AssemblyVersion>6.1.2.7</AssemblyVersion>
+    <FileVersion>6.1.2.7</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -33,7 +33,7 @@
   <ItemGroup>
     <PackageReference Include="Bitai.LDAPHelper.DTO" Version="6.1.6" />
     <PackageReference Include="Bitai.LDAPWebApi.DTO" Version="6.1.1" />
-    <PackageReference Include="Bitai.WebApi.Helpers" Version="6.0.2" />
+    <PackageReference Include="Bitai.WebApi.Helpers" Version="6.0.4" />
     <PackageReference Include="IdentityModel" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
   </ItemGroup>
