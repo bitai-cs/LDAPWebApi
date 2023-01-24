@@ -151,6 +151,49 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	}
 
 	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="serverProfile"></param>
+	/// <param name="catalogType"></param>
+	/// <param name="requestLabel"></param>
+	/// <param name="newUserAccount"></param>
+	/// <returns></returns>
+	/// <exception cref="BadRequestException"></exception>
+	/// <exception cref="Exception"></exception>
+	[HttpPost]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers")]
+	public async Task<ActionResult<LDAPCreateMsADUserAccountResult>> CreateUserAccountForMsAD(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
+		[FromBody] LDAPMsADUserAccount newUserAccount)
+	{
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@rtn}={@rt}, {@nuan}={@nua}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(requestLabel), requestLabel, nameof(newUserAccount), newUserAccount);
+
+		if (!catalogType.Equals(CatalogTypeRoutes.LocalCatalog, StringComparison.OrdinalIgnoreCase))
+			throw new BadRequestException("Cannot create user accounts in the global catalog of the LDAP server.");
+
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+		var createUserAccountResult = await accountManager.CreateUserAccountForMsAD(newUserAccount, requestLabel);
+		if (!createUserAccountResult.IsSuccessfulOperation)
+		{
+			if (createUserAccountResult.HasErrorObject)
+			{
+				Logger.LogError(createUserAccountResult.ErrorObject, "Error creating user account {@ua}", newUserAccount.SecureClone());
+
+				throw createUserAccountResult.ErrorObject;
+			}
+			else
+				throw new Exception(createUserAccountResult.OperationMessage);
+		}
+
+		Logger.LogInformation("Response body: {@pwdUpdateResult}", createUserAccountResult);
+
+		return Ok(createUserAccountResult);
+	}
+
+	/// <summary>
 	/// Set user account password. 
 	/// </summary>
 	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>

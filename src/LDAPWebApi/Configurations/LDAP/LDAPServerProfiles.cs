@@ -21,6 +21,13 @@ public class LDAPServerProfiles : List<LDAPServerProfile>
 
 		if (repeatedProfileIds.Count() > 0)
 			throw new Exception($"Error in LDAPServerProfiles configuration. There are repeating ProfileIds ({string.Join(',', repeatedProfileIds)})");
+
+		var repeatedServers = this.GroupBy(id => id.Server)
+			.Where(g => g.Count() > 1)
+			.Select(g => g.Key);
+
+		if (repeatedServers.Count() > 0)
+			throw new Exception($"Error in LDAPServerProfiles configuration. There are repeating servers ({string.Join(',', repeatedServers)})");
 	}
 }
 
