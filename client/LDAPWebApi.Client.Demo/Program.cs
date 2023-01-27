@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
 using Serilog;
@@ -11,8 +13,8 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
 	public class Program
 	{
-		//static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
-		static string WebApiBaseUrl = "https://localhost:5101";
+		static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
+		//static string WebApiBaseUrl = "https://localhost:5101";
 
 		static bool WebApiRequiresAccessToken = false;
 
@@ -45,6 +47,10 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				await ServerProfilesClient_GetAllAsync();
 
 				await CatalogTypesClient_GetAllAsync();
+
+				await DirectoryClient_CreateMsADUserAccountAsync();
+
+				await DirectoryClient_SetMsADUserAccountPassword();
 
 				await AuthenticationsClient_AccountAuthenticationAsync();
 
@@ -91,6 +97,83 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 					LogInfo($"{nameof(DTO.LDAPServerCatalogTypes.GlobalCatalog)}: {dto.GlobalCatalog}");
 
 					LogInfo("Set Parameters.CatalogTypes property values.");
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
+
+		static async Task DirectoryClient_CreateMsADUserAccountAsync()
+		{
+			try
+			{
+				var client = new LDAPDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+
+				LogInfoOfType(client.GetType());
+				NewBlankLines(1);
+
+				var newUserAccount = new LDAPMsADUserAccount
+				{
+					DistinguishedNameOfContainer = "OU=TEST_RPA_MDA,OU=ADM,OU=CERTUS,DC=certus,DC=edu,DC=pe",
+					Cn = "Victor German Bastidas Gonzales",
+					DisplayName = "Victor German Bastidas Gonzales (SDN)",
+					ObjectClass = new string[] { "user" },
+					SAMAccountName = "vbastidas01",
+					UserAccountControl = "NORMAL_ACCOUNT,DONT_EXPIRE_PASSWORD",
+					Password = "rpa2023@@"
+				};
+				LogInfo(newUserAccount);
+				NewBlankLines(1);
+
+				LogInfo($"{nameof(client.CreateMsADUserAccountAsync)}...");
+				var httpResponse = await client.CreateMsADUserAccountAsync(newUserAccount, RequestLabel, WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPCreateMsADUserAccountResult>(httpResponse);
+
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
+
+		static async Task DirectoryClient_SetMsADUserAccountPassword()
+		{
+			try
+			{
+				var client = new LDAPDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+
+				LogInfoOfType(client.GetType());
+				NewBlankLines(1);
+
+				var credential = new LDAPCredential
+				{
+					UserAccount = "CERTUS\\vbastidas01",
+					Password = "17viko@@"
+				};
+				LogInfo(credential);
+				NewBlankLines(1);
+
+				LogInfo($"{nameof(client.SetMsADUserAccountPassword)}...");
+				var httpResponse = await client.SetMsADUserAccountPassword("vbastidas01", credential, EntryAttribute.sAMAccountName, RequestLabel, WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPPasswordUpdateResult>(httpResponse);
+
+					LogInfo(result);
 				}
 			}
 			catch (WebApiRequestException ex)

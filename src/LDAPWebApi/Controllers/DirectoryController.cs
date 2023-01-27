@@ -174,7 +174,48 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			throw new BadRequestException("Cannot create user accounts in the global catalog of the LDAP server.");
 
 		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
 		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+		accountManager.InitializeMissingMsADUserAccountDN(newUserAccount);
+
+		#region Check if DN already exists
+		var onlyUsersFilterCombiner = LDAPHelper.QueryFilters.AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
+		var attributeFilter = new LDAPHelper.QueryFilters.AttributeFilter(EntryAttribute.distinguishedName, new LDAPHelper.QueryFilters.FilterValue(newUserAccount.DistinguishedName));
+		var searchFilterCombiner = new LDAPHelper.QueryFilters.AttributeFilterCombiner(false, true, new List<LDAPHelper.QueryFilters.ICombinableFilter> { onlyUsersFilterCombiner, attributeFilter });
+
+		var searcher = new LDAPHelper.Searcher(clientConfig);
+		var searchResult = await searcher.SearchEntriesAsync(searchFilterCombiner, RequiredEntryAttributes.Minimun, requestLabel);
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+		if (searchResult.Entries.Count() != 0)
+		{
+			throw new ConflictException($"There is already an entry in the AD with the {EntryAttribute.distinguishedName} equal to {newUserAccount.DistinguishedName}");
+		}
+		#endregion
+
+		#region Check if samAccountName already exists
+		attributeFilter = new LDAPHelper.QueryFilters.AttributeFilter(EntryAttribute.sAMAccountName, new LDAPHelper.QueryFilters.FilterValue(newUserAccount.SAMAccountName));
+		searchFilterCombiner = new LDAPHelper.QueryFilters.AttributeFilterCombiner(false, true, new List<LDAPHelper.QueryFilters.ICombinableFilter> { onlyUsersFilterCombiner, attributeFilter });
+		
+		searchResult = await searcher.SearchEntriesAsync(searchFilterCombiner, RequiredEntryAttributes.Minimun, requestLabel);
+		if (!searchResult.IsSuccessfulOperation)
+		{
+			if (searchResult.HasErrorObject)
+				throw searchResult.ErrorObject;
+			else
+				throw new Exception(searchResult.OperationMessage);
+		}
+		if (searchResult.Entries.Count() != 0)
+		{
+			throw new ConflictException($"There is already an entry in the AD with the {EntryAttribute.sAMAccountName } equal to {newUserAccount.SAMAccountName}");
+		}
+		#endregion
+
 		var createUserAccountResult = await accountManager.CreateUserAccountForMsAD(newUserAccount, requestLabel);
 		if (!createUserAccountResult.IsSuccessfulOperation)
 		{
@@ -205,7 +246,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <returns><see cref="LDAPPasswordUpdateResult"/></returns>
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Credential")]
-	public async Task<ActionResult<LDAPPasswordUpdateResult>> SetUserCredential(
+	public async Task<ActionResult<LDAPPasswordUpdateResult>> SetUserAccountCredentialForMsAD(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
 		[FromRoute] string identifier,
@@ -268,7 +309,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var dnCredential = new LDAPDistinguishedNameCredential(entry.distinguishedName, credential.Password);
 		var accountManager = new LDAPHelper.AccountManager(GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType)));
-		var pwdUpdateResult = await accountManager.SetAccountPassword(dnCredential, requestLabel);
+		var pwdUpdateResult = await accountManager.SetUserAccountPasswordForMsAD(dnCredential, requestLabel);
 
 		if (!pwdUpdateResult.IsSuccessfulOperation)
 		{
