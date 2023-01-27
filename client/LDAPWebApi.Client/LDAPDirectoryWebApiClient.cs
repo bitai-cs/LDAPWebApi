@@ -1,5 +1,7 @@
 ﻿using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
+using System.Net.Http.Formatting;
 
 namespace Bitai.LDAPWebApi.Clients
 {
@@ -18,6 +20,7 @@ namespace Bitai.LDAPWebApi.Clients
 		public LDAPDirectoryWebApiClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredential? clientCredentials = null) : base(ldapWebApiBaseUrl, ldapServerProfile, useLdapServerGlobalCatalog, clientCredentials)
 		{
 		}
+
 
 
 
@@ -71,6 +74,7 @@ namespace Bitai.LDAPWebApi.Clients
 			}
 		}
 		#endregion //GET /API/{SERVERPROFILE}/{CATALOGTYPE}/DIRECTORY/{identifier}
+
 
 		#region GET /API/{SERVERPROFILE}/{CATALOGTYPE}/DIRECTORY/filterBy
 		/// <summary>
@@ -145,5 +149,63 @@ namespace Bitai.LDAPWebApi.Clients
 			}
 		}
 		#endregion GET /API/{SERVERPROFILE}/{CATALOGTYPE}/DIRECTORY/filterBy
+
+
+		#region POST /API/{SERVERPROFILE}/{CATALOGTYPE}/DIRECTORY/MsADUsers
+		/// <summary>
+		/// Create a Ms AS user account
+		/// </summary>
+		/// <param name="newUSerAccount">Data of the new user account. See <see cref="LDAPMsADUserAccount"/>.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		public async Task<IHttpResponse> CreateMsADUserAccountAsync(LDAPMsADUserAccount newUSerAccount, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+		{
+			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/MsADUsers?requestLabel={requestLabel}";
+
+			using (var httpClient = await CreateHttpClient(setBearerToken))
+			{
+				using (var content = new ObjectContent<LDAPMsADUserAccount>(newUSerAccount, new JsonMediaTypeFormatter()))
+				{
+					var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
+					if (!responseMessage.IsSuccessStatusCode)
+						return await responseMessage.ToUnsuccessfulHttpResponseAsync();
+					else
+						return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPCreateMsADUserAccountResult>();
+				}
+			}
+		}
+		#endregion
+
+
+		#region POST /API/{SERVERPROFILE}/{CATALOGTYPE}/DIRECTORY/USERS/{IDENTIFIER}/CREDENTIAL
+		/// <summary>
+		/// Set password to a Ms AD user account
+		/// </summary>
+		/// <param name="identifier">User account identifier. Can be the value of a SAMAccountName or DistinguishedName attribute</param>
+		/// <param name="credential">The <see cref="LDAPCredential"/> that contains the password to be assigned to the user account. It must be coherent with the value of the <paramref name="identifier"/> (route) parameter.</param>
+		/// <param name="identifierAttribute">The LDAP <see cref="EntryAttribute"/> type to which the <paramref name="identifier"/> (route) parameter relates.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		public async Task<IHttpResponse> SetMsADUserAccountPassword(string identifier, LDAPCredential credential, EntryAttribute? identifierAttribute = EntryAttribute.sAMAccountName, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+		{
+			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/Users/{identifier}/Credential?identifierAttribute={GetOptionalEntryAttributeName(identifierAttribute)}&requestLabel={requestLabel}";
+
+			using (var httpClient = await CreateHttpClient(setBearerToken))
+			{
+				using (var content = new ObjectContent<LDAPCredential>(credential, new JsonMediaTypeFormatter()))
+				{
+					var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
+					if (!responseMessage.IsSuccessStatusCode)
+						return await responseMessage.ToUnsuccessfulHttpResponseAsync();
+					else
+						return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPPasswordUpdateResult>();
+				}
+			}
+		}
+		#endregion
 	}
 }
