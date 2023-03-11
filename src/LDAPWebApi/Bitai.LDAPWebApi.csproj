@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>6.1.1</Version>
-		<AssemblyVersion>6.1.1.12</AssemblyVersion>
+		<Version>7.0.0</Version>
+		<AssemblyVersion>7.0.0.7</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>enable</Nullable>
-		<FileVersion>6.1.1.12</FileVersion>
+		<FileVersion>7.0.0.7</FileVersion>
 		<Description>Web API to access and query LDAP server.</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -37,7 +37,7 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="6.0.5" />
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="6.0.5" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="6.0.3" />
-	  <PackageReference Include="Bitai.LDAPHelper" Version="6.1.13" />
+	  <PackageReference Include="Bitai.LDAPHelper" Version="7.0.0" />
 	  <PackageReference Include="Bitai.WebApi.Helpers" Version="6.0.5" />
 	  <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
