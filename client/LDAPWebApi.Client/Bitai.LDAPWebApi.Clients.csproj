@@ -32,8 +32,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bitai.LDAPHelper.DTO" Version="7.0.0" />
-    <PackageReference Include="Bitai.LDAPWebApi.DTO" Version="6.1.1" />
-    <PackageReference Include="Bitai.WebApi.Helpers" Version="6.0.5" />
+    <PackageReference Include="Bitai.WebApi.Helpers" Version="7.0.0" />
     <PackageReference Include="IdentityModel" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
   </ItemGroup>
@@ -47,6 +46,10 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
   </ItemGroup>
 
 </Project>

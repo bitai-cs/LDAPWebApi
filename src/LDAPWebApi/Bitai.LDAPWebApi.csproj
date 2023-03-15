@@ -38,7 +38,7 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="6.0.5" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="6.0.3" />
 	  <PackageReference Include="Bitai.LDAPHelper" Version="7.0.0" />
-	  <PackageReference Include="Bitai.WebApi.Helpers" Version="6.0.5" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="7.0.0" />
 	  <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
