@@ -34,7 +34,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
 
 	/// <summary>
-	/// Validate Domain Account Name credential.
+	/// Authenticate with domain user account credential.
 	/// </summary>
 	/// <param name="serverProfile">LDAP Server Profile Id that defines part of the path. See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
 	/// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPServerCatalogTypes"/></param>
@@ -42,8 +42,9 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	/// <param name="requestLabel">Valor personalizado para etiquetar la respuesta. Can e null</param>
 	/// <returns><see cref="LDAPDomainAccountAuthenticationResult"/></returns>
 	[HttpPost]
-	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]")]
-	public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> PostDomainAccountAuthenticationAsync(
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
+	[ActionName("authenticate")]
+	public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> AuthenticateAsync(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,

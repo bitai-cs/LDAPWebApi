@@ -5,13 +5,13 @@
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>7.0.0</Version>
-		<AssemblyVersion>7.0.0.7</AssemblyVersion>
+		<Version>7.0.1</Version>
+		<AssemblyVersion>7.0.1.7</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>enable</Nullable>
-		<FileVersion>7.0.0.7</FileVersion>
+		<FileVersion>7.0.1.7</FileVersion>
 		<Description>Web API to access and query LDAP server.</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
