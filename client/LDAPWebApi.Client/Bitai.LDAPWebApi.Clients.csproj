@@ -3,15 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>7.0.0</Version>
+    <Version>7.0.1</Version>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
     <Copyright></Copyright>
     <PackageIcon>api1_64.png</PackageIcon>
-    <AssemblyVersion>7.0.0.7</AssemblyVersion>
-    <FileVersion>7.0.0.7</FileVersion>
+    <AssemblyVersion>7.0.1.7</AssemblyVersion>
+    <FileVersion>7.0.1.7</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>

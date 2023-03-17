@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +12,9 @@ using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -70,10 +73,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Search failed by {@identifierAttribute} identifier with value {identifier}", identifierAttribute, identifier);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Search failed by {@ida} identifier with value {@id}.", identifierAttribute, identifier);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
@@ -137,10 +142,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@searchFilters}", searchFilters);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@searchFilters}", searchFilters);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new ApplicationException(searchResult.OperationMessage);
 		}
@@ -151,7 +158,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	}
 
 	/// <summary>
-	/// 
+	/// Create MS AD user account.
 	/// </summary>
 	/// <param name="serverProfile"></param>
 	/// <param name="catalogType"></param>
@@ -201,7 +208,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		#region Check if samAccountName already exists
 		attributeFilter = new LDAPHelper.QueryFilters.AttributeFilter(EntryAttribute.sAMAccountName, new LDAPHelper.QueryFilters.FilterValue(newUserAccount.SAMAccountName));
 		searchFilterCombiner = new LDAPHelper.QueryFilters.AttributeFilterCombiner(false, true, new List<LDAPHelper.QueryFilters.ICombinableFilter> { onlyUsersFilterCombiner, attributeFilter });
-		
+
 		searchResult = await searcher.SearchEntriesAsync(searchFilterCombiner, RequiredEntryAttributes.Minimun, requestLabel);
 		if (!searchResult.IsSuccessfulOperation)
 		{
@@ -212,7 +219,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		}
 		if (searchResult.Entries.Count() != 0)
 		{
-			throw new ConflictException($"There is already an entry in the AD with the {EntryAttribute.sAMAccountName } equal to {newUserAccount.SAMAccountName}");
+			throw new ConflictException($"There is already an entry in the AD with the {EntryAttribute.sAMAccountName} equal to {newUserAccount.SAMAccountName}");
 		}
 		#endregion
 
@@ -235,7 +242,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	}
 
 	/// <summary>
-	/// Set user account password. 
+	/// Set MS AD user account password. 
 	/// </summary>
 	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
 	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
@@ -244,8 +251,8 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
 	/// <param name="credential"><see cref="LDAPCredential"/> with new password. The <see cref="LDAPCredential.UserAccount"/> property must correspond to the <paramref name="identifier"/> parameter</param>
 	/// <returns><see cref="LDAPPasswordUpdateResult"/></returns>
-	[HttpPost]
-	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Credential")]
+	[HttpPatch]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers/{identifier}/Credential")]
 	public async Task<ActionResult<LDAPPasswordUpdateResult>> SetUserAccountCredentialForMsAD(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
@@ -291,10 +298,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@searchFilter}", searchFilter);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@searchFilter}", searchFilter);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
@@ -328,6 +337,119 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(pwdUpdateResult);
 	}
 
+	/// <summary>
+	/// Disable MS AD user account.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
+	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+	/// <param name="identifier">Identifier of the user account that will define the route of this Endpoint. There must be a valid value for the LDAP attributes <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
+	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
+	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+	/// <returns><see cref="LDAPRemoveMsADUserAccountResult"/></returns>
+	[HttpPatch]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers/{identifier}/[action]")]
+	[ActionName("disableBy")]
+	public async Task<ActionResult<LDAPDisableUserAccountOperationResult>> DisableMsADUserAccount(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalUserAccountIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
+	{
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@idn}={@id}, {@idan}={@ida}, {@rtn}={@rt}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel), requestLabel);
+
+		if (!catalogType.Equals(CatalogTypeRoutes.LocalCatalog, StringComparison.OrdinalIgnoreCase))
+			throw new BadRequestException("No se puede eliminar la cuenta de usuario en el catálogo global de un servidor LDAP. Esta operación solo está permitida en el catálogo local de un servidor LDAP.");
+
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+		string distinguishedName = identifier;
+		if (identifierAttribute == EntryAttribute.sAMAccountName)
+		{
+			var searchResult = await SearchUserAccountAsync(clientConfig, identifier, identifierAttribute.Value, requestLabel);
+
+			if (searchResult.IsSuccessfulOperation)
+			{
+				if (searchResult.Entries.Count() == 0)
+					throw new ResourceNotFoundException($"There is no user account according to the criteria {identifierAttribute} = {identifier}");
+
+				distinguishedName = searchResult.Entries.Single().distinguishedName;
+			}
+			else
+				ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", searchResult);
+		}
+
+		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+
+		var disableResult = await accountManager.DisableUserAccountForMsAD(distinguishedName, requestLabel);
+		if (!disableResult.IsSuccessfulOperation)
+			ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", disableResult);
+
+		Logger.LogInformation("Response body: {@removeResult}", disableResult);
+
+		return Ok(disableResult);
+	}
+
+	/// <summary>
+	/// Remove MS AD user account.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
+	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+	/// <param name="identifier">Identifier of the user account that will define the route of this Endpoint. There must be a valid value for the LDAP attributes <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
+	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
+	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+	/// <returns><see cref="LDAPRemoveMsADUserAccountResult"/></returns>
+	[HttpDelete]
+	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers/{identifier}")]
+	public async Task<ActionResult<LDAPRemoveMsADUserAccountResult>> RemoveMsADUserAccount(
+		[FromRoute] string serverProfile,
+		[FromRoute] string catalogType,
+		[FromRoute] string identifier,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalUserAccountIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
+	{
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@idn}={@id}, {@idan}={@ida}, {@rtn}={@rt}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel), requestLabel);
+
+		if (!catalogType.Equals(CatalogTypeRoutes.LocalCatalog, StringComparison.OrdinalIgnoreCase))
+			throw new BadRequestException("Cannot remove user account in the global catalog of the LDAP server. This operation is only allowed in local catalog of a LDAP server.");
+
+		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+		string distinguishedName = identifier;
+		if (identifierAttribute == EntryAttribute.sAMAccountName)
+		{
+			var searchResult = await SearchUserAccountAsync(clientConfig, identifier, identifierAttribute.Value, requestLabel);
+
+			if (searchResult.IsSuccessfulOperation)
+			{
+				if (searchResult.Entries.Count() == 0)
+					throw new ResourceNotFoundException($"There is no user account according to the criteria {identifierAttribute} = {identifier}");
+				else
+					distinguishedName = searchResult.Entries.Single().distinguishedName;
+			}
+			else
+				ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", searchResult);
+		}
+
+		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+
+		var removeResult = await accountManager.RemoveUserAccountForMsAD(distinguishedName, requestLabel);
+
+		if (!removeResult.IsSuccessfulOperation)
+		{
+			if (removeResult.HasErrorObject)
+			{
+				throw removeResult.ErrorObject;
+			}
+			else
+				throw new Exception(removeResult.OperationMessage);
+		}
+
+		Logger.LogInformation("Response body: {@removeResult}", removeResult);
+
+		return Ok(removeResult);
+	}
+
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Parents")]
 	public async Task<ActionResult<LDAPSearchResult>> GetParentsForUserIdentifier(
@@ -357,10 +479,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
@@ -370,6 +494,16 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(searchResult);
 	}
 
+	/// <summary>
+	/// Search user accounts according to the filters.
+	/// </summary>
+	/// <param name="serverProfile"></param>
+	/// <param name="catalogType"></param>
+	/// <param name="searchFilters"></param>
+	/// <param name="requiredAttributes"></param>
+	/// <param name="requestLabel"></param>
+	/// <returns></returns>
+	/// <exception cref="Exception"></exception>
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/[action]")]
 	[ActionName("filterBy")]
@@ -416,10 +550,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Error searching for users with the following filter: {@searchFilters}", searchFilters);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Error searching for users with the following filter: {@searchFilters}", searchFilters);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
@@ -459,10 +595,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to look up the LDAP entry of a group by its identifier: {@identifierAttribute}={identifier}", identifierAttribute, identifier);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Failed to look up the LDAP entry of a group by its identifier: {@identifierAttribute}={identifier}", identifierAttribute, identifier);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
@@ -507,10 +645,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}
@@ -567,10 +707,12 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP group entries by  {@searchFilters}", searchFilters);
-
 			if (searchResult.HasErrorObject)
+			{
+				Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP group entries by  {@searchFilters}", searchFilters);
+
 				throw searchResult.ErrorObject;
+			}
 			else
 				throw new Exception(searchResult.OperationMessage);
 		}

@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPHelper.QueryFilters;
 using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -154,5 +156,35 @@ public abstract class ApiControllerBase<T> : ControllerBase
 			throw new InvalidOperationException($"{typeof(Binders.OptionalSearchFiltersBinder).FullName} failed to identify search filter parameters that are in the URL query string. {typeof(Binders.OptionalSearchFiltersBinder).FullName} could not initialize correctly {typeof(Models.OptionalSearchFiltersModel)}.");
 
 		return searchFilters.combineFilters.Value;
+	}
+
+	/// <summary>
+	/// Search for a user account.
+	/// </summary>
+	/// <param name="clientConfiguration"></param>
+	/// <param name="userAccountIdentifier"></param>
+	/// <param name="userAccountIdentifierAttribute"></param>
+	/// <param name="requestLabel"></param>
+	/// <returns></returns>
+	protected Task<LDAPSearchResult> SearchUserAccountAsync(LDAPHelper.ClientConfiguration clientConfiguration, string userAccountIdentifier, EntryAttribute userAccountIdentifierAttribute, string requestLabel)
+	{
+		var searcher = GetLdapSearcher(clientConfiguration);
+		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { AttributeFilterCombiner.CreateOnlyUsersFilterCombiner(), new AttributeFilter(userAccountIdentifierAttribute, new FilterValue(userAccountIdentifier)) });
+
+		return searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
+	}
+
+	/// <summary>
+	/// Throw an error according to the response of an unsuccessful operation.
+	/// </summary>
+	/// <param name="exceptionMessage"></param>
+	/// <param name="unsuccessfulOperation"></param>
+	/// <exception cref="Exception"></exception>
+	protected void ThrowExceptionForUnsuccessfulOperation(string exceptionMessage, LDAPOperationResult unsuccessfulOperation)
+	{
+		if (unsuccessfulOperation.HasErrorObject)
+			throw new Exception(exceptionMessage, unsuccessfulOperation.ErrorObject);
+		else
+			throw new Exception($"{exceptionMessage}. {unsuccessfulOperation.OperationMessage}");
 	}
 }

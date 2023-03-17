@@ -33,9 +33,9 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
 		/// <returns><see cref="IHttpResponse"/></returns>
-		public async Task<IHttpResponse> AccountAuthenticationAsync(Bitai.LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+		public async Task<IHttpResponse> AuthenticateAsync(Bitai.LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
-			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}?requestLabel={requestLabel}";
+			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticate?requestLabel={requestLabel}";
 
 			using (var httpClient = await CreateHttpClient(setBearerToken))
 			{

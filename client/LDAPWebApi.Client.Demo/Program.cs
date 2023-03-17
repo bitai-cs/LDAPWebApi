@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -13,8 +14,9 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
 	public class Program
 	{
-		static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
+		//static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
 		//static string WebApiBaseUrl = "https://localhost:5101";
+		static string WebApiBaseUrl = "http://localhost:5100";
 
 		static bool WebApiRequiresAccessToken = false;
 
@@ -37,6 +39,8 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 		{
 			try
 			{
+				ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
 				ConfigLogger();
 
 				Console.WriteLine("Presione la tecla enter para iniciar el demo...");
@@ -48,19 +52,21 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				await CatalogTypesClient_GetAllAsync();
 
-				await DirectoryClient_CreateMsADUserAccountAsync();
+				await UserDirectoryClient_CreateMsADUserAccountAsync();
 
-				await DirectoryClient_SetMsADUserAccountPassword();
+				await UserDirectoryClient_SetMsADUserAccountPassword();
 
 				await AuthenticationsClient_AccountAuthenticationAsync();
+
+				await UserDirectoryClient_DisableMsADUserAccount();
+
+				await UserDirectoryClient_RemoveMsADUserAccount();
 
 				await DirectoryClient_SearchByIdentifierAsync();
 
 				await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
 
 				await UserDirectoryClient_FilterByIdentifierAsync("??????");
-
-				await UserDirectoryClient_SetPasswordAsync();
 			}
 			catch (Exception ex)
 			{
@@ -105,11 +111,11 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			}
 		}
 
-		static async Task DirectoryClient_CreateMsADUserAccountAsync()
+		static async Task UserDirectoryClient_CreateMsADUserAccountAsync()
 		{
 			try
 			{
-				var client = new LDAPDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
 
 				LogInfoOfType(client.GetType());
 				NewBlankLines(1);
@@ -146,11 +152,11 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			}
 		}
 
-		static async Task DirectoryClient_SetMsADUserAccountPassword()
+		static async Task UserDirectoryClient_SetMsADUserAccountPassword()
 		{
 			try
 			{
-				var client = new LDAPDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
 
 				LogInfoOfType(client.GetType());
 				NewBlankLines(1);
@@ -163,8 +169,8 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				LogInfo(credential);
 				NewBlankLines(1);
 
-				LogInfo($"{nameof(client.SetMsADUserAccountPassword)}...");
-				var httpResponse = await client.SetMsADUserAccountPassword("vbastidas01", credential, EntryAttribute.sAMAccountName, RequestLabel, WebApiRequiresAccessToken);
+				LogInfo($"{nameof(client.SetMsADUserAccountPasswordAsync)}...");
+				var httpResponse = await client.SetMsADUserAccountPasswordAsync(credential, EntryAttribute.sAMAccountName, RequestLabel, WebApiRequiresAccessToken);
 				if (!httpResponse.IsSuccessResponse)
 				{
 					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
@@ -195,8 +201,8 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("CERTUS", "vbastidas", requestAccountPassword("CERTUS\\vbastidas"));
 
-				LogInfo($"{nameof(client.AccountAuthenticationAsync)}...");
-				var httpResponse = await client.AccountAuthenticationAsync(accountCredentials, RequestLabel, WebApiRequiresAccessToken);
+				LogInfo($"{nameof(client.AuthenticateAsync)}...");
+				var httpResponse = await client.AuthenticateAsync(accountCredentials, RequestLabel, WebApiRequiresAccessToken);
 				if (!httpResponse.IsSuccessResponse)
 				{
 					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
@@ -204,6 +210,62 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				else
 				{
 					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPDomainAccountAuthenticationResult>(httpResponse);
+
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
+
+		static async Task UserDirectoryClient_DisableMsADUserAccount()
+		{
+			try
+			{
+				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+
+				LogInfoOfType(client.GetType());
+				NewBlankLines(1);
+
+				LogInfo($"{nameof(client.DisableMsADUserAccountAsync)}...");
+				var httpResponse = await client.DisableMsADUserAccountAsync("vbastidas01", EntryAttribute.sAMAccountName, RequestLabel, WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPDisableUserAccountOperationResult>(httpResponse);
+
+					LogInfo(result);
+				}
+			}
+			catch (WebApiRequestException ex)
+			{
+				LogWebApiRequestError(ex);
+			}
+		}
+
+		static async Task UserDirectoryClient_RemoveMsADUserAccount()
+		{
+			try
+			{
+				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
+
+				LogInfoOfType(client.GetType());
+				NewBlankLines(1);
+
+				LogInfo($"{nameof(client.RemoveMsADUserAccountAsync)}...");
+				var httpResponse = await client.RemoveMsADUserAccountAsync("vbastidas01", EntryAttribute.sAMAccountName, RequestLabel, WebApiRequiresAccessToken);
+				if (!httpResponse.IsSuccessResponse)
+				{
+					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
+				}
+				else
+				{
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPDisableUserAccountOperationResult>(httpResponse);
 
 					LogInfo(result);
 				}
@@ -260,35 +322,6 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPSearchResult>(httpResponse);
 
 					LogInfo($"Se encontró {result.Entries.Count()} registro(s).");
-
-					LogInfo(result);
-				}
-			}
-			catch (WebApiRequestException ex)
-			{
-				LogWebApiRequestError(ex);
-			}
-		}
-
-		static async Task UserDirectoryClient_SetPasswordAsync()
-		{
-			try
-			{
-				var client = new LDAPUserDirectoryWebApiClient(WebApiBaseUrl, Selected_LDAPServerProfile, false, ClientCredentials);
-
-				LogInfoOfType(client.GetType());
-
-				var credential = new LDAPCredential("000127868", "1A2B3C");
-
-				LogInfo($"{nameof(client.SetPasswordAsync)}...");
-				var httpResponse = await client.SetPasswordAsync(credential, false, RequestLabel);
-				if (!httpResponse.IsSuccessResponse)
-				{
-					client.ThrowClientRequestException("Error al resetear la contraseña", httpResponse);
-				}
-				else
-				{
-					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPPasswordUpdateResult>(httpResponse);
 
 					LogInfo(result);
 				}
