@@ -57,7 +57,7 @@ public class Startup
 	/// Use this method to add services to the container.
 	/// </summary>
 	/// <param name="services">Injected <see cref="IServiceCollection"/></param>
-	/// <param name="webApiConfiguration">Return the configuration of the Web API application. See <see cref="WebApiConfiguration"/>.</param>
+	/// <param name="webApiConfiguration">Return the configuration of the Web API application. See <see cref="Configurations.App.WebApiConfiguration"/>.</param>
 	public void ConfigureServices(IServiceCollection services, out Configurations.App.WebApiConfiguration webApiConfiguration, out Configurations.Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
 	{
 		Log.Information("{class} -> {method} starting...", FullName, nameof(ConfigureServices));
@@ -133,6 +133,12 @@ public class Startup
 		//{
 		//    app.UseHttpsRedirection();
 		//}            
+
+		//app.UseSerilogRequestLogging();
+		//app.UseSerilogRequestLogging(options =>
+		//{
+		//	options.IncludeQueryInRequestPath = true;
+		//});
 
 		app.UseRouting();
 
