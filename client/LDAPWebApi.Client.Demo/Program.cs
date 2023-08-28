@@ -30,7 +30,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 		static string RequestLabel { get; set; } = "DEMO";
 
-		static string Selected_LDAPServerProfile { get; set; } = "CERTUS";
+		static string Selected_LDAPServerProfile { get; set; } = "IEDUCA";
 
 
 
@@ -46,27 +46,27 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				Console.WriteLine("Presione la tecla enter para iniciar el demo...");
 				Console.ReadLine();
 
-				await ServerProfilesClient_GetProfileIdsAsync();
+				//await ServerProfilesClient_GetProfileIdsAsync();
 
-				await ServerProfilesClient_GetAllAsync();
+				//await ServerProfilesClient_GetAllAsync();
 
-				await CatalogTypesClient_GetAllAsync();
+				//await CatalogTypesClient_GetAllAsync();
 
-				await UserDirectoryClient_CreateMsADUserAccountAsync();
+				//await UserDirectoryClient_CreateMsADUserAccountAsync();
 
-				await UserDirectoryClient_SetMsADUserAccountPassword();
+				//await UserDirectoryClient_SetMsADUserAccountPassword();
 
-				await AuthenticationsClient_AccountAuthenticationAsync();
+				//await AuthenticationsClient_AccountAuthenticationAsync();
 
-				await UserDirectoryClient_DisableMsADUserAccount();
+				//await UserDirectoryClient_DisableMsADUserAccount();
 
-				await UserDirectoryClient_RemoveMsADUserAccount();
+				//await UserDirectoryClient_RemoveMsADUserAccount();
 
-				await DirectoryClient_SearchByIdentifierAsync();
+				//await DirectoryClient_SearchByIdentifierAsync();
 
 				await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
 
-				await UserDirectoryClient_FilterByIdentifierAsync("??????");
+				//await UserDirectoryClient_FilterByIdentifierAsync("??????");
 			}
 			catch (Exception ex)
 			{

@@ -2,29 +2,31 @@ using Bitai.LDAPWebApi;
 using Bitai.LDAPWebApi.Configurations.App;
 using Serilog;
 using Serilog.Extensions.Logging;
-
-var FullName = nameof(Program);
+using Serilog.Formatting.Compact;
+using Serilog.Formatting.Json;
+using Serilog.Sinks.Grafana.Loki;
+using Serilog.Templates;
 
 var configuration = GetConfiguration(args);
 
-Log.Logger = SetupLoggerConfiguration(configuration, new LoggerConfiguration())
+Log.Logger = SetupLoggerConfiguration(configuration, new LoggerConfiguration(), null, out var webApiConfiguration)
 	.CreateBootstrapLogger();
 
 try
 {
-	Log.Information("Starting {program}", FullName);
+	Log.Information("Starting {webApiName}", webApiConfiguration.WebApiName);
 
 	var webAppBuilder = WebApplication.CreateBuilder(args);
 	webAppBuilder.Host
 		.ConfigureDefaults(args)
 		.UseSerilog((hostBuilderContext, serviceProvider, loggerConfiguration) =>
 		{
-			SetupLoggerConfiguration(configuration, loggerConfiguration);
+			SetupLoggerConfiguration(configuration, loggerConfiguration, hostBuilderContext, out webApiConfiguration);
 		});
 
 	var startup = new Startup(webAppBuilder.Configuration, webAppBuilder.Environment);
 
-	startup.ConfigureServices(webAppBuilder.Services, out var webApiConfiguration, out var swaggerUIConfiguration);
+	startup.ConfigureServices(webAppBuilder.Services, out webApiConfiguration, out var swaggerUIConfiguration);
 
 	var webApp = webAppBuilder.Build();
 
@@ -32,7 +34,7 @@ try
 
 	webApp.Run();
 
-	Log.Warning("Terminating {program}", FullName);
+	Log.Warning("Terminating {webApiName}", webApiConfiguration.WebApiName);
 }
 catch (Exception ex)
 {
@@ -65,34 +67,56 @@ IConfiguration GetConfiguration(string[] args)
 	return configurationBuilder.Build();
 }
 
-LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, LoggerConfiguration loggerConfiguration)
+LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, LoggerConfiguration loggerConfiguration, HostBuilderContext? hostBuilderContext, out WebApiConfiguration webApiConfiguration)
 {
+	webApiConfiguration = configuration.GetSection(nameof(WebApiConfiguration)).Get<WebApiConfiguration>() ?? new WebApiConfiguration();
+
 	var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>() ?? new WebApiLogConfiguration();
 
-	if (webApiLogConfiguration.MinimunLogLevel == WebApiLogConfiguration.MinimunLogEventLevel.Information)
-	{
-		loggerConfiguration = loggerConfiguration
-			.MinimumLevel.Information();
-	}
-	else if (webApiLogConfiguration.MinimunLogLevel == WebApiLogConfiguration.MinimunLogEventLevel.Warning)
-	{
-		loggerConfiguration = loggerConfiguration
-			.MinimumLevel.Warning();
-	}
-	else if (webApiLogConfiguration.MinimunLogLevel == WebApiLogConfiguration.MinimunLogEventLevel.Error)
-	{
-		loggerConfiguration = loggerConfiguration
-			.MinimumLevel.Error();
-	}
-	else
-	{
-		throw new Exception("Invalid Web Api application log level. Verify web api configuration.");
-	}
+	//loggerConfiguration = loggerConfiguration
+	//	.MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning);
+
+	//loggerConfiguration = loggerConfiguration
+	//	.Enrich.FromLogContext();
 
 	loggerConfiguration = loggerConfiguration
-		.Enrich.FromLogContext();
+		.Enrich.WithProperty("applicationName", webApiConfiguration.WebApiName);
 
-	return loggerConfiguration
-			.WriteTo.File(webApiLogConfiguration.LogFilePath, rollingInterval: RollingInterval.Day, flushToDiskInterval: new TimeSpan(0, 1, 0), retainedFileCountLimit: 15)
-			.WriteTo.Console();
+	if (hostBuilderContext != null)
+	{
+		loggerConfiguration = loggerConfiguration
+			.Enrich.WithProperty("assemblyName", hostBuilderContext.HostingEnvironment.ApplicationName)
+			.Enrich.WithProperty("environment", hostBuilderContext.HostingEnvironment.EnvironmentName);
+	}
+
+	if (webApiLogConfiguration.FileLog.Enabled)
+	{
+		var logEventLevel = parseLogEventLevel(webApiLogConfiguration.FileLog.MinimunLogEventLevel);
+
+		loggerConfiguration = loggerConfiguration
+			.WriteTo.File(new RenderedCompactJsonFormatter(), webApiLogConfiguration.FileLog.LogFilePath, restrictedToMinimumLevel: logEventLevel, rollingInterval: RollingInterval.Day, flushToDiskInterval: new TimeSpan(0, 1, 0), retainedFileCountLimit: 15);
+	}
+
+	if (webApiLogConfiguration.GrafanaLokiLog.Enabled)
+	{
+		var logEventLevel = parseLogEventLevel(webApiLogConfiguration.GrafanaLokiLog.MinimunLogEventLevel);
+
+		loggerConfiguration = loggerConfiguration
+			.WriteTo.GrafanaLoki(webApiLogConfiguration.GrafanaLokiLog.LokiUrl, textFormatter: new RenderedCompactJsonFormatter(), propertiesAsLabels: new string[] { "applicationName", "assemblyName", "environment", "level", "HealthStatus" }, restrictedToMinimumLevel: logEventLevel, batchPostingLimit: webApiLogConfiguration.GrafanaLokiLog.BatchPostingLimit, period: webApiLogConfiguration.GrafanaLokiLog.Period);
+	}
+
+	if (webApiLogConfiguration.ConsoleLog.Enabled)
+	{
+		var logEventLevel = parseLogEventLevel(webApiLogConfiguration.ConsoleLog.MinimunLogEventLevel);
+
+		loggerConfiguration = loggerConfiguration
+			.WriteTo.Console(restrictedToMinimumLevel: logEventLevel, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}Properties: {Properties}{NewLine}{Exception}");
+	}
+
+	return loggerConfiguration;
+
+	Serilog.Events.LogEventLevel parseLogEventLevel(WebApiLogConfiguration.MinimunLogEventLevel minimunLogEventLevel)
+	{
+		return minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Verbose ? Serilog.Events.LogEventLevel.Verbose : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Debug ? Serilog.Events.LogEventLevel.Debug : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Information ? Serilog.Events.LogEventLevel.Information : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Warning ? Serilog.Events.LogEventLevel.Warning : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Error ? Serilog.Events.LogEventLevel.Error : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Fatal ? Serilog.Events.LogEventLevel.Fatal : throw new Exception("Invalid Web Api application log level. Verify web api configuration."))))));
+	}
 }
