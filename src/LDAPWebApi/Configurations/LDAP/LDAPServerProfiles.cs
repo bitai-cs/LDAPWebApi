@@ -15,19 +15,25 @@ public class LDAPServerProfiles : List<LDAPServerProfile>
 	/// Validate list of loaded <see cref="LDAPServerProfile"/>
 	public void CheckConfigurationIntegrity()
 	{
+		#region Validate duplicated ProfileIds
 		var repeatedProfileIds = this.GroupBy(id => id.ProfileId)
 			.Where(g => g.Count() > 1)
 			.Select(g => g.Key);
 
 		if (repeatedProfileIds.Count() > 0)
-			throw new Exception($"Error in LDAPServerProfiles configuration. There are repeating ProfileIds ({string.Join(',', repeatedProfileIds)})");
+			throw new Exception($"Error in {nameof(LDAPServerProfiles)} configuration. There are repeating {nameof(LDAPServerProfile.ProfileId)}s: {string.Join(',', repeatedProfileIds)}");
+		#endregion
 
-		var repeatedServers = this.GroupBy(id => id.Server)
-			.Where(g => g.Count() > 1)
-			.Select(g => g.Key);
+		#region Validate profiles without DefaultDomainName
+		var profilesWithoutDefaultDomainName = this.Where(p => string.IsNullOrEmpty(p.DefaultDomainName));
 
-		if (repeatedServers.Count() > 0)
-			throw new Exception($"Error in LDAPServerProfiles configuration. There are repeating servers ({string.Join(',', repeatedServers)})");
+		if (profilesWithoutDefaultDomainName.Count() > 0)
+		{
+			var invalidProfiles = string.Join(",", profilesWithoutDefaultDomainName.Select(p => p.ProfileId));
+
+			throw new Exception($"Error in {nameof(LDAPServerProfiles)} configuration. There are {nameof(LDAPServerProfile)}s without {nameof(LDAPServerProfile.DefaultDomainName)}: {invalidProfiles}");
+		}
+		#endregion
 	}
 }
 
@@ -41,11 +47,6 @@ public class LDAPServerProfile : DTO.LDAPServerProfile
 	/// Password of the domain account to connect to the LDAP server.
 	/// </summary>
 	public string DomainAccountPassword { get; set; }
-
-	/// <summary>
-	/// Ping timeout value to set the latency health check.
-	/// </summary>
-	public int HealthCheckPingTimeout { get; set; }
 
 
 
@@ -69,7 +70,7 @@ public class LDAPServerProfile : DTO.LDAPServerProfile
 		ConnectionTimeout = 10;
 		DomainUserAccount = "LOCAL\\user";
 		DomainAccountPassword = "P@ssw0rd";
-		HealthCheckPingTimeout = 3;
+		HealthCheckPingTimeout = 4;
 	}
 
 

@@ -1,28 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>7.0.1</Version>
+    <Version>8.0.0</Version>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
-    <Copyright></Copyright>
+    <Copyright>© 2024 Bitai LDAPWebApi Clients. All rights reserved.</Copyright>
     <PackageIcon>api1_64.png</PackageIcon>
-    <AssemblyVersion>7.0.1.7</AssemblyVersion>
-    <FileVersion>7.0.1.7</FileVersion>
+    <AssemblyVersion>8.0.0.7</AssemblyVersion>
+    <FileVersion>8.0.0.7</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
-    <PackageTags>LDAP, Client, API, Web, Helper, Directory</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>client;ldap;directory;ad;oauth;openid;helper;security</PackageTags>
     <PackageId>Bitai.LDAPWebApi.Clients</PackageId>
     <AssemblyName>Bitai.LDAPWebApi.Clients</AssemblyName>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <UserSecretsId>ad686ef5-c54b-454c-b2d8-93da42982266</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Upgraded to .NET 8</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -32,9 +35,9 @@
 
   <ItemGroup>
     <PackageReference Include="Bitai.LDAPHelper.DTO" Version="7.0.0" />
-    <PackageReference Include="Bitai.WebApi.Helpers" Version="7.0.0" />
-    <PackageReference Include="IdentityModel" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
+    <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.0" />
+    <PackageReference Include="IdentityModel" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +53,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -20,6 +20,14 @@ namespace Bitai.LDAPWebApi.Clients
 	/// </summary>
 	public class LDAPUserDirectoryWebApiClient : LDAPWebApiBaseClient
 	{
+		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog) : base(webApiBaseUrl, serverProfile, useGlobalCatalog)
+		{
+		}
+
+		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, HttpClientHandler handler, bool disposeHandle) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, handler, disposeHandle)
+		{
+		}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -27,7 +35,11 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="serverProfile">Server profile Id.</param>
 		/// <param name="useGlobalCatalog">Whether or not to use the global catalog.</param>
 		/// <param name="clientCredential">Client credential to connect Api.</param>
-		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiClientCredential? clientCredential = null) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, clientCredential)
+		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiClientCredential clientCredential) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, clientCredential)
+		{
+		}
+
+		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiClientCredential clientCredential, HttpClientHandler handler, bool disposeHandler) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, clientCredential, handler, disposeHandler)
 		{
 		}
 

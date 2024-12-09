@@ -58,6 +58,7 @@ public class Startup
 	/// </summary>
 	/// <param name="services">Injected <see cref="IServiceCollection"/></param>
 	/// <param name="webApiConfiguration">Return the configuration of the Web API application. See <see cref="Configurations.App.WebApiConfiguration"/>.</param>
+	/// <param name="swaggerUIConfiguration">See <see cref="Configurations.Swagger.SwaggerUIConfiguration"/></param>
 	public void ConfigureServices(IServiceCollection services, out Configurations.App.WebApiConfiguration webApiConfiguration, out Configurations.Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
 	{
 		Log.Information("{class} -> {method} starting...", FullName, nameof(ConfigureServices));
@@ -78,7 +79,7 @@ public class Startup
 
 		services.ConfigureWebApiCors(Configuration);
 
-		services.AddAuthenticationWithIdentityServer(webApiScopesConfiguration, authorityConfiguration);
+		services.AddAuthenticationWithJwtBearer(webApiScopesConfiguration, authorityConfiguration);
 
 		services.AddAuthorizationWithApiScopePolicies(webApiScopesConfiguration, authorityConfiguration);
 

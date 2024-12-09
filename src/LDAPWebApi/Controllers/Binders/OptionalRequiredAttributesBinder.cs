@@ -7,8 +7,20 @@ using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Controllers.Binders;
 
+
+/// <summary>
+/// Provides a model binder for <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/> model.
+/// </summary>
+/// <remarks>
+/// This binder is used to bind a nullable <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/> model.
+/// If the model is not found, it assigns the default value <see cref="LDAPHelper.DTO.RequiredEntryAttributes.Few"/>.
+/// </remarks>
 public class OptionalRequiredAttributesBinder : IModelBinder
 {
+	/// <summary>
+	/// Implements <see cref="IModelBinder"/> to bind a nullable <see cref="LDAPHelper.DTO.RequiredEntryAttributes"/> model.
+	/// If the model is not found, it assigns the default value <see cref="LDAPHelper.DTO.RequiredEntryAttributes.Few"/>.
+	/// </summary>
 	public Task BindModelAsync(ModelBindingContext bindingContext)
 	{
 		if (bindingContext == null)

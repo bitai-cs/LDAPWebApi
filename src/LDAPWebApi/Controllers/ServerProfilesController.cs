@@ -11,7 +11,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
-[Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
+/// <summary>
+/// Web Api controller to handle server profiles 
+/// </summary>
 [ApiController]
 public class ServerProfilesController : ApiControllerBase<ServerProfilesController>
 {
@@ -27,7 +29,12 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
 
 
 
-    [Route("api/[controller]/GetProfileIds")]
+	/// <summary>
+	/// Get all server profile ids.
+	/// </summary>
+	/// <returns>A <see cref="IEnumerable{T}"/> of <see cref="string"/> with the list of server profile ids.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+	[Route("api/[controller]/GetProfileIds")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<string>>> GetProfileIdsAsync()
     {
@@ -39,7 +46,13 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
         return Ok(serverProfileIds);
     }
 
-    [Route("api/[controller]/{profileId}")]
+	/// <summary>
+	/// Get LDAP server profile by profile ID.
+	/// </summary>
+	/// <param name="profileId">LDAP server profile ID.</param>
+	/// <returns>A <see cref="IEnumerable{T}"/> of <see cref="DTO.LDAPServerProfile"/> with the server profile details.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+	[Route("api/[controller]/{profileId}")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DTO.LDAPServerProfile>>> GetByProfileIdAsync(string profileId)
     {
@@ -71,9 +84,15 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
             return Ok(dto);
     }
 
-    [Route("api/[controller]")]
+
+	/// <summary>
+	/// Get all LDAP server profiles.
+	/// </summary>
+	/// <returns>A <see cref="IEnumerable{T}"/> of <see cref="DTO.LDAPServerProfile"/> with the server profile details.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+	[Route("api/[controller]")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DTO.LDAPServerProfile>>> GetAsync()
+    public async Task<ActionResult<IEnumerable<DTO.LDAPServerProfile>>> GetAllAsync()
     {
         var dtos = await Task.Run(() =>
         {
@@ -88,7 +107,9 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
                 ConnectionTimeout = p.ConnectionTimeout,
                 UseSSL = p.UseSSL,
                 UseSSLforGlobalCatalog = p.UseSSLforGlobalCatalog,
-                DomainUserAccount = p.DomainUserAccount
+                DomainUserAccount = p.DomainUserAccount,
+                DefaultDomainName = p.DefaultDomainName,
+                HealthCheckPingTimeout = p.HealthCheckPingTimeout
             });
         });
 

@@ -14,23 +14,28 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 {
 	public class Program
 	{
-		//static string WebApiBaseUrl = "http://10.100.54.40:8077/Visiva.LDAPWebApi";
-		//static string WebApiBaseUrl = "https://localhost:5101";
-		static string WebApiBaseUrl = "http://localhost:5100";
+		static HttpClientHandler clientHandler = new HttpClientHandler
+		{
+			ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
+		};
 
-		static bool WebApiRequiresAccessToken = false;
+		//static string WebApiBaseUrl = "http://10.100.54.40:8077/BITAI.LDAPWebApi";
+		static string WebApiBaseUrl = "https://localhost:5101";
+		//static string WebApiBaseUrl = "http://localhost:5100";
+
+		static bool WebApiRequiresAccessToken = true;
 
 		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
 		{
-			AuthorityUrl = "https://localhost:44310",
-			ApiScope = "Bitai.LdapWebApi.Scope.Global",
-			ClientId = "Is4.Sts.LdapWebApi.Client",
-			ClientSecret = "232459a4-747c-6e0e-2516-72aba52a7069"
+			AuthorityUrl = "https://interconcer.certus.edu.pe/BITAI.IdentityServer.STS",
+			ApiScope = "BITAI_LWA_Reader_ApiScope",
+			ClientId = "BITAI_LWA_Reader_Client",
+			ClientSecret = "V!s!v@_Lw@_R3@d3R"
 		};
 
 		static string RequestLabel { get; set; } = "DEMO";
 
-		static string Selected_LDAPServerProfile { get; set; } = "IEDUCA";
+		static string Selected_LDAPServerProfile { get; set; } = "CERTUS-ADM";
 
 
 
@@ -39,16 +44,16 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 		{
 			try
 			{
-				ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+				//ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
 				ConfigLogger();
 
 				Console.WriteLine("Presione la tecla enter para iniciar el demo...");
 				Console.ReadLine();
 
-				//await ServerProfilesClient_GetProfileIdsAsync();
+				await ServerProfilesClient_GetProfileIdsAsync();
 
-				//await ServerProfilesClient_GetAllAsync();
+				await ServerProfilesClient_GetAllAsync();
 
 				//await CatalogTypesClient_GetAllAsync();
 
@@ -64,7 +69,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				//await DirectoryClient_SearchByIdentifierAsync();
 
-				await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
+				//await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
 
 				//await UserDirectoryClient_FilterByIdentifierAsync("??????");
 			}
@@ -336,7 +341,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 		{
 			try
 			{
-				var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials);
+				var client = new LDAPServerProfilesWebApiClient(WebApiBaseUrl, ClientCredentials, clientHandler, false);
 
 				LogInfoOfType(client.GetType());
 

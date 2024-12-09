@@ -6,8 +6,20 @@ using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Controllers.Binders;
 
+
+/// <summary>
+/// Implements <see cref="IModelBinder"/> to bind nullable string model properties 
+/// from query string.
+/// </summary>
 public class OptionalQueryStringBinder : IModelBinder
 {
+	/// <summary>
+	/// Implementation of <see cref="IModelBinder"/>.
+	/// </summary>
+	/// <param name="bindingContext">See <see cref="ModelBindingContext"/>.</param>
+	/// <returns><see cref="Task.CompletedTask"/>See <see cref="Task.CompletedTask"/>.</returns>
+	/// <exception cref="ArgumentNullException">When <paramref name="bindingContext"/> is null.</exception>
+	/// <exception cref="InvalidOperationException">When data model is not of type <see cref="string"/>.</exception>
 	public Task BindModelAsync(ModelBindingContext bindingContext)
 	{
 		if (bindingContext == null)

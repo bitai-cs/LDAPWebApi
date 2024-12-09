@@ -239,3 +239,4 @@ __pycache__/
 *.jsonlog
 logs
 /client/LDAPWebApi.Client/Bitai.LDAPWebApi.Clients.xml
+/packages
