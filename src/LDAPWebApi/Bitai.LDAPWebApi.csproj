@@ -1,25 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>7.0.1</Version>
-		<AssemblyVersion>7.0.1.7</AssemblyVersion>
+		<Version>8.0.0</Version>
+		<AssemblyVersion>8.0.0.7</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>enable</Nullable>
-		<FileVersion>7.0.1.7</FileVersion>
+		<FileVersion>8.0.0.7</FileVersion>
 		<Description>Web API to access and query LDAP server.</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
-		<RepositoryType>GitHub</RepositoryType>
-		<PackageTags>LDAP, Helper, Client, Directory, Web, Api</PackageTags>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>ldap;ad;directory;identity;oauth;openid;security</PackageTags>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>..\..</DockerfileContext>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReleaseNotes>Upgraded to .NET 8</PackageReleaseNotes>
+		<Copyright>© 2024 Bitai Web Api. All rights reserved.</Copyright>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -32,31 +35,41 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="AspNetCore.HealthChecks.Network" Version="6.0.4" />
-	  <PackageReference Include="AspNetCore.HealthChecks.UI" Version="6.0.5" />
-	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="6.0.5" />
-	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="6.0.5" />
-	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="6.0.3" />
-	  <PackageReference Include="Bitai.LDAPHelper" Version="7.0.0" />
-	  <PackageReference Include="Bitai.WebApi.Helpers" Version="7.0.0" />
-	  <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
-	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
-	  <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
-	  <PackageReference Include="Serilog.Expressions" Version="3.4.1" />
-	  <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-	  <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.1.0" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+	  <PackageReference Include="AspNetCore.HealthChecks.Network" Version="8.0.1" />
+	  <PackageReference Include="AspNetCore.HealthChecks.UI" Version="8.0.1" />
+	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
+	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="8.0.1" />
+	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="8.0.1" />
+	  <PackageReference Include="Bitai.LDAPHelper" Version="8.0.0" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
+	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+	  <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
+	  <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
+	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+	  <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <None Update="HealthChecksUI.css">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="logs\Note.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="logs\" />
 	  <Folder Include="wwwroot\images\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 	<ItemGroup>

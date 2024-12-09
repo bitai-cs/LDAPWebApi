@@ -7,14 +7,25 @@ using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Controllers.Binders;
 
+/// <summary>
+/// Implements <see cref="IModelBinder"/> to bind <see cref="EntryAttribute"/> model 
+/// that identifies a user account.
+/// If the model is not found, it assigns the default value <see cref="EntryAttribute.sAMAccountName"/>.
+/// </summary>
 public class OptionalUserAccountIdentifierAttributeBinder : IModelBinder
 {
+    /// <summary>
+    /// Binds the specified <see cref="EntryAttribute"/> model property.
+    /// If the model is not found, it assigns the default value <see cref="EntryAttribute.sAMAccountName"/>.
+    /// </summary>
+    /// <param name="bindingContext">The model binding context.</param>
+    /// <returns>A task that represents the asynchronous model binding operation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="bindingContext"/> is <c>null</c>.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the model type is not <see cref="EntryAttribute"/>.</exception>
 	public Task BindModelAsync(ModelBindingContext bindingContext)
 	{
 		if (bindingContext == null)
 			throw new ArgumentNullException(nameof(bindingContext));
-
-		var defaultIdentifierAttribute = EntryAttribute.sAMAccountName;
 
 		var modelType = bindingContext.ModelMetadata.UnderlyingOrModelType;
 		if (!modelType.Equals(typeof(EntryAttribute)))

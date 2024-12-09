@@ -7,8 +7,17 @@ using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Controllers.Binders;
 
+
+/// <summary>
+/// Implements <see cref="IModelBinder"/> to bind optional <see cref="EntryAttribute"/> model.
+/// If the model is not found, it assigns the default value <see cref="EntryAttribute.sAMAccountName"/>.
+/// </summary>
 public class OptionalIdentifierAttributeBinder : IModelBinder
 {
+	/// <summary>
+	/// Implements <see cref="IModelBinder"/> to bind LDAPHelper.DTO.EntryAttribute model.
+	/// If the model is not found, it assigns the default value.
+	/// </summary>
 	public Task BindModelAsync(ModelBindingContext bindingContext)
 	{
 		if (bindingContext == null)

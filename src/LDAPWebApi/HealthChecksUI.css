@@ -8,3 +8,7 @@
     --successColor: #4cff00;
     --dangerColor: #ff0000;
 }
+
+.tag {
+    max-width: 150px;
+}

@@ -64,6 +64,11 @@ public class LDAPServerProfile
 	/// </summary>
 	public string DomainUserAccount { get; set; }
 
+	/// <summary>
+	/// Timeout for ping the LDAP server.
+	/// </summary>
+	public short HealthCheckPingTimeout { get; set; }
+
 
 
 	/// <summary>
@@ -82,5 +87,6 @@ public class LDAPServerProfile
 		DefaultDomainName = "COMPANY";
 		ConnectionTimeout = 10;
 		DomainUserAccount = "administrator";
+		HealthCheckPingTimeout = 4;
 	}
 }

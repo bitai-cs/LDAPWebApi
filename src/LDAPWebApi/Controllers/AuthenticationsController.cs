@@ -19,7 +19,6 @@ namespace Bitai.LDAPWebApi.Controllers;
 /// Web Api controller to process credential.
 /// </summary>
 [Route("api")]
-[Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
 [ApiController]
 public class AuthenticationsController : ApiControllerBase<AuthenticationsController>
 {
@@ -41,6 +40,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	/// <param name="credential">Account credential to validate. See <see cref="LDAPDomainAccountCredential"/></param>
 	/// <param name="requestLabel">Valor personalizado para etiquetar la respuesta. Can e null</param>
 	/// <returns><see cref="LDAPDomainAccountAuthenticationResult"/></returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
 	[ActionName("authenticate")]
@@ -54,9 +54,12 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
 		Logger.LogInformation("Request body: {@credential}", credential.SecureClone());
 
-		var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType));
+		var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType), out var ldapServerProfile);
 
 		var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
+
+		if (string.IsNullOrEmpty(credential.DomainName))
+			credential.DomainName = ldapServerProfile.DefaultDomainName; 
 
 		var authenticationResult = await authenticator.AuthenticateAsync(credential, ldapClientConfig.SearchLimits, ldapClientConfig.DomainAccountCredential, requestLabel);
 		if (!authenticationResult.IsSuccessfulOperation)

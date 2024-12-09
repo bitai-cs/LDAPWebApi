@@ -8,18 +8,22 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Bitai.LDAPWebApi.Configurations.Authorization;
 
+/// <summary>
+/// An <see cref="IOperationFilter"/> that adds an appropriate <see cref="OpenApiResponse"/> to an <see cref="OpenApiOperation"/> 
+/// when the action it represents is decorated with <see cref="AuthorizeAttribute"/>.
+/// </summary>
 public class AuthorizeCheckOperationFilter : IOperationFilter
 {
-    private readonly Swagger.SwaggerUIConfiguration _swaggerUIConfiguration;
+	private readonly Swagger.SwaggerUIConfiguration _swaggerUIConfiguration;
 
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    /// <param name="swaggerUIConfiguration">See <see cref="Swagger.SwaggerUIConfiguration"/></param>
-    public AuthorizeCheckOperationFilter(Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
-    {
-        _swaggerUIConfiguration = swaggerUIConfiguration;
-    }
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="swaggerUIConfiguration">See <see cref="Swagger.SwaggerUIConfiguration"/></param>
+	public AuthorizeCheckOperationFilter(Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
+	{
+		_swaggerUIConfiguration = swaggerUIConfiguration;
+	}
 
 	/// <summary>
 	/// Implementation of <see cref="IOperationFilter.Apply(OpenApiOperation, OperationFilterContext)"/>
@@ -27,27 +31,25 @@ public class AuthorizeCheckOperationFilter : IOperationFilter
 	/// <param name="operation">See <see cref="OpenApiOperation"/></param>
 	/// <param name="context">See <see cref="OperationFilterContext"/></param>
 	public void Apply(OpenApiOperation operation, OperationFilterContext context)
-    {
-        var hasAuthorize = context.MethodInfo.DeclaringType != null && (context.MethodInfo.DeclaringType.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any() || context.MethodInfo.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any());
+	{
+		var hasAuthorize = context.MethodInfo.DeclaringType != null && (context.MethodInfo.DeclaringType.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any() || context.MethodInfo.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any());
 
-        if (hasAuthorize)
-        {
-            operation.Responses.Add(StatusCodes.Status401Unauthorized.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Unauthorized) });
+		if (hasAuthorize)
+		{
+			operation.Responses.Add(StatusCodes.Status401Unauthorized.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Unauthorized) });
 
-            operation.Responses.Add(StatusCodes.Status403Forbidden.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Forbidden) });
+			operation.Responses.Add(StatusCodes.Status403Forbidden.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Forbidden) });
 
-            operation.Security = new List<OpenApiSecurityRequirement> {
-                new OpenApiSecurityRequirement {
-                            [
-                                 new OpenApiSecurityScheme {
-                                     Reference = new OpenApiReference {
-                                            Type = ReferenceType.SecurityScheme,
-                                            Id = "OAuth2"
-                                     }
-                                 }
-                            ] = new[] { _swaggerUIConfiguration.SwaggerUITargetApiScope }
-                      }
-            };
-        }
-    }
+			operation.Security = new List<OpenApiSecurityRequirement> {
+				new OpenApiSecurityRequirement {
+					[new OpenApiSecurityScheme {
+						Reference = new OpenApiReference {
+										Type = ReferenceType.SecurityScheme,
+										Id = "OAuth2"
+									}
+					}] = _swaggerUIConfiguration.SwaggerUITargetApiScopes.Select(i => i.SwaggerUITargetApiScopeName).ToArray()
+				}
+			};
+		}
+	}
 }

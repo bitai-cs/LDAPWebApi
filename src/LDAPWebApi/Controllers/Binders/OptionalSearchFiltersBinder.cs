@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Controllers.Binders;
 
 /// <summary>
-/// Implements <see cref="IModelBinder"/>
+/// Implements <see cref="IModelBinder"/> to bind <see cref="Models.OptionalSearchFiltersModel"/> 
+/// from query string.
 /// </summary>
 public class OptionalSearchFiltersBinder : IModelBinder
 {

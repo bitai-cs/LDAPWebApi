@@ -63,17 +63,33 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	/// </summary>
 	/// <param name="serverProfile">LDAP server profile ID.</param>
 	/// <param name="useGlobalCatalog">Use or not the Global LDAP Catalog.</param>
-	/// <returns></returns>
+	/// <returns>See <see cref="LDAPHelper.ClientConfiguration"/></returns>
 	protected LDAPHelper.ClientConfiguration GetLdapClientConfiguration(string serverProfile, bool useGlobalCatalog)
+	{
+		return GetLdapClientConfiguration(serverProfile, useGlobalCatalog, out var ldapServerProfile);
+	}
+
+	/// <summary>
+	/// Get an instance of <see cref="LDAPHelper.ClientConfiguration"/>
+	/// </summary>
+	/// <param name="serverProfile">LDAP server profile ID.</param>
+	/// <param name="useGlobalCatalog">Use or not the Global LDAP Catalog.</param>
+	/// <param name="ldapServerProfile">See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
+	/// <returns>See <see cref="LDAPHelper.ClientConfiguration"/></returns>
+	protected LDAPHelper.ClientConfiguration GetLdapClientConfiguration(string serverProfile, bool useGlobalCatalog, out Configurations.LDAP.LDAPServerProfile ldapServerProfile)
 	{
 		if (string.IsNullOrEmpty(serverProfile))
 			throw new ArgumentNullException(nameof(serverProfile));
 
-		var ldapServerProfile = this.ServerProfiles.Where(p => p.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
+		ldapServerProfile = this.ServerProfiles.Where(p => p.ProfileId.Equals(serverProfile, StringComparison.OrdinalIgnoreCase)).Single();
 
 		var connectionInfo = new LDAPHelper.ConnectionInfo(ldapServerProfile.Server, ldapServerProfile.GetPort(useGlobalCatalog), ldapServerProfile.GetUseSsl(useGlobalCatalog), ldapServerProfile.ConnectionTimeout);
 
-		var accountParts = ldapServerProfile.DomainUserAccount.Split("\\");
+		var domainUserAccount = ldapServerProfile.DomainUserAccount;
+		if (!domainUserAccount.Contains('\\'))
+			domainUserAccount = $"{ldapServerProfile.DefaultDomainName}\\{domainUserAccount}";
+
+		var accountParts = domainUserAccount.Split("\\");
 		var credential = new LDAPHelper.DTO.LDAPDomainAccountCredential(accountParts[0], accountParts[1], ldapServerProfile.DomainAccountPassword);
 
 		var searchLimits = new LDAPHelper.SearchLimits(ldapServerProfile.GetBaseDN(useGlobalCatalog));

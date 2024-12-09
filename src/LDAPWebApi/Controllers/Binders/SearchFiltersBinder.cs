@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Controllers.Binders;
 
 /// <summary>
-/// Implements <see cref="IModelBinder"/>
+/// Implements <see cref="IModelBinder"/> to bind a <see cref="Models.SearchFiltersModel"/> model from query string.
 /// </summary>
+/// <remarks>
+/// When a required attribute is not found, it adds a validation error to <see cref="ModelBindingContext.ModelState"/>.
+/// </remarks>
 public class SearchFiltersBinder : IModelBinder
 {
 	/// <summary>

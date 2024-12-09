@@ -20,11 +20,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
+
 /// <summary>
-/// Web API controller for operations with LDAP entries
+/// Controller that handles requests to the LDAP directory, it's the main entry point for directory operations.
 /// </summary>
 [Route("api")]
-[Authorize(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName)]
 [ApiController]
 public class DirectoryController : ApiControllerBase<DirectoryController>
 {
@@ -51,6 +51,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <returns><see cref="LDAPSearchResult"/></returns>
 	/// <exception cref="ResourceNotFoundException">When no directory entry found.</exception>
 	/// <exception cref="BadRequestException">When more than one directory entry is found.</exception>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/{identifier}")]
 	public async Task<ActionResult<LDAPSearchResult>> GetByIdentifier(
@@ -104,6 +105,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
 	/// <returns><see cref="LDAPSearchResult"/></returns>
 	/// <exception cref="ApplicationException">When an <see cref="LDAPHelper"/> operation does not complete successfully.</exception>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
 	[ActionName("filterBy")]
@@ -167,6 +169,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <returns></returns>
 	/// <exception cref="BadRequestException"></exception>
 	/// <exception cref="Exception"></exception>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers")]
 	public async Task<ActionResult<LDAPCreateMsADUserAccountResult>> CreateUserAccountForMsAD(
@@ -251,6 +254,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
 	/// <param name="credential"><see cref="LDAPCredential"/> with new password. The <see cref="LDAPCredential.UserAccount"/> property must correspond to the <paramref name="identifier"/> parameter</param>
 	/// <returns><see cref="LDAPPasswordUpdateResult"/></returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
 	[HttpPatch]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers/{identifier}/Credential")]
 	public async Task<ActionResult<LDAPPasswordUpdateResult>> SetUserAccountCredentialForMsAD(
@@ -324,7 +328,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		{
 			if (pwdUpdateResult.HasErrorObject)
 			{
-				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {identifier} with distinguishedName {distinguishedName}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
+				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {identifier} with {distinguishedName}: {distinguishedNameValue}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
 
 				throw pwdUpdateResult.ErrorObject;
 			}
@@ -346,6 +350,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
 	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
 	/// <returns><see cref="LDAPRemoveMsADUserAccountResult"/></returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
 	[HttpPatch]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers/{identifier}/[action]")]
 	[ActionName("disableBy")]
@@ -399,6 +404,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
 	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
 	/// <returns><see cref="LDAPRemoveMsADUserAccountResult"/></returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
 	[HttpDelete]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers/{identifier}")]
 	public async Task<ActionResult<LDAPRemoveMsADUserAccountResult>> RemoveMsADUserAccount(
@@ -450,6 +456,18 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(removeResult);
 	}
 
+	/// <summary>
+	/// Gets the list of parents for the specified user account in the LDAP server
+	/// identified by the given <paramref name="serverProfile"/> and <paramref name="catalogType"/>.
+	/// </summary>
+	/// <param name="serverProfile">The LDAP profile identifier that defines the route for this endpoint.</param>
+	/// <param name="catalogType">The LDAP catalog type name that defines the route for this endpoint. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+	/// <param name="identifier">The identifier of the user account that will define the route of this endpoint. The value must be a valid for the LDAP attribute <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
+	/// <param name="identifierAttribute">The attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter. This parameter is optional.</param>
+	/// <param name="requiredAttributes">The list of LDAP attributes that will be included in the search result. This parameter is optional.</param>
+	/// <param name="requestLabel">The custom tag that identifies the request and marks the data returned in the response. This parameter is optional.</param>
+	/// <returns>A <see cref="LDAPSearchResult"/> object that represents the result of the operation.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Parents")]
 	public async Task<ActionResult<LDAPSearchResult>> GetParentsForUserIdentifier(
@@ -495,15 +513,15 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	}
 
 	/// <summary>
-	/// Search user accounts according to the filters.
+	/// Gets the list of LDAP users filtered by the specified search filters.
 	/// </summary>
-	/// <param name="serverProfile"></param>
-	/// <param name="catalogType"></param>
-	/// <param name="searchFilters"></param>
-	/// <param name="requiredAttributes"></param>
-	/// <param name="requestLabel"></param>
-	/// <returns></returns>
-	/// <exception cref="Exception"></exception>
+	/// <param name="serverProfile">The LDAP profile identifier that defines the route for this endpoint.</param>
+	/// <param name="catalogType">The LDAP catalog type name that defines the route for this endpoint. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+	/// <param name="searchFilters">The search filters that will be used to filter the LDAP users. This parameter is optional.</param>
+	/// <param name="requiredAttributes">The list of LDAP attributes that will be included in the search result. This parameter is optional.</param>
+	/// <param name="requestLabel">The custom tag that identifies the request and marks the data returned in the response. This parameter is optional.</param>
+	/// <returns>A <see cref="LDAPSearchResult"/> object that represents the result of the operation.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/[action]")]
 	[ActionName("filterBy")]
@@ -522,8 +540,8 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var searcher = GetLdapSearcher(clientConfiguration);
 
-		LDAPSearchResult searchResult;
-		if (searchFilters.secondFilterAttribute.HasValue)
+		LDAPSearchResult? searchResult = null;
+		if (searchFilters.filterAttribute.HasValue && searchFilters.secondFilterAttribute.HasValue)
 		{
 			searchFilters.combineFilters = ValidateCombineFiltersParameter(searchFilters);
 
@@ -537,7 +555,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
-		else
+		else if (searchFilters.filterAttribute.HasValue)
 		{
 			var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
 
@@ -547,6 +565,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
 		}
+
+		if (searchResult == null)
+			throw new Exception("The search could not be performed or the result obtained.");
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
@@ -565,6 +586,17 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(searchResult);
 	}
 
+	/// <summary>
+	/// Get a group by its identifier.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Server profile Id.</param>
+	/// <param name="catalogType">LDAP Server catalog type.</param>
+	/// <param name="identifier">Group identifier value.</param>
+	/// <param name="identifierAttribute">The attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.distinguishedName"/> attribute is assumed by default. This is an optional query string parameter.</param>
+	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+	/// <param name="requestLabel"></param>
+	/// <returns><see cref="LDAPSearchResult"/> that encapsulates the group entry.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}")]
 	public async Task<ActionResult<LDAPSearchResult>> GetGroupByIdentifier(
@@ -616,6 +648,17 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(searchResult);
 	}
 
+	/// <summary>
+	/// Get the parent groups of a group from the LDAP server for the <paramref name="identifier"/> value and the <paramref name="identifierAttribute"/> attribute.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Profile Id that defines part of the route.</param>
+	/// <param name="catalogType">LDAP Catalog Type name that defines part of the route. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+	/// <param name="identifier">Identifier of the group account that will define the route of this Endpoint. There must be a valid value for the LDAP attributes <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
+	/// <param name="identifierAttribute">Attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter.</param>
+	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+	/// <param name="requestLabel">Optional and custom label</param>
+	/// <returns>A <see cref="LDAPSearchResult"/> object that represents the result of the operation.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}/Parents")]
 	public async Task<ActionResult<LDAPSearchResult>> GetParentsForGroupIdentifier([FromRoute] string serverProfile,
@@ -660,6 +703,16 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(searchResult);
 	}
 
+	/// <summary>
+	/// Gets the list of LDAP groups filtered by the specified search filters.
+	/// </summary>
+	/// <param name="serverProfile">The LDAP profile identifier that defines the route for this endpoint.</param>
+	/// <param name="catalogType">The LDAP catalog type name that defines the route for this endpoint. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+	/// <param name="searchFilters">The search filters that will be used to filter the LDAP groups. This parameter is optional.</param>
+	/// <param name="requiredAttributes">The list of LDAP attributes that will be included in the search result. This parameter is optional.</param>
+	/// <param name="requestLabel">The custom tag that identifies the request and marks the data returned in the response. This parameter is optional.</param>
+	/// <returns>A <see cref="LDAPSearchResult"/> object that represents the result of the operation.</returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/[action]")]
 	[ActionName("filterBy")]

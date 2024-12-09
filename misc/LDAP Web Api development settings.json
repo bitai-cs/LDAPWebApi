@@ -25,11 +25,16 @@
 			"MinimunLogEventLevel": "Verbose"
 		},
 		"GrafanaLokiLog": {
-			"Enabled": true,
+			"Enabled": false,
 			"LokiUrl": "http://192.168.1.20:3100",
 			"BatchPostingLimit": 100,
 			"Period": "00:00:02",
 			"AppName": "[webapiname]",
+			"MinimunLogEventLevel": "Verbose"
+		},
+		"ElasticsearchLog": {
+			"Enabled": true,
+			"ElasticsearchNodeUrls": [ "http://192.168.1.20:9200" ],
 			"MinimunLogEventLevel": "Verbose"
 		}
 	},
@@ -93,21 +98,21 @@
 			"DomainUserAccount": "CERTUS\\vbastidas",
 			"DomainAccountPassword": "B@st1d@s",
 			"HealthCheckPingTimeout": "4"
-		},
-		{
-			"ProfileId": "CERTUS_PRD_OLD",
-			"Server": "10.200.2.5",
-			"Port": "Default",
-			"UseSSL": "true",
-			"BaseDN": "DC=certus,DC=edu,DC=pe",
-			"PortForGlobalCatalog": "Default",
-			"UseSSLforGlobalCatalog": "false",
-			"BaseDNforGlobalCatalog": "DC=certus,DC=edu,DC=pe",
-			"DefaultDomainName": "CERTUS",
-			"ConnectionTimeout": "10",
-			"DomainUserAccount": "CERTUS\\usrrpa_mda",
-			"DomainAccountPassword": "rpa2023@@",
-			"HealthCheckPingTimeout": "4"
 		}
+		//{
+		//	"ProfileId": "CERTUS_PRD_OLD",
+		//	"Server": "10.200.2.5",
+		//	"Port": "Default",
+		//	"UseSSL": "true",
+		//	"BaseDN": "DC=certus,DC=edu,DC=pe",
+		//	"PortForGlobalCatalog": "Default",
+		//	"UseSSLforGlobalCatalog": "false",
+		//	"BaseDNforGlobalCatalog": "DC=certus,DC=edu,DC=pe",
+		//	"DefaultDomainName": "CERTUS",
+		//	"ConnectionTimeout": "10",
+		//	"DomainUserAccount": "CERTUS\\usrrpa_mda",
+		//	"DomainAccountPassword": "rpa2023@@",
+		//	"HealthCheckPingTimeout": "4"
+		//}
 	]
 }

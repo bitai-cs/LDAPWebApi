@@ -139,10 +139,8 @@ public static class StartupHelpers
 						{
 							AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
 							TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),
-							Scopes = new Dictionary<string, string> {
-							  { swaggerConfiguration.SwaggerUITargetApiScope, swaggerConfiguration.SwaggerUITargetApiScopeTitle }
-						 }
-						}
+							Scopes = swaggerConfiguration.SwaggerUITargetApiScopes.ToDictionary(s => s.SwaggerUITargetApiScopeName , s => s.SwaggerUITargetApiScopeTitle)
+						 }						
 					},
 					Description = "Swagger Generator OpenId security scheme."
 				});
@@ -167,18 +165,12 @@ public static class StartupHelpers
 		return services;
 	}
 
-	internal static IServiceCollection AddAuthenticationWithIdentityServer(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
+	internal static IServiceCollection AddAuthenticationWithJwtBearer(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
 	{
-		Log.Information("{method}", nameof(AddAuthenticationWithIdentityServer));
+		Log.Information("{method}", nameof(AddAuthenticationWithJwtBearer));
 
 		if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
 		{
-			var authBuilder = services.AddAuthentication(co =>
-			{
-				co.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-				co.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
-			});
-
 			if (string.IsNullOrEmpty(authorityConfiguration.Authority))
 				throw new Exception($"{nameof(WebApiScopesConfiguration)}/{nameof(WebApiScopesConfiguration.BypassApiScopesAuthorization)} is disabled, the value of {nameof(AuthorityConfiguration)}/{nameof(AuthorityConfiguration.Authority)} must be set.");
 
@@ -188,12 +180,37 @@ public static class StartupHelpers
 			if (!authorityConfiguration.RequireHttpsMetadata.HasValue)
 				throw new Exception($"{nameof(WebApiScopesConfiguration)}/{nameof(WebApiScopesConfiguration.BypassApiScopesAuthorization)} is disabled, the value of {nameof(AuthorityConfiguration)}/{nameof(AuthorityConfiguration.RequireHttpsMetadata)} must be set.");
 
-			authBuilder.AddIdentityServerAuthentication(options =>
+			#region Version for IdentityServer4.AccessTokenValidation
+			//https://stackoverflow.com/questions/69978649/migration-to-net6
+
+			//var authBuilder = services.AddAuthentication(co =>
+			//{
+			//	co.DefaultScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+			//	co.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+			//});
+
+			//authBuilder.AddIdentityServerAuthentication(options =>
+			//{
+			//	options.Authority = authorityConfiguration.Authority;
+			//	options.ApiName = authorityConfiguration.ApiResource;
+			//	options.RequireHttpsMetadata = authorityConfiguration.RequireHttpsMetadata.Value;
+			//});
+			#endregion
+
+			#region Version for Microsoft.AspNetCore.Authentication.JwtBearer
+			var authBuilder = services.AddAuthentication(configureOptions =>
 			{
-				options.Authority = authorityConfiguration.Authority;
-				options.ApiName = authorityConfiguration.ApiResource;
-				options.RequireHttpsMetadata = authorityConfiguration.RequireHttpsMetadata.Value;
+				configureOptions.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+				configureOptions.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
 			});
+
+			authBuilder.AddJwtBearer(configureOptions =>
+			{
+				configureOptions.Authority = authorityConfiguration.Authority;
+				configureOptions.TokenValidationParameters.ValidAudiences = new string[] { authorityConfiguration.ApiResource };
+				configureOptions.RequireHttpsMetadata = false;
+			});
+			#endregion
 		}
 
 		return services;
@@ -209,15 +226,20 @@ public static class StartupHelpers
 			services.AddSingleton<IPolicyEvaluator, Controllers.PolicyEvaluators.AuthorizationBypassPolicyEvaluator>();
 		}
 
-		services.AddAuthorization(options =>
+		var options = services.AddAuthorizationBuilder();
+		options.AddPolicy(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName, policy =>
 		{
-			options.AddPolicy(WebApiScopesConfiguration.GlobalScopeAuthorizationPolicyName, policy =>
-			{
-				policy.Requirements.Add(new ApiScopeRequirement(new string[] { webApiScopesConfiguration.GlobalScopeName }, authorityConfiguration.Authority ?? "https://localhost/oauth2"));
-			});
+			policy.Requirements.Add(new AnyApiScopeRequirement(new string[] { webApiScopesConfiguration.AdminApiScopeName, webApiScopesConfiguration.ReaderApiScopeName }, authorityConfiguration.Authority ?? "https://localhost/oauth2"));
 		});
 
-		return services.AddSingleton<IAuthorizationHandler, ApiScopeRequirementHandler>();
+		options.AddPolicy(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName, policy =>
+		{
+			policy.Requirements.Add(new SingleApiScopeRequirement(webApiScopesConfiguration.AdminApiScopeName, authorityConfiguration.Authority ?? "https://localhost/oauth2"));
+		});
+
+		return services
+			.AddSingleton<IAuthorizationHandler, AnyApiScopeRequirementHandler>()
+			.AddSingleton<IAuthorizationHandler, SingleApiScopeRequirementHandler>();
 	}
 
 	internal static void AddCustomHealthChecks(this IServiceCollection services, WebApiConfiguration webApiConfiguration, AuthorityConfiguration authorityConfiguration, WebApiScopesConfiguration webApiScopesConfiguration, LDAPServerProfiles ldapServerProfiles)
@@ -239,18 +261,20 @@ public static class StartupHelpers
 
 			string profileTag = $"Profile: {serverProfile.ProfileId}";
 			string defaultDomainTag = $"Default Domain: {serverProfile.DefaultDomainName}";
+			string baseDNTag = $"BaseDN: {serverProfile.BaseDN}";
+			string baseDNForGCTag = $"BaseDN: {serverProfile.BaseDNforGlobalCatalog}";
 
 			healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
 			{
 				options.AddHost(serverProfile.Server, portForLocalCatalog);
-			}, name: $"LDAP Port: {serverProfile.Server}:{portForLocalCatalog}", tags: new string[] { profileTag, defaultDomainTag, $"SSL: {serverProfile.UseSSL}" });
+			}, name: $"{profileTag} LDAP Port: {serverProfile.Server}:{portForLocalCatalog}", tags: new string[] { defaultDomainTag, baseDNTag, $"SSL: {serverProfile.UseSSL}" });
 
 			healthChecksBuilder = healthChecksBuilder.AddTcpHealthCheck(options =>
 			{
 				options.AddHost(serverProfile.Server, portForGlobalCatalog);
-			}, name: $"LDAP Port: {serverProfile.Server}:{portForGlobalCatalog}", tags: new string[] { profileTag, defaultDomainTag, $"SSL: {serverProfile.UseSSLforGlobalCatalog}" });
+			}, name: $"{profileTag} LDAP Port: {serverProfile.Server}:{portForGlobalCatalog}", tags: new string[] { defaultDomainTag, baseDNForGCTag, $"SSL: {serverProfile.UseSSLforGlobalCatalog}" });
 
-			healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(serverProfile.Server, serverProfile.HealthCheckPingTimeout), $"LDAP Ping: {serverProfile.Server}", tags: new string[] { profileTag, defaultDomainTag });
+			healthChecksBuilder = healthChecksBuilder.AddPingHealthCheck(options => options.AddHost(serverProfile.Server, serverProfile.HealthCheckPingTimeout), name: $"{profileTag} LDAP Ping: {serverProfile.Server}", tags: new string[] { profileTag, defaultDomainTag });
 		}
 
 		services.AddHealthChecksUI(settings =>
@@ -264,7 +288,8 @@ public static class StartupHelpers
 #if DEBUG
 			//Avoid SSL certificate validation on development environment
 			settings
-				.UseApiEndpointHttpMessageHandler(handler => {
+				.UseApiEndpointHttpMessageHandler(handler =>
+				{
 					return new HttpClientHandler
 					{
 						ClientCertificateOptions = ClientCertificateOption.Manual,
@@ -284,12 +309,12 @@ public static class StartupHelpers
 		{
 			builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
 
-#region Authorization request user interface 
+			#region Authorization request user interface 
 			builder.OAuthAppName(webApiConfiguration.WebApiTitle);
 			builder.OAuthClientId(swaggerUIConfiguration.SwaggerUIClientId);
-			builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScope);
+			builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScopes.Select(i => i.SwaggerUITargetApiScopeName).ToArray());
 			builder.OAuthUsePkce();
-#endregion
+			#endregion
 		});
 	}
 
