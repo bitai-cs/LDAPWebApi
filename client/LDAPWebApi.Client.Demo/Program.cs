@@ -19,21 +19,21 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
 		};
 
-		//static string WebApiBaseUrl = "http://10.100.54.40:8077/BITAI.LDAPWebApi";
-		static string WebApiBaseUrl = "https://localhost:5101";
-		//static string WebApiBaseUrl = "http://localhost:5100";
+        static string WebApiBaseUrl = "https://localhost:5101";
+        static WebApiClientCredential ClientCredentials = new WebApiClientCredential
+        {
+            AuthorityUrl = "https://localhost:44310",
+            ApiScope = "VISIVA_LWA_Reader_ApiScope",
+            ClientId = "VISIVA_ISSTS_Reader_Client_for_LDAPWebApi",
+            ClientSecret = "17011981"
+        };
 
-		static bool WebApiRequiresAccessToken = true;
+        static bool WebApiRequiresAccessToken = true;
 
-		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
-		{
-			AuthorityUrl = "https://interconcer.certus.edu.pe/BITAI.IdentityServer.STS",
-			ApiScope = "BITAI_LWA_Reader_ApiScope",
-			ClientId = "BITAI_LWA_Reader_Client",
-			ClientSecret = "V!s!v@_Lw@_R3@d3R"
-		};
 
-		static string RequestLabel { get; set; } = "DEMO";
+
+
+        static string RequestLabel { get; set; } = "DEMO";
 
 		static string Selected_LDAPServerProfile { get; set; } = "CERTUS-ADM";
 
@@ -53,7 +53,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				await ServerProfilesClient_GetProfileIdsAsync();
 
-				await ServerProfilesClient_GetAllAsync();
+				//await ServerProfilesClient_GetAllAsync();
 
 				//await CatalogTypesClient_GetAllAsync();
 

@@ -34,8 +34,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="7.0.0" />
-    <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.0" />
+    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="8.0.0" />
+    <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.1" />
     <PackageReference Include="IdentityModel" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
   </ItemGroup>
