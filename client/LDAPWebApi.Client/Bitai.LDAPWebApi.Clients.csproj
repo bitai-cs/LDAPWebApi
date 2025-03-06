@@ -3,15 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>8.0.1</Version>
+    <Version>8.0.2</Version>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
     <Copyright>© 2024 Bitai LDAPWebApi Clients. All rights reserved.</Copyright>
     <PackageIcon>api1_64.png</PackageIcon>
-    <AssemblyVersion>8.0.1.6</AssemblyVersion>
-    <FileVersion>8.0.1.6</FileVersion>
+    <AssemblyVersion>8.0.2.7</AssemblyVersion>
+    <FileVersion>8.0.2.7</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -36,7 +36,7 @@
   <ItemGroup>
     <PackageReference Include="Bitai.LDAPHelper.DTO" Version="8.0.0" />
     <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.1" />
-    <PackageReference Include="IdentityModel" Version="7.0.0" />
+    <PackageReference Include="Duende.IdentityModel" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
   </ItemGroup>
 

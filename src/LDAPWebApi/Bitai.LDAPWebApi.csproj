@@ -5,13 +5,13 @@
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>8.0.1</Version>
-		<AssemblyVersion>8.0.1.6</AssemblyVersion>
+		<Version>8.0.2</Version>
+		<AssemblyVersion>8.0.2.7</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>enable</Nullable>
-		<FileVersion>8.0.1.6</FileVersion>
+		<FileVersion>8.0.2.7</FileVersion>
 		<Description>Web API to access and query LDAP server.</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -35,21 +35,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="AspNetCore.HealthChecks.Network" Version="8.0.1" />
-	  <PackageReference Include="AspNetCore.HealthChecks.UI" Version="8.0.1" />
-	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
-	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="8.0.1" />
-	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="8.0.1" />
+	  <PackageReference Include="AspNetCore.HealthChecks.Network" Version="9.0.0" />
+	  <PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
+	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
+	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
 	  <PackageReference Include="Bitai.LDAPHelper" Version="8.0.0" />
 	  <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.1" />
-	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
-	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-	  <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
 	  <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
 	  <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
 	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
 	  <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
 	</ItemGroup>
 
 	<ItemGroup>
