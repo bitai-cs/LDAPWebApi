@@ -27,9 +27,9 @@ public static class StartupHelpers
 	{
 		Log.Information("{method}", nameof(AddWebApiConfiguration));
 
-		webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>() ?? new WebApiConfiguration();
+        webApiConfiguration = configuration.GetSection(nameof(Configurations.App.WebApiConfiguration)).Get<Configurations.App.WebApiConfiguration>() ?? new WebApiConfiguration();
 
-		services.AddSingleton(webApiConfiguration);
+        services.AddSingleton(webApiConfiguration);
 
 		return services;
 	}
@@ -283,7 +283,7 @@ public static class StartupHelpers
 				.SetHeaderText(webApiConfiguration.HealthChecksConfiguration.HealthChecksHeaderText)
 				.SetEvaluationTimeInSeconds(webApiConfiguration.HealthChecksConfiguration.EvaluationTime)
 				.MaximumHistoryEntriesPerEndpoint(webApiConfiguration.HealthChecksConfiguration.MaximunHistoryEntries)
-				.AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}");
+				.AddHealthCheckEndpoint(webApiConfiguration.HealthChecksConfiguration.HealthChecksGroupName, $"{webApiConfiguration.HealthChecksConfiguration.WebApiBaseUrl}/{webApiConfiguration.HealthChecksConfiguration.ApiEndPointName}");
 
 #if DEBUG
 			//Avoid SSL certificate validation on development environment
@@ -307,10 +307,11 @@ public static class StartupHelpers
 
 		return app.UseSwaggerUI(builder =>
 		{
-			builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
+			//builder.SwaggerEndpoint($"{webApiConfiguration.WebApiBaseUrl}/swagger/{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
+            builder.SwaggerEndpoint($"{webApiConfiguration.WebApiVersion}/swagger.json", webApiConfiguration.WebApiName);
 
-			#region Authorization request user interface 
-			builder.OAuthAppName(webApiConfiguration.WebApiTitle);
+            #region Authorization request user interface 
+            builder.OAuthAppName(webApiConfiguration.WebApiTitle);
 			builder.OAuthClientId(swaggerUIConfiguration.SwaggerUIClientId);
 			builder.OAuthScopes(swaggerUIConfiguration.SwaggerUITargetApiScopes.Select(i => i.SwaggerUITargetApiScopeName).ToArray());
 			builder.OAuthUsePkce();

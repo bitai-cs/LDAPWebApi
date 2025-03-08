@@ -15,13 +15,12 @@ public class WebApiConfiguration
 	/// </summary>
 	public WebApiConfiguration()
 	{
-		WebApiName = "LDAP Web Api";
+		WebApiName = "BITAI LDAP Web Api";
 		WebApiTitle = "BITAI LDAP Web Api";
-		WebApiDescription = "Web Api for queryng LDAP servers";
-		WebApiVersion = "v1";
-		WebApiBaseUrl = "https://localhost:5101";
+		WebApiDescription = "BITAI LDAP Web API for querying LDAP servers";
+		WebApiVersion = "Global";
 		WebApiContactName = "Viko Bastidas";
-		WebApiContactMail = "vico.bastidasgmail.com";
+		WebApiContactMail = "vico.bastidas@gmail.com";
 		WebApiContactUrl = "https://www.linkedin.com/in/victorbastidasg";
 
 		HealthChecksConfiguration = new WebApiHealthChecksConfiguration();
@@ -42,18 +41,14 @@ public class WebApiConfiguration
 	/// API description.
 	/// </summary>
 	public string WebApiDescription { get; set; }
-	/// <summary>
-	/// Referential name of the API version.
-	/// </summary>
-	public string WebApiVersion { get; set; }
-	/// <summary>
-	/// API base URL.
-	/// </summary>
-	public string WebApiBaseUrl { get; set; }
-	/// <summary>
-	/// Name of the developer and/or technical support.
-	/// </summary>
-	public string WebApiContactName { get; set; }
+    /// <summary>
+    /// API doc version.
+    /// </summary>
+    public string WebApiVersion { get; set; }
+    /// <summary>
+    /// Name of the developer and/or technical support.
+    /// </summary>
+    public string WebApiContactName { get; set; }
 	/// <summary>
 	/// Mail of the developer and/or technical support.
 	/// </summary>
@@ -79,12 +74,13 @@ public class WebApiConfiguration
 		public WebApiHealthChecksConfiguration()
 		{
 			EnableHealthChecks = false;
-			HealthChecksHeaderText = "Health Checks UI";
-			HealthChecksGroupName = "Health Checks";
-			ApiEndPointName = "hc";
+			HealthChecksHeaderText = "BITAI Health Checks UI";
+			HealthChecksGroupName = "BITAI Health Checks";
+			WebApiBaseUrl = "https://localhost";
+            ApiEndPointName = "hc";
 			UIPath = "hc-ui";
-			MaximunHistoryEntries = 100;
-			EvaluationTime = 30;
+			MaximunHistoryEntries = 2;
+			EvaluationTime = 120;
 		}
 
 
@@ -101,10 +97,14 @@ public class WebApiConfiguration
 		/// Group name text.
 		/// </summary>
 		public string HealthChecksGroupName { get; set; }
-		/// <summary>
-		/// Health checks API endpoint name.
-		/// </summary>
-		public string ApiEndPointName { get; set; }
+        /// <summary>
+        /// Web API base URL.
+        /// </summary>
+        public string WebApiBaseUrl { get; set; }
+        /// <summary>
+        /// Health checks API endpoint name.
+        /// </summary>
+        public string ApiEndPointName { get; set; }
 		/// <summary>
 		/// Health checks UI web path.
 		/// </summary>
@@ -113,10 +113,10 @@ public class WebApiConfiguration
 		/// Maximum history of checks
 		/// </summary>
 		public int MaximunHistoryEntries { get; set; }
-		/// <summary>
-		/// Health checks frecuency
-		/// </summary>
-		public int EvaluationTime { get; set; }
+        /// <summary>
+        /// Health checks frequency
+        /// </summary>
+        public int EvaluationTime { get; set; }
 	}
 	#endregion
 }
