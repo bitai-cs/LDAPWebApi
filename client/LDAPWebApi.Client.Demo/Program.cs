@@ -19,23 +19,23 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
 		};
 
-        static string WebApiBaseUrl = "https://localhost:5101";
-        static WebApiClientCredential ClientCredentials = new WebApiClientCredential
-        {
-            AuthorityUrl = "https://localhost:44310",
-            ApiScope = "VISIVA_LWA_Reader_ApiScope",
-            ClientId = "VISIVA_ISSTS_Reader_Client_for_LDAPWebApi",
-            ClientSecret = "17011981"
-        };
+		static string WebApiBaseUrl = "https://localhost:5101";
+		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
+		{
+			AuthorityUrl = "https://localhost:44310",
+			ApiScope = "VISIVA_LWA_Reader_ApiScope",
+			ClientId = "VISIVA_ISSTS_Reader_Client_for_LDAPWebApi",
+			ClientSecret = "17011981"
+		};
 
-        static bool WebApiRequiresAccessToken = true;
-
-
+		static bool WebApiRequiresAccessToken = false;
 
 
-        static string RequestLabel { get; set; } = "DEMO";
 
-		static string Selected_LDAPServerProfile { get; set; } = "CERTUS-ADM";
+
+		static string RequestLabel { get; set; } = "DEMO";
+
+		static string Selected_LDAPServerProfile { get; set; } = "BITAIVA";
 
 
 
@@ -53,15 +53,15 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				await ServerProfilesClient_GetProfileIdsAsync();
 
-				//await ServerProfilesClient_GetAllAsync();
+				await ServerProfilesClient_GetAllAsync();
 
-				//await CatalogTypesClient_GetAllAsync();
+				await CatalogTypesClient_GetAllAsync();
 
 				//await UserDirectoryClient_CreateMsADUserAccountAsync();
 
 				//await UserDirectoryClient_SetMsADUserAccountPassword();
 
-				//await AuthenticationsClient_AccountAuthenticationAsync();
+				await AuthenticationsClient_AccountAuthenticationAsync();
 
 				//await UserDirectoryClient_DisableMsADUserAccount();
 
@@ -69,7 +69,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				//await DirectoryClient_SearchByIdentifierAsync();
 
-				//await UserDirectoryClient_FilterByIdentifierAsync("vbastidas");
+				await UserDirectoryClient_FilterByIdentifierAsync("victor.bastidas");
 
 				//await UserDirectoryClient_FilterByIdentifierAsync("??????");
 			}
@@ -201,10 +201,10 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				LogInfoOfType(client.GetType());
 
-				Console.WriteLine($"Enter the password of the CERTUS\\vbastidas account.");
+				Console.WriteLine($"Enter the password of the account.");
 				Console.WriteLine("(It is not nescessary to enter the real password)");
 
-				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("CERTUS", "vbastidas", requestAccountPassword("CERTUS\\vbastidas"));
+				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("BITAIVA", "victor.bastidas", requestAccountPassword("BITAIVA\\victor.bastidas"));
 
 				LogInfo($"{nameof(client.AuthenticateAsync)}...");
 				var httpResponse = await client.AuthenticateAsync(accountCredentials, RequestLabel, WebApiRequiresAccessToken);

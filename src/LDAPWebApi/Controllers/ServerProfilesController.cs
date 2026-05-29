@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPWebApi.Configurations.App;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
@@ -23,7 +17,9 @@ public class ServerProfilesController : ApiControllerBase<ServerProfilesControll
     /// <param name="configuration">See <see cref="Microsoft.Extensions.Configuration.IConfiguration"/></param>
     /// <param name="logger">See <see cref="ILogger{TCategoryName}"/></param>
     /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
-    public ServerProfilesController(IConfiguration configuration, ILogger<ServerProfilesController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
+    /// <param name="connectionFactory">Injected <see cref="ILdapConnectionFactoryAdapter"/></param>
+    /// 
+    public ServerProfilesController(IConfiguration configuration, ILogger<ServerProfilesController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles, ILdapConnectionFactoryAdapter connectionFactory) : base(configuration, logger, serverProfiles, connectionFactory)
     {
     }
 

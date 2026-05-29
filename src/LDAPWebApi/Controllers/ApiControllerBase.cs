@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPHelper.QueryFilters;
-using Bitai.WebApi.Server;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
@@ -35,6 +27,11 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	protected Configurations.LDAP.LDAPServerProfiles ServerProfiles { get; }
 
 	/// <summary>
+	/// LDAP connection factory adapter (Adapter Pattern).
+	/// </summary>
+	protected ILdapConnectionFactoryAdapter ConnectionFactory { get; }
+
+	/// <summary>
 	/// Route name for each LDAP Catalog.
 	/// </summary>
 	protected DTO.LDAPServerCatalogTypes CatalogTypeRoutes => new DTO.LDAPServerCatalogTypes();
@@ -48,11 +45,13 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
 	/// <param name="logger">Logger</param>
 	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
-	protected ApiControllerBase(IConfiguration configuration, ILogger<T> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles)
+	/// <param name="connectionFactory">Injected <see cref="ILdapConnectionFactoryAdapter"/></param>
+	protected ApiControllerBase(IConfiguration configuration, ILogger<T> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles, ILdapConnectionFactoryAdapter connectionFactory)
 	{
 		Configuration = configuration;
 		Logger = logger;
 		ServerProfiles = serverProfiles;
+		ConnectionFactory = connectionFactory;
 	}
 
 
@@ -104,7 +103,27 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	/// <returns></returns>
 	protected LDAPHelper.Searcher GetLdapSearcher(LDAPHelper.ClientConfiguration clientConfiguration)
 	{
-		return new LDAPHelper.Searcher(clientConfiguration);
+		return new LDAPHelper.Searcher(clientConfiguration, ConnectionFactory);
+	}
+
+	/// <summary>
+	/// Get an instance of <see cref="LDAPHelper.AccountManager"/>
+	/// </summary>
+	/// <param name="clientConfiguration"><see cref="LDAPHelper.ClientConfiguration"/> to be used by <see cref="LDAPHelper.AccountManager"/></param>
+	/// <returns></returns>
+	protected LDAPHelper.AccountManager GetAccountManager(LDAPHelper.ClientConfiguration clientConfiguration)
+	{
+		return new LDAPHelper.AccountManager(clientConfiguration, ConnectionFactory);
+	}
+
+	/// <summary>
+	/// Get an instance of <see cref="LDAPHelper.Authenticator"/>
+	/// </summary>
+	/// <param name="connectionInfo"><see cref="LDAPHelper.ConnectionInfo"/> to be used by <see cref="LDAPHelper.Authenticator"/></param>
+	/// <returns></returns>
+	protected LDAPHelper.Authenticator GetAuthenticator(LDAPHelper.ConnectionInfo connectionInfo)
+	{
+		return new LDAPHelper.Authenticator(connectionInfo, ConnectionFactory);
 	}
 
 	/// <summary>

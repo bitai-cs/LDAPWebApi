@@ -1,13 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Controllers.AuthRequirements;
 
+/// <summary>
+/// Handles the authentication requirement for API scopes.
+/// </summary>
 public class ApiScopeRequirementHandler : AuthorizationHandler<ApiScopeRequirement>
 {
+    /// <summary>
+    /// Handles the authentication requirement for API scopes.
+    /// </summary>
+    /// <param name="context">The authorization context. See <see cref="AuthorizationHandlerContext"/>.</param>
+    /// <param name="requirement">The authentication requirement. See <see cref="ApiScopeRequirement"/>.</param>
+    /// <returns></returns>
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ApiScopeRequirement requirement)
     {
         if (!context.User.HasClaim(c => c.Type == "scope" && c.Issuer == requirement.Issuer))

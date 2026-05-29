@@ -5,13 +5,13 @@
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>8.0.2</Version>
-		<AssemblyVersion>8.0.2.7</AssemblyVersion>
+		<Version>8.1.7</Version>
+		<AssemblyVersion>8.1.7.1</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>enable</Nullable>
-		<FileVersion>8.0.2.7</FileVersion>
+		<FileVersion>8.1.7.1</FileVersion>
 		<Description>Web API to access and query LDAP server.</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -40,8 +40,8 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
-	  <PackageReference Include="Bitai.LDAPHelper" Version="8.0.0" />
-	  <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.1" />
+	  <PackageReference Include="Bitai.LDAPHelper" Version="8.6.0" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.2" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />

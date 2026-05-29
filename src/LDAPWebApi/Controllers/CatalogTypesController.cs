@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPWebApi.Configurations.App;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
@@ -17,13 +11,14 @@ namespace Bitai.LDAPWebApi.Controllers;
 [ApiController]
 public class CatalogTypesController : ApiControllerBase<CatalogTypesController>
 {
-	/// <summary>
-	/// Constructor
-	/// </summary>
-	/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
-	/// <param name="logger">See <see cref="ILogger{TCategoryName}"/></param>
-	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-	public CatalogTypesController(IConfiguration configuration, ILogger<CatalogTypesController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="configuration">Injected <see cref="IConfiguration"/></param>
+    /// <param name="logger">See <see cref="ILogger{TCategoryName}"/></param>
+    /// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
+    /// <param name="connectionFactory">Injected <see cref="ILdapConnectionFactoryAdapter"/></param>
+    public CatalogTypesController(IConfiguration configuration, ILogger<CatalogTypesController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles, ILdapConnectionFactoryAdapter connectionFactory) : base(configuration, logger, serverProfiles, connectionFactory)
 	{
 	}
 

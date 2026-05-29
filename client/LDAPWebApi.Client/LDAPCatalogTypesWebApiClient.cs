@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Bitai.WebApi.Client;
 
 namespace Bitai.LDAPWebApi.Clients
@@ -20,6 +15,12 @@ namespace Bitai.LDAPWebApi.Clients
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPCatalogTypesWebApiClient"/> class with a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		public LDAPCatalogTypesWebApiClient(string ldapWebApiBaseUrl, HttpClientHandler handler, bool disposeHandler) : base(ldapWebApiBaseUrl, handler, disposeHandler)
 		{
 		}
@@ -33,6 +34,13 @@ namespace Bitai.LDAPWebApi.Clients
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPCatalogTypesWebApiClient"/> class with Identity Server credentials and a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="clientCredentials">Client credentials to request an access token from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		public LDAPCatalogTypesWebApiClient(string ldapWebApiBaseUrl, WebApiClientCredential clientCredentials, HttpClientHandler handler, bool disposeHandler) : base(ldapWebApiBaseUrl, clientCredentials, handler, disposeHandler)
 		{
 		}

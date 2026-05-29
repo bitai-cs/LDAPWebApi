@@ -1,3 +1,5 @@
+using Bitai.LDAPHelper.LdapAdapters;
+using Bitai.LDAPHelper.LdapAdapters.Novell;
 using Bitai.LDAPWebApi.Helpers;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
@@ -74,6 +76,8 @@ public class Startup
 		services.AddAuthorityConfiguration(Configuration, out var authorityConfiguration);
 
 		services.RegisterRouteConstraints();
+
+		services.RegisterNovellLdapConnectionFactory();
 
 		services.AddControllers();
 

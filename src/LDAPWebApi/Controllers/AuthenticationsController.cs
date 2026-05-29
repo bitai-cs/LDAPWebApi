@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
-using Bitai.LDAPHelper.QueryFilters;
+using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPWebApi.Configurations.App;
-using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
@@ -27,8 +18,9 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	/// </summary>
 	/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
 	/// <param name="logger">See <see cref="ILogger{TCategoryName}"/>.</param>
-	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>        
-	public AuthenticationsController(IConfiguration configuration, ILogger<AuthenticationsController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles) { }
+	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP. LDAPServerProfiles"/></param>
+	/// <param name="connectionFactory">Injected <see cref="ILdapConnectionFactoryAdapter"/></param>
+	public AuthenticationsController(IConfiguration configuration, ILogger<AuthenticationsController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles, ILdapConnectionFactoryAdapter connectionFactory) : base(configuration, logger, serverProfiles, connectionFactory) { }
 
 
 
@@ -38,7 +30,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	/// <param name="serverProfile">LDAP Server Profile Id that defines part of the path. See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
 	/// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPServerCatalogTypes"/></param>
 	/// <param name="credential">Account credential to validate. See <see cref="LDAPDomainAccountCredential"/></param>
-	/// <param name="requestLabel">Valor personalizado para etiquetar la respuesta. Can e null</param>
+	/// <param name="requestLabel">Label to tag the results. Optional, it can be null</param>
 	/// <returns><see cref="LDAPDomainAccountAuthenticationResult"/></returns>
 	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpPost]
@@ -56,7 +48,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
 		var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType), out var ldapServerProfile);
 
-		var authenticator = new LDAPHelper.Authenticator(ldapClientConfig.ServerSettings);
+		var authenticator = GetAuthenticator(ldapClientConfig.ServerSettings);
 
 		if (string.IsNullOrEmpty(credential.DomainName))
 			credential.DomainName = ldapServerProfile.DefaultDomainName; 
