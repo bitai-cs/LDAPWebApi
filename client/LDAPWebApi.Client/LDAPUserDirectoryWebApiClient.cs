@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
 using System.Net.Http.Formatting;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
-using IdentityModel.Client;
-using Microsoft.VisualBasic;
 
 namespace Bitai.LDAPWebApi.Clients
 {
@@ -20,10 +10,24 @@ namespace Bitai.LDAPWebApi.Clients
 	/// </summary>
 	public class LDAPUserDirectoryWebApiClient : LDAPWebApiBaseClient
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPUserDirectoryWebApiClient"/> class.
+		/// </summary>
+		/// <param name="webApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="serverProfile">LDAP Server Profile Id.</param>
+		/// <param name="useGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
 		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog) : base(webApiBaseUrl, serverProfile, useGlobalCatalog)
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPUserDirectoryWebApiClient"/> class with a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="webApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="serverProfile">LDAP Server Profile Id.</param>
+		/// <param name="useGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandle">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, HttpClientHandler handler, bool disposeHandle) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, handler, disposeHandle)
 		{
 		}
@@ -39,6 +43,15 @@ namespace Bitai.LDAPWebApi.Clients
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPUserDirectoryWebApiClient"/> class with Identity Server credentials and a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="webApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="serverProfile">LDAP Server Profile Id.</param>
+		/// <param name="useGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
+		/// <param name="clientCredential">Client credentials to request an access token from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiClientCredential clientCredential, HttpClientHandler handler, bool disposeHandler) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, clientCredential, handler, disposeHandler)
 		{
 		}
@@ -47,21 +60,53 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		#region GET /api/{serverProfile}/{catalogType}/Directory/Users/filterBy
+		/// <summary>
+		/// Search for user accounts using the sAMAccountName attribute.
+		/// </summary>
+		/// <param name="samAccountName">The sAMAccountName value to filter by.</param>
+		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(string samAccountName, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(null, samAccountName, null, null, null, null, requestLabel, setBearerToken, default);
 		}
 
+		/// <summary>
+		/// Search for user accounts using the sAMAccountName attribute and specifying the required attributes.
+		/// </summary>
+		/// <param name="samAccountName">The sAMAccountName value to filter by.</param>
+		/// <param name="requiredAttributes">Set of LDAP attributes that the search result should contain.</param>
+		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(string samAccountName, RequiredEntryAttributes requiredAttributes, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(null, samAccountName, null, null, null, requiredAttributes, requestLabel, setBearerToken, default);
 		}
 
+		/// <summary>
+		/// Search for user accounts using a specific LDAP attribute filter.
+		/// </summary>
+		/// <param name="filterAttribute">LDAP attribute type to filter by.</param>
+		/// <param name="filterValue">Value that will be used to filter the LDAP attribute assigned in the filterAttribute parameter.</param>
+		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(filterAttribute, filterValue, null, null, null, null, requestLabel, setBearerToken, default);
 		}
 
+		/// <summary>
+		/// Search for user accounts using a specific LDAP attribute filter and specifying the required attributes.
+		/// </summary>
+		/// <param name="filterAttribute">LDAP attribute type to filter by.</param>
+		/// <param name="filterValue">Value that will be used to filter the LDAP attribute assigned in the filterAttribute parameter.</param>
+		/// <param name="requiredAttributes">Set of LDAP attributes that the search result should contain.</param>
+		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, RequiredEntryAttributes requiredAttributes, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(filterAttribute, filterValue, null, null, null, requiredAttributes, requestLabel, setBearerToken, default);

@@ -1,4 +1,6 @@
-﻿using Bitai.LDAPWebApi.Configurations.App;
+﻿using Bitai.LDAPHelper.LdapAdapters;
+using Bitai.LDAPHelper.LdapAdapters.Novell;
+using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.LDAPWebApi.Configurations.LDAP;
 using Bitai.LDAPWebApi.Configurations.Security;
 using Bitai.LDAPWebApi.Configurations.Swagger;
@@ -161,6 +163,15 @@ public static class StartupHelpers
 			config.ConstraintMap.Add("ldapSvrPf", typeof(Controllers.Constraints.LDAPServerProfileRouteConstraint));
 			config.ConstraintMap.Add("ldapCatType", typeof(Controllers.Constraints.LDAPCatalogTypeRouteConstraint));
 		});
+
+		return services;
+	}
+
+	internal static IServiceCollection RegisterNovellLdapConnectionFactory(this IServiceCollection services)
+	{
+		Log.Information("{method}", nameof(RegisterNovellLdapConnectionFactory));
+
+		services.AddSingleton<ILdapConnectionFactoryAdapter, NovellLdapConnectionFactoryAdapter>();
 
 		return services;
 	}

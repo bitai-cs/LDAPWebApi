@@ -1,4 +1,4 @@
-﻿using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
 
@@ -31,18 +31,40 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl) : base(ldapWebApiBaseUrl)
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, HttpClientHandler handler, bool disposeHandler) : base(ldapWebApiBaseUrl, handler, disposeHandler)
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with Identity Server credentials.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="clientCredentials">Client credentials to request an access token from the Identity Server.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, WebApiClientCredential clientCredentials) : base(ldapWebApiBaseUrl, clientCredentials)
 		{
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with Identity Server credentials and a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="clientCredentials">Client credentials to request an access token from the Identity Server.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, WebApiClientCredential clientCredentials, HttpClientHandler handler, bool disposeHandler) : base(ldapWebApiBaseUrl, clientCredentials, handler, disposeHandler)
 		{
 		}
@@ -72,12 +94,29 @@ namespace Bitai.LDAPWebApi.Clients
 			UseLDAPServerGlobalCatalog = useLdapServerGlobalCatalog;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with server configuration details and a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
+		/// <param name="useLdapServerGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, HttpClientHandler handler, bool disposeHandler) : base(ldapWebApiBaseUrl, handler, disposeHandler)
 		{
 			LDAPServerProfile = ldapServerProfile;
 			UseLDAPServerGlobalCatalog = useLdapServerGlobalCatalog;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with server configuration details, Identity Server credentials, and a custom HttpClientHandler.
+		/// </summary>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
+		/// <param name="useLdapServerGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
+		/// <param name="clientCredentials">Client credentials to request an access token from the Identity Server.</param>
+		/// <param name="handler">The custom HttpClientHandler to handle HTTP requests.</param>
+		/// <param name="disposeHandler">true if the inner handler should be disposed of by Dispose(), false if you intend to reuse the inner handler.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredential clientCredentials, HttpClientHandler handler, bool disposeHandler) : base(ldapWebApiBaseUrl, clientCredentials, handler, disposeHandler)
 		{
 			LDAPServerProfile = ldapServerProfile;

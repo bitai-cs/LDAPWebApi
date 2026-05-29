@@ -1,22 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading.Tasks;
+using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPHelper.QueryFilters;
 using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
@@ -33,8 +22,9 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	/// </summary>
 	/// <param name="configuration">Injected <see cref="IConfiguration"/></param>
 	/// <param name="logger">Logger</param>
-	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>        
-	public DirectoryController(IConfiguration configuration, ILogger<DirectoryController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles) : base(configuration, logger, serverProfiles)
+	/// <param name="serverProfiles">Injected <see cref="Configurations.LDAP.LDAPServerProfiles"/></param>
+	/// <param name="connectionFactory">Injected <see cref="ILdapConnectionFactoryAdapter"/></param>
+	public DirectoryController(IConfiguration configuration, ILogger<DirectoryController> logger, Configurations.LDAP.LDAPServerProfiles serverProfiles, ILdapConnectionFactoryAdapter connectionFactory) : base(configuration, logger, serverProfiles, connectionFactory)
 	{
 	}
 
@@ -185,7 +175,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+		var accountManager = GetAccountManager(clientConfig);
 		accountManager.InitializeMissingMsADUserAccountDN(newUserAccount);
 
 		#region Check if DN already exists
@@ -193,7 +183,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var attributeFilter = new LDAPHelper.QueryFilters.AttributeFilter(EntryAttribute.distinguishedName, new LDAPHelper.QueryFilters.FilterValue(newUserAccount.DistinguishedName));
 		var searchFilterCombiner = new LDAPHelper.QueryFilters.AttributeFilterCombiner(false, true, new List<LDAPHelper.QueryFilters.ICombinableFilter> { onlyUsersFilterCombiner, attributeFilter });
 
-		var searcher = new LDAPHelper.Searcher(clientConfig);
+		var searcher = GetLdapSearcher(clientConfig);
 		var searchResult = await searcher.SearchEntriesAsync(searchFilterCombiner, RequiredEntryAttributes.Minimun, requestLabel);
 		if (!searchResult.IsSuccessfulOperation)
 		{
@@ -321,7 +311,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var entry = searchResult.Entries.Single();
 
 		var dnCredential = new LDAPDistinguishedNameCredential(entry.distinguishedName, credential.Password);
-		var accountManager = new LDAPHelper.AccountManager(GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType)));
+		var accountManager = GetAccountManager(GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType)));
 		var pwdUpdateResult = await accountManager.SetUserAccountPasswordForMsAD(dnCredential, requestLabel);
 
 		if (!pwdUpdateResult.IsSuccessfulOperation)
@@ -384,7 +374,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 				ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", searchResult);
 		}
 
-		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+		var accountManager = GetAccountManager(clientConfig);
 
 		var disableResult = await accountManager.DisableUserAccountForMsAD(distinguishedName, requestLabel);
 		if (!disableResult.IsSuccessfulOperation)
@@ -437,7 +427,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 				ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", searchResult);
 		}
 
-		var accountManager = new LDAPHelper.AccountManager(clientConfig);
+		var accountManager = GetAccountManager(clientConfig);
 
 		var removeResult = await accountManager.RemoveUserAccountForMsAD(distinguishedName, requestLabel);
 
