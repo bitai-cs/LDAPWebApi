@@ -1,4 +1,4 @@
-﻿using Bitai.LDAPHelper.LdapAdapters;
+using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPHelper.LdapAdapters.Novell;
 using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.LDAPWebApi.Configurations.LDAP;
@@ -8,14 +8,8 @@ using Bitai.LDAPWebApi.Controllers.AuthRequirements;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using System;
-using System.Collections.Generic;
 
 namespace Bitai.LDAPWebApi.Helpers;
 
@@ -114,9 +108,9 @@ public static class StartupHelpers
 
 		services.AddSwaggerGen(setupAction =>
 		{
-			setupAction.SwaggerDoc(webApiConfiguration.WebApiVersion, new Microsoft.OpenApi.Models.OpenApiInfo
+			setupAction.SwaggerDoc(webApiConfiguration.WebApiVersion, new Microsoft.OpenApi.OpenApiInfo
 			{
-				Contact = new Microsoft.OpenApi.Models.OpenApiContact
+				Contact = new Microsoft.OpenApi.OpenApiContact
 				{
 					Name = webApiConfiguration.WebApiContactName,
 					Email = webApiConfiguration.WebApiContactMail,
@@ -132,12 +126,12 @@ public static class StartupHelpers
 
 			if (!webApiScopesConfiguration.BypassApiScopesAuthorization)
 			{
-				setupAction.AddSecurityDefinition("OAuth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+				setupAction.AddSecurityDefinition("OAuth2", new Microsoft.OpenApi.OpenApiSecurityScheme
 				{
-					Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
-					Flows = new Microsoft.OpenApi.Models.OpenApiOAuthFlows
+					Type = Microsoft.OpenApi.SecuritySchemeType.OAuth2,
+					Flows = new Microsoft.OpenApi.OpenApiOAuthFlows
 					{
-						AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
+						AuthorizationCode = new Microsoft.OpenApi.OpenApiOAuthFlow
 						{
 							AuthorizationUrl = new Uri($"{authorityConfiguration.Authority}/connect/authorize"),
 							TokenUrl = new Uri($"{authorityConfiguration.Authority}/connect/token"),

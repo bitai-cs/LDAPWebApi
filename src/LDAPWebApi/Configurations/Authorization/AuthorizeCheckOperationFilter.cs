@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Bitai.LDAPWebApi.Configurations.Authorization;
@@ -40,14 +37,12 @@ public class AuthorizeCheckOperationFilter : IOperationFilter
 
 			operation.Responses.Add(StatusCodes.Status403Forbidden.ToString(), new OpenApiResponse { Description = nameof(HttpStatusCode.Forbidden) });
 
-			operation.Security = new List<OpenApiSecurityRequirement> {
+            // Get the OpenApiDocument from the context to pass to OpenApiSecuritySchemeReference
+            var document = context.Document;
+
+            operation.Security = new List<OpenApiSecurityRequirement> {
 				new OpenApiSecurityRequirement {
-					[new OpenApiSecurityScheme {
-						Reference = new OpenApiReference {
-										Type = ReferenceType.SecurityScheme,
-										Id = "OAuth2"
-									}
-					}] = _swaggerUIConfiguration.SwaggerUITargetApiScopes.Select(i => i.SwaggerUITargetApiScopeName).ToArray()
+					[new OpenApiSecuritySchemeReference("OAuth2", document)] = _swaggerUIConfiguration.SwaggerUITargetApiScopes.Select(i => i.SwaggerUITargetApiScopeName).ToList()
 				}
 			};
 		}

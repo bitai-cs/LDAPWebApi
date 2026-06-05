@@ -1,18 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>8.1.7</Version>
-		<AssemblyVersion>8.1.7.1</AssemblyVersion>
+		<Version>10.0.0</Version>
+		<AssemblyVersion>10.0.0</AssemblyVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
 		<Nullable>enable</Nullable>
-		<FileVersion>8.1.7.1</FileVersion>
-		<Description>Web API to access and query LDAP server.</Description>
+		<FileVersion>10.0.0</FileVersion>
+		<Description>Web API that provides access to an LDAP server</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -21,8 +21,8 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>..\..</DockerfileContext>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Upgraded to .NET 8</PackageReleaseNotes>
-		<Copyright>© 2024 Bitai Web Api. All rights reserved.</Copyright>
+		<PackageReleaseNotes>.NET 10 ready</PackageReleaseNotes>
+		<Copyright>© 2026 BITAI LDAP Web API. MIT License.</Copyright>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -40,16 +40,16 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
-	  <PackageReference Include="Bitai.LDAPHelper" Version="8.6.0" />
-	  <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.2" />
-	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
-	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+	  <PackageReference Include="Bitai.LDAPHelper" Version="10.0.0" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="10.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
 	  <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
 	  <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
-	  <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-	  <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.0" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+	  <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+	  <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.3.2" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -62,6 +62,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="logs\" />
 	  <Folder Include="wwwroot\images\" />
 	</ItemGroup>
 
