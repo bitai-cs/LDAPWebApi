@@ -1,25 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Company>BITAI</Company>
     <Authors>Vico Bastidas (BITAI)</Authors>
     <Product>LDAP Web API</Product>
-    <Version>8.0.0</Version>
-    <Description>Web API to access and query LDAP server.</Description>
+    <Version>10.0.0</Version>
+    <Description>Web API that provides access to an LDAP server</Description>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>8.0.0.7</AssemblyVersion>
-    <FileVersion>8.0.0.7</FileVersion>
+    <AssemblyVersion>10.0.0</AssemblyVersion>
+    <FileVersion>10.0.0</FileVersion>
     <PackageTags>ldap;ad;directory;identity;oauth;openid;security</PackageTags>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIcon>api1_64.png</PackageIcon>
     <PackageId>Bitai.LDAPWebApi.DTO</PackageId>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Copyright>© 2024 BITAI. All rights reserved.</Copyright>
+    <Copyright>© 2026 BITAI LDAP Web API. MIT License.</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>Upgraded to .NET 8</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

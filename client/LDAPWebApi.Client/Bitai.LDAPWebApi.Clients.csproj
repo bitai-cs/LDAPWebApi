@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>8.6.0</Version>
+    <Version>10.0.0</Version>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
-    <Copyright>© 2026 Bitai LDAPWebApi Clients. All rights reserved.</Copyright>
+    <Copyright>© 2026 BITAI LDAP Web API Clients. MIT License.</Copyright>
     <PackageIcon>api1_64.png</PackageIcon>
-    <AssemblyVersion>8.6.0</AssemblyVersion>
-    <FileVersion>8.6.0</FileVersion>
+    <AssemblyVersion>10.0.0</AssemblyVersion>
+    <FileVersion>10.0.0</FileVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -24,7 +24,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>.NET 8 ready</PackageReleaseNotes>
+    <PackageReleaseNotes>.NET 10 ready</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
@@ -34,9 +34,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="8.6.0" />
-    <PackageReference Include="Bitai.WebApi.Helpers" Version="8.0.2" />
-    <PackageReference Include="Duende.IdentityModel" Version="7.1.0" />
+    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="10.0.0" />
+    <PackageReference Include="Bitai.WebApi.Helpers" Version="10.0.0" />
+    <PackageReference Include="Duende.IdentityModel" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
   </ItemGroup>
 
