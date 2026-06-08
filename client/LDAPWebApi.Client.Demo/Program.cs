@@ -13,13 +13,13 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
 		};
 
-		static string WebApiBaseUrl = "https://localhost:5101";
+		static string WebApiBaseUrl = "https://localhost/LDAPWebApi";
 		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
 		{
 			AuthorityUrl = "https://localhost/IsSts9",
-			ApiScope = "Bitai.LdapWebApi.Scope.Admin",
-			ClientId = "Bitai.LdapWebApi.DemoConsole.Client",
-			ClientSecret = "Bitai.LdapWebApi.DemoConsole.Client"
+			ApiScope = "Bitai.LdapWebApi.Local.ApiScope.Reader",
+			ClientId = "Bitai.LdapWebApi.Local.Machine.Client",
+			ClientSecret = "Bitai.LdapWebApi.Local.Machine.Client"
         };
 
 		static bool UseAccessTokenToCallLdapWebApi = true;

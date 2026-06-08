@@ -77,7 +77,7 @@ public class Startup
 
 		services.RegisterRouteConstraints();
 
-		services.RegisterNovellLdapConnectionFactory();
+		services.RegisterConfiguredLdapConnectionFactory(webApiConfiguration);
 
 		services.AddControllers();
 
@@ -165,5 +165,7 @@ public class Startup
 		app.UseSwagger();
 
 		app.UseSwaggerUI(webApiConfiguration, swaggerUIConfiguration);
+
+        app.UseMockLdapData(webApiConfiguration);
 	}
 }
