@@ -1,5 +1,7 @@
 using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPHelper.LdapAdapters.Novell;
+using Bitai.LDAPHelper.Tests.Mocks.LdapAdapters;
+using Bitai.LDAPHelper.Tests.Mocks.LdapData;
 using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.LDAPWebApi.Configurations.LDAP;
 using Bitai.LDAPWebApi.Configurations.Security;
@@ -161,16 +163,25 @@ public static class StartupHelpers
 		return services;
 	}
 
-	internal static IServiceCollection RegisterNovellLdapConnectionFactory(this IServiceCollection services)
+	internal static IServiceCollection RegisterConfiguredLdapConnectionFactory(this IServiceCollection services, WebApiConfiguration webApiConfiguration)
 	{
-		Log.Information("{method}", nameof(RegisterNovellLdapConnectionFactory));
+		Log.Information("{method}", nameof(RegisterConfiguredLdapConnectionFactory));
 
-		services.AddSingleton<ILdapConnectionFactoryAdapter, NovellLdapConnectionFactoryAdapter>();
+        if (webApiConfiguration.TestConfiguration.EnablePersistentMockLdapDataStore)
+        {
+            services.AddSingleton<ILdapConnectionFactoryAdapter, MockLdapPersistentConnectionFactoryAdapter>();
+            Log.Warning("Testing mode is enabled! {method} is registering {mockLdapPersistentConnectionFactoryAdapter} as implementation of {ldapConnectionFactoryAdapterInterface}.", nameof(RegisterConfiguredLdapConnectionFactory), nameof(MockLdapPersistentConnectionFactoryAdapter), nameof(ILdapConnectionFactoryAdapter));
+        }
+        else
+        {            
+            services.AddSingleton<ILdapConnectionFactoryAdapter, NovellLdapConnectionFactoryAdapter>();
+            Log.Information("Testing mode is disabled. {method} is registering {novellLdapConnectionFactoryAdapter} as implementation of {ldapConnectionFactoryAdapterInterface}.", nameof(RegisterConfiguredLdapConnectionFactory), nameof(NovellLdapConnectionFactoryAdapter), nameof(ILdapConnectionFactoryAdapter));
+        }
 
 		return services;
 	}
 
-	internal static IServiceCollection AddAuthenticationWithJwtBearer(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
+    internal static IServiceCollection AddAuthenticationWithJwtBearer(this IServiceCollection services, WebApiScopesConfiguration webApiScopesConfiguration, AuthorityConfiguration authorityConfiguration)
 	{
 		Log.Information("{method}", nameof(AddAuthenticationWithJwtBearer));
 
@@ -344,4 +355,33 @@ public static class StartupHelpers
 			setupOptions.AddCustomStylesheet("HealthChecksUI.css");
 		});
 	}
+
+    internal static IApplicationBuilder UseMockLdapData(this IApplicationBuilder app, WebApiConfiguration webApiConfiguration)
+    {
+        Log.Information("{method}", nameof(UseMockLdapData));
+
+        if (!webApiConfiguration.TestConfiguration.EnablePersistentMockLdapDataStore)
+        {
+            Log.Information("Test mode is disabled. LDAP test mock data will not be used.");
+
+            return app;
+        }
+        
+        Log.Warning("Test mode is enabled! LDAP test mock data will be used!");
+
+        using var loggerFactory = LoggerFactory.Create(builder => {
+            builder.ClearProviders();
+            builder.AddSerilog(Log.Logger);
+        });
+        var logger = loggerFactory.CreateLogger<MockLdapDataSeeder>();
+
+        var seeder = new MockLdapDataSeeder(logger);
+        seeder.SeedAllData();
+
+#if DEBUG
+        seeder.PrintAllData();
+#endif
+
+        return app;
+    }
 }

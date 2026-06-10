@@ -42,9 +42,9 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
 		[FromBody] LDAPDomainAccountCredential credential)
 	{
-		Logger.LogInformation("Request path: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(requestLabel), requestLabel);
-
-		Logger.LogInformation("Request body: {@credential}", credential.SecureClone());
+		Logger.LogInformation("Endpoint Routes: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(requestLabel), requestLabel);
+        Logger.LogInformation("Endpoint Method: {method}", nameof(AuthenticateAsync));
+        Logger.LogInformation("Endpoint Paylod: {@credential}", credential.SecureClone());
 
 		var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType), out var ldapServerProfile);
 
@@ -59,7 +59,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 			Logger.LogError("Failed to authenticate user account {domainAccountName}.", credential.DomainAccountName);
 
 			if (authenticationResult.HasErrorObject)
-				throw authenticationResult.ErrorObject;
+				throw new Exception(authenticationResult.OperationMessage, authenticationResult.ErrorObject);
 			else
 				throw new Exception(authenticationResult.OperationMessage);
 		}
@@ -68,4 +68,49 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
 		return Ok(authenticationResult);
 	}
+
+    /// <summary>
+	/// Authenticate a domain username without validating whether the username exists or not.
+	/// </summary>
+	/// <param name="serverProfile">LDAP Server Profile Id that defines part of the path. See <see cref="Configurations.LDAP.LDAPServerProfile"/></param>
+	/// <param name="catalogType">Name of the LDAP catalog that defines part of the path. See <see cref="DTO.LDAPServerCatalogTypes"/></param>
+	/// <param name="credential">Account credential to validate. See <see cref="LDAPDomainAccountCredential"/></param>
+	/// <param name="requestLabel">Label to tag the results. Optional, it can be null</param>
+	/// <returns><see cref="LDAPDomainAccountAuthenticationResult"/></returns>
+	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+    [HttpPost]
+    [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
+    [ActionName("authenticateWithoutUserLookup")]
+    public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> AuthenticateWithoutUserLookupAsync(
+        [FromRoute] string serverProfile,
+        [FromRoute] string catalogType,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
+        [FromBody] LDAPDomainAccountCredential credential)
+    {
+        Logger.LogInformation("Endpoint Routes: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(requestLabel), requestLabel);
+        Logger.LogInformation("Endpoint Method: {method}", nameof(AuthenticateWithoutUserLookupAsync));
+        Logger.LogInformation("Endpoint Payload: {@credential}", credential.SecureClone());
+
+        var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType), out var ldapServerProfile);
+
+        var authenticator = GetAuthenticator(ldapClientConfig.ServerSettings);
+
+        if (string.IsNullOrEmpty(credential.DomainName))
+            credential.DomainName = ldapServerProfile.DefaultDomainName;
+
+        var authenticationResult = await authenticator.AuthenticateAsync(credential, requestLabel);
+        if (!authenticationResult.IsSuccessfulOperation)
+        {
+            Logger.LogError("Failed to authenticate user account {domainAccountName}.", credential.DomainAccountName);
+
+            if (authenticationResult.HasErrorObject)
+                throw new Exception(authenticationResult.OperationMessage, authenticationResult.ErrorObject);
+            else
+                throw new Exception(authenticationResult.OperationMessage);
+        }
+
+        Logger.LogInformation("Response body: {@authenticationResult}", authenticationResult);
+
+        return Ok(authenticationResult);
+    }
 }

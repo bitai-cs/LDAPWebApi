@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +21,7 @@ public class LDAPServerProfiles : List<LDAPServerProfile>
 			.Select(g => g.Key);
 
 		if (repeatedProfileIds.Count() > 0)
-			throw new Exception($"Error in {nameof(LDAPServerProfiles)} configuration. There are repeating {nameof(LDAPServerProfile.ProfileId)}s: {string.Join(',', repeatedProfileIds)}");
+			throw new Exception($"Error in {nameof(LDAPServerProfiles)} _configuration. There are repeating {nameof(LDAPServerProfile.ProfileId)}s: {string.Join(',', repeatedProfileIds)}");
 		#endregion
 
 		#region Validate profiles without DefaultDomainName
@@ -31,7 +31,7 @@ public class LDAPServerProfiles : List<LDAPServerProfile>
 		{
 			var invalidProfiles = string.Join(",", profilesWithoutDefaultDomainName.Select(p => p.ProfileId));
 
-			throw new Exception($"Error in {nameof(LDAPServerProfiles)} configuration. There are {nameof(LDAPServerProfile)}s without {nameof(LDAPServerProfile.DefaultDomainName)}: {invalidProfiles}");
+			throw new Exception($"Error in {nameof(LDAPServerProfiles)} _configuration. There are {nameof(LDAPServerProfile)}s without {nameof(LDAPServerProfile.DefaultDomainName)}: {invalidProfiles}");
 		}
 		#endregion
 	}

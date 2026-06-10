@@ -1,134 +1,159 @@
-using Bitai.LDAPWebApi;
 using Bitai.LDAPWebApi.Configurations.App;
 using Serilog;
-using Serilog.Extensions.Logging;
 using Serilog.Formatting.Compact;
-using Serilog.Formatting.Json;
 using Serilog.Sinks.Elasticsearch;
 using Serilog.Sinks.Grafana.Loki;
-using Serilog.Templates;
 
-var configuration = GetConfiguration(args);
+namespace Bitai.LDAPWebApi;
 
-Log.Logger = SetupLoggerConfiguration(configuration, new LoggerConfiguration(), null, out var webApiConfiguration)
-    .CreateBootstrapLogger();
-
-try
+public class Program
 {
-    Log.Information("Starting {webApiName}", webApiConfiguration.WebApiName);
+    private static IConfiguration _configuration; 
 
-    var webAppBuilder = WebApplication.CreateBuilder(args);
-    webAppBuilder.Host
-        .ConfigureDefaults(args)
-        .UseSerilog((hostBuilderContext, serviceProvider, loggerConfiguration) =>
+    public static void Main(string[] args)
+    {
+        _configuration = GetConfiguration(args);
+
+        Log.Logger = SetupLoggerConfiguration(_configuration, new LoggerConfiguration(), null, out var webApiConfiguration)
+            .CreateBootstrapLogger();
+
+        try
         {
-            SetupLoggerConfiguration(configuration, loggerConfiguration, hostBuilderContext, out webApiConfiguration);
-        });
+            Log.Information("Starting {webApiName}", webApiConfiguration.WebApiName);
 
-    var startup = new Startup(webAppBuilder.Configuration, webAppBuilder.Environment);
+            CreateHostBuilder(args).Build().Run();
 
-    startup.ConfigureServices(webAppBuilder.Services, out webApiConfiguration, out var swaggerUIConfiguration);
-
-    var webApp = webAppBuilder.Build();
-
-    startup.Configure(webApp, webAppBuilder.Environment, webApiConfiguration, swaggerUIConfiguration);
-
-    webApp.Run();
-
-    Log.Warning("Terminating {webApiName}", webApiConfiguration.WebApiName);
-}
-catch (Exception ex)
-{
-    Log.Fatal("Error when creating Host. Below error details.");
-    Log.Fatal("{@error}", ex);
-}
-finally
-{
-    Log.CloseAndFlush();
-}
-
-IConfiguration GetConfiguration(string[] args)
-{
-    var environment = Environment.GetEnvironmentVariable(Startup.ENVARNAME_ASPNETCORE_ENVIRONMENT);
-    var isDevelopment = environment == Environments.Development;
-
-    var configurationBuilder = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json", false, true)
-        .AddJsonFile($"appsettings.{environment}.json", true, true);
-
-    if (isDevelopment)
-    {
-        configurationBuilder.AddUserSecrets<Bitai.LDAPWebApi.Startup>();
+            Log.Warning("Terminating {webApiName}", webApiConfiguration.WebApiName);
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal("Error when creating Host. Below error details.");
+            Log.Fatal("{@error}", ex);
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
-    configurationBuilder.AddCommandLine(args);
-    configurationBuilder.AddEnvironmentVariables();
-
-    return configurationBuilder.Build();
-}
-
-LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, LoggerConfiguration loggerConfiguration, HostBuilderContext? hostBuilderContext, out WebApiConfiguration webApiConfiguration)
-{
-    webApiConfiguration = configuration.GetSection(nameof(WebApiConfiguration)).Get<WebApiConfiguration>() ?? new WebApiConfiguration();
-
-    var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>() ?? new WebApiLogConfiguration();
-
-    //loggerConfiguration = loggerConfiguration
-    //	.MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning);
-
-    //loggerConfiguration = loggerConfiguration
-    //	.Enrich.FromLogContext();
-
-    loggerConfiguration = loggerConfiguration
-        .Enrich.WithProperty("applicationName", webApiConfiguration.WebApiName);
-
-    if (hostBuilderContext != null)
+    private static IConfiguration GetConfiguration(string[] args)
     {
-        loggerConfiguration = loggerConfiguration
-            .Enrich.WithProperty("assemblyName", hostBuilderContext.HostingEnvironment.ApplicationName)
-            .Enrich.WithProperty("environment", hostBuilderContext.HostingEnvironment.EnvironmentName);
+        var environment = Environment.GetEnvironmentVariable(Startup.ENVARNAME_ASPNETCORE_ENVIRONMENT);
+        var isDevelopment = environment == Environments.Development;
+
+        var configurationBuilder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", false, true)
+            .AddJsonFile($"appsettings.{environment}.json", true, true);
+
+        if (isDevelopment)
+        {
+            configurationBuilder.AddUserSecrets<Startup>();
+        }
+
+        configurationBuilder.AddCommandLine(args);
+        configurationBuilder.AddEnvironmentVariables();
+
+        return configurationBuilder.Build();
     }
 
-    if (webApiLogConfiguration.ConsoleLog.Enabled)
+    private static LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, LoggerConfiguration loggerConfiguration, HostBuilderContext? hostBuilderContext, out WebApiConfiguration webApiConfiguration)
     {
-        var logEventLevel = parseLogEventLevel(webApiLogConfiguration.ConsoleLog.MinimunLogEventLevel);
+        webApiConfiguration = configuration.GetSection(nameof(WebApiConfiguration)).Get<WebApiConfiguration>() ?? new WebApiConfiguration();
+
+        var webApiLogConfiguration = configuration.GetSection(nameof(WebApiLogConfiguration)).Get<WebApiLogConfiguration>() ?? new WebApiLogConfiguration();
+
+        //loggerConfiguration = loggerConfiguration
+        //	.MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning);
+
+        //loggerConfiguration = loggerConfiguration
+        //	.Enrich.FromLogContext();
 
         loggerConfiguration = loggerConfiguration
-            .WriteTo.Console(restrictedToMinimumLevel: logEventLevel, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}Properties: {Properties}{NewLine}{Exception}");
+            .Enrich.WithProperty("applicationName", webApiConfiguration.WebApiName);
+
+        if (hostBuilderContext != null)
+        {
+            loggerConfiguration = loggerConfiguration
+                .Enrich.WithProperty("assemblyName", hostBuilderContext.HostingEnvironment.ApplicationName)
+                .Enrich.WithProperty("environment", hostBuilderContext.HostingEnvironment.EnvironmentName);
+        }
+
+        if (webApiLogConfiguration.ConsoleLog.Enabled)
+        {
+            var logEventLevel = parseLogEventLevel(webApiLogConfiguration.ConsoleLog.MinimunLogEventLevel);
+
+            loggerConfiguration = loggerConfiguration
+                .WriteTo.Console(restrictedToMinimumLevel: logEventLevel, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}Properties: {Properties}{NewLine}{Exception}");
+        }
+
+        if (webApiLogConfiguration.FileLog.Enabled)
+        {
+            var logEventLevel = parseLogEventLevel(webApiLogConfiguration.FileLog.MinimunLogEventLevel);
+
+            loggerConfiguration = loggerConfiguration
+                .WriteTo.File(new RenderedCompactJsonFormatter(), webApiLogConfiguration.FileLog.LogFilePath, restrictedToMinimumLevel: logEventLevel, rollingInterval: webApiLogConfiguration.FileLog.RollingInterval, flushToDiskInterval: new TimeSpan(0, webApiLogConfiguration.FileLog.FlushToDiskIntervalInMinutes, 0), retainedFileCountLimit: webApiLogConfiguration.FileLog.RetainedFileCountLimit);
+        }
+
+        if (webApiLogConfiguration.GrafanaLokiLog.Enabled)
+        {
+            var logEventLevel = parseLogEventLevel(webApiLogConfiguration.GrafanaLokiLog.MinimunLogEventLevel);
+
+            loggerConfiguration = loggerConfiguration
+                .WriteTo.GrafanaLoki(webApiLogConfiguration.GrafanaLokiLog.LokiUrl, textFormatter: new RenderedCompactJsonFormatter(), propertiesAsLabels: new string[] { "applicationName", "assemblyName", "environment", "level", "HealthStatus" }, restrictedToMinimumLevel: logEventLevel, batchPostingLimit: webApiLogConfiguration.GrafanaLokiLog.BatchPostingLimit, period: webApiLogConfiguration.GrafanaLokiLog.Period);
+        }
+
+        if (webApiLogConfiguration.ElasticsearchLog.Enabled)
+        {
+            var logEventLevel = parseLogEventLevel(webApiLogConfiguration.ElasticsearchLog.MinimunLogEventLevel);
+
+            loggerConfiguration = loggerConfiguration
+                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(webApiLogConfiguration.ElasticsearchLog.GetElasticsearchNodeUris())
+                {
+                    AutoRegisterTemplate = true,
+                });
+        }
+
+        return loggerConfiguration;
+
+        Serilog.Events.LogEventLevel parseLogEventLevel(WebApiLogConfiguration.MinimunLogEventLevel minimunLogEventLevel)
+        {
+            return minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Verbose ? Serilog.Events.LogEventLevel.Verbose : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Debug ? Serilog.Events.LogEventLevel.Debug : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Information ? Serilog.Events.LogEventLevel.Information : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Warning ? Serilog.Events.LogEventLevel.Warning : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Error ? Serilog.Events.LogEventLevel.Error : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Fatal ? Serilog.Events.LogEventLevel.Fatal : throw new Exception("Invalid Web Api application log level. Verify web api _configuration."))))));
+        }
     }
 
-    if (webApiLogConfiguration.FileLog.Enabled)
-    {
-        var logEventLevel = parseLogEventLevel(webApiLogConfiguration.FileLog.MinimunLogEventLevel);
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                 .ConfigureAppConfiguration((hostContext, configApp) =>
+                 {
+                     var configurationRoot = configApp.Build();
 
-        loggerConfiguration = loggerConfiguration
-            .WriteTo.File(new RenderedCompactJsonFormatter(), webApiLogConfiguration.FileLog.LogFilePath, restrictedToMinimumLevel: logEventLevel, rollingInterval: webApiLogConfiguration.FileLog.RollingInterval, flushToDiskInterval: new TimeSpan(0, webApiLogConfiguration.FileLog.FlushToDiskIntervalInMinutes, 0), retainedFileCountLimit: webApiLogConfiguration.FileLog.RetainedFileCountLimit);
-    }
+                     //// BITAI: Remains for future implementation.
+                     //configApp.AddJsonFile("serilog.json", optional: true, reloadOnChange: true);
 
-    if (webApiLogConfiguration.GrafanaLokiLog.Enabled)
-    {
-        var logEventLevel = parseLogEventLevel(webApiLogConfiguration.GrafanaLokiLog.MinimunLogEventLevel);
+                     var env = hostContext.HostingEnvironment;
 
-        loggerConfiguration = loggerConfiguration
-            .WriteTo.GrafanaLoki(webApiLogConfiguration.GrafanaLokiLog.LokiUrl, textFormatter: new RenderedCompactJsonFormatter(), propertiesAsLabels: new string[] { "applicationName", "assemblyName", "environment", "level", "HealthStatus" }, restrictedToMinimumLevel: logEventLevel, batchPostingLimit: webApiLogConfiguration.GrafanaLokiLog.BatchPostingLimit, period: webApiLogConfiguration.GrafanaLokiLog.Period);
-    }
+                     //// BITAI: Remains for future implementation.
+                     //configApp.AddJsonFile($"serilog.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-    if (webApiLogConfiguration.ElasticsearchLog.Enabled)
-    {
-        var logEventLevel = parseLogEventLevel(webApiLogConfiguration.ElasticsearchLog.MinimunLogEventLevel);
+                     if (env.IsDevelopment())
+                     {
+                         configApp.AddUserSecrets<Startup>(true);
+                     }
 
-        loggerConfiguration = loggerConfiguration
-            .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(webApiLogConfiguration.ElasticsearchLog.GetElasticsearchNodeUris())
-            {
-                AutoRegisterTemplate = true,
-            });
-    }
+                     //// BITAI: Remains for future implementation.
+                     //configurationRoot.AddAzureKeyVaultConfiguration(configApp);
 
-    return loggerConfiguration;
-
-    Serilog.Events.LogEventLevel parseLogEventLevel(WebApiLogConfiguration.MinimunLogEventLevel minimunLogEventLevel)
-    {
-        return minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Verbose ? Serilog.Events.LogEventLevel.Verbose : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Debug ? Serilog.Events.LogEventLevel.Debug : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Information ? Serilog.Events.LogEventLevel.Information : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Warning ? Serilog.Events.LogEventLevel.Warning : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Error ? Serilog.Events.LogEventLevel.Error : (minimunLogEventLevel == WebApiLogConfiguration.MinimunLogEventLevel.Fatal ? Serilog.Events.LogEventLevel.Fatal : throw new Exception("Invalid Web Api application log level. Verify web api configuration."))))));
-    }
+                     configApp.AddEnvironmentVariables();
+                     configApp.AddCommandLine(args);
+                 })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.ConfigureKestrel(options => options.AddServerHeader = true);
+                    webBuilder.UseStartup<Startup>();
+                })
+                .UseSerilog((hostContext, loggerConfig) =>
+                {
+                    SetupLoggerConfiguration(hostContext.Configuration, loggerConfig, hostContext, out _);
+                });
 }

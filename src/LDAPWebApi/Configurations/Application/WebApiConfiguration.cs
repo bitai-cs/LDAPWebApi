@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Configurations.App;
 
 /// <summary>
-/// Web Api configuration model 
+/// Web Api _configuration model 
 /// </summary>
 public class WebApiConfiguration
 {
@@ -24,7 +24,8 @@ public class WebApiConfiguration
 		WebApiContactUrl = "https://www.linkedin.com/in/victorbastidasg";
 
 		HealthChecksConfiguration = new WebApiHealthChecksConfiguration();
-	}
+        TestConfiguration = new WebApiTestConfiguration();
+    }
 
 
 
@@ -58,15 +59,22 @@ public class WebApiConfiguration
 	/// </summary>
 	public string WebApiContactUrl { get; set; }
 	/// <summary>
-	/// Web API health checks configuration
+	/// Web API health checks _configuration
 	/// </summary>
 	public WebApiHealthChecksConfiguration HealthChecksConfiguration { get; set; }
+    /// <summary>
+    /// Web API testing _configuration
+    /// </summary>
+    public WebApiTestConfiguration TestConfiguration { get; set; }
 
-	#region Inner class
-	/// <summary>
-	/// Web API health checks configuration model
-	/// </summary>
-	public class WebApiHealthChecksConfiguration
+
+
+
+    #region Inner classes
+    /// <summary>
+    /// Web API health checks _configuration model
+    /// </summary>
+    public class WebApiHealthChecksConfiguration
 	{
 		/// <summary>
 		/// Constructor
@@ -118,5 +126,27 @@ public class WebApiConfiguration
         /// </summary>
         public int EvaluationTime { get; set; }
 	}
+
+    /// <summary>
+    /// Web API testing _configuration model
+    /// </summary>
+    public class WebApiTestConfiguration
+    {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public WebApiTestConfiguration()
+        {
+            EnablePersistentMockLdapDataStore = false;
+        }
+
+
+
+
+        /// <summary>
+        /// Indicates whether API testing mode will be enabled or not.
+        /// </summary>
+        public bool EnablePersistentMockLdapDataStore { get; set; }     
+    }
 	#endregion
 }

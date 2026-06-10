@@ -5,13 +5,13 @@
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>10.0.0</Version>
-		<AssemblyVersion>10.0.0</AssemblyVersion>
+		<Version>10.0.1</Version>
+		<AssemblyVersion>10.0.1</AssemblyVersion>
+        <FileVersion>10.0.1</FileVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
-		<Nullable>enable</Nullable>
-		<FileVersion>10.0.0</FileVersion>
+		<Nullable>enable</Nullable>		
 		<Description>Web API that provides access to an LDAP server</Description>
 		<PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -40,8 +40,9 @@
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
 	  <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
-	  <PackageReference Include="Bitai.LDAPHelper" Version="10.0.0" />
-	  <PackageReference Include="Bitai.WebApi.Helpers" Version="10.0.0" />
+	  <PackageReference Include="Bitai.LDAPHelper" Version="10.1.2" />
+	  <PackageReference Include="Bitai.LDAPHelper.Tests.Mocks" Version="10.1.0" />
+	  <PackageReference Include="Bitai.WebApi.Helpers" Version="10.0.1" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
 	  <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />

@@ -1,4 +1,4 @@
-﻿using Serilog;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Configurations.App;
 
 /// <summary>
-/// Web Api log configuration model 
+/// Web Api log _configuration model 
 /// </summary>
 public class WebApiLogConfiguration
 {
@@ -105,22 +105,22 @@ public class WebApiLogConfiguration
 
 
     /// <summary>
-    /// Console log configuration
+    /// Console log _configuration
     /// </summary>
     public ConsoleLogSetup ConsoleLog { get; set; }
 
     /// <summary>
-    /// File log configuration
+    /// File log _configuration
     /// </summary>
     public FileLogSetup FileLog { get; set; }
 
     /// <summary>
-    /// Grafana Loki log configuration
+    /// Grafana Loki log _configuration
     /// </summary>
     public GrafanaLokiLogSetup GrafanaLokiLog { get; set; }
 
     /// <summary>
-    /// Elasticsearch log configuration
+    /// Elasticsearch log _configuration
     /// </summary> 
     public ElasticsearchLogSetup ElasticsearchLog { get; set; }
 

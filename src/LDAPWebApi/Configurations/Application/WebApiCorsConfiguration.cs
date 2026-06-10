@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Configurations.App;
 
 /// <summary>
-/// Web Api CORS configuration model 
+/// Web Api CORS _configuration model 
 /// </summary>
 public class WebApiCorsConfiguration
 {

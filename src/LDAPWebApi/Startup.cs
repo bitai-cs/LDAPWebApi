@@ -1,13 +1,4 @@
-using Bitai.LDAPHelper.LdapAdapters;
-using Bitai.LDAPHelper.LdapAdapters.Novell;
 using Bitai.LDAPWebApi.Helpers;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 
 namespace Bitai.LDAPWebApi;
@@ -17,10 +8,13 @@ namespace Bitai.LDAPWebApi;
 /// </summary>
 public class Startup
 {
-	/// <summary>
-	/// Environment variable name for ASPNETCORE_ENVIRONMENT
-	/// </summary>
-	public const string ENVARNAME_ASPNETCORE_ENVIRONMENT = "ASPNETCORE_ENVIRONMENT";
+    private Configurations.App.WebApiConfiguration _webApiConfiguration;
+    private Configurations.Swagger.SwaggerUIConfiguration _swaggerUIConfiguration;
+
+    /// <summary>
+    /// Environment variable name for ASPNETCORE_ENVIRONMENT
+    /// </summary>
+    public const string ENVARNAME_ASPNETCORE_ENVIRONMENT = "ASPNETCORE_ENVIRONMENT";
 
 
 
@@ -54,18 +48,18 @@ public class Startup
 
 
 
-	/// <summary>
-	/// This method gets called by the runtime. 
-	/// Use this method to add services to the container.
-	/// </summary>
-	/// <param name="services">Injected <see cref="IServiceCollection"/></param>
-	/// <param name="webApiConfiguration">Return the configuration of the Web API application. See <see cref="Configurations.App.WebApiConfiguration"/>.</param>
-	/// <param name="swaggerUIConfiguration">See <see cref="Configurations.Swagger.SwaggerUIConfiguration"/></param>
-	public void ConfigureServices(IServiceCollection services, out Configurations.App.WebApiConfiguration webApiConfiguration, out Configurations.Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
-	{
+    /// <summary>
+    /// This method gets called by the runtime. 
+    /// Use this method to add services to the container.
+    /// </summary>
+    /// <param name="services">Injected <see cref="IServiceCollection"/></param>
+    /// <param name="webApiConfiguration">Return the _configuration of the Web API application. See <see cref="Configurations.App.WebApiConfiguration"/>.</param>
+    /// <param name="swaggerUIConfiguration">See <see cref="Configurations.Swagger.SwaggerUIConfiguration"/></param>
+    public void ConfigureServices(IServiceCollection services)    
+    {
 		Log.Information("{class} -> {method} starting...", FullName, nameof(ConfigureServices));
 
-		services.AddWebApiConfiguration(Configuration, out webApiConfiguration);
+		services.AddWebApiConfiguration(Configuration, out _webApiConfiguration);
 
 		services.AddWebApiLogConfiguration(Configuration);
 
@@ -77,7 +71,7 @@ public class Startup
 
 		services.RegisterRouteConstraints();
 
-		services.RegisterNovellLdapConnectionFactory();
+		services.RegisterConfiguredLdapConnectionFactory(_webApiConfiguration);
 
 		services.AddControllers();
 
@@ -87,25 +81,25 @@ public class Startup
 
 		services.AddAuthorizationWithApiScopePolicies(webApiScopesConfiguration, authorityConfiguration);
 
-		services.AddCustomHealthChecks(webApiConfiguration, authorityConfiguration, webApiScopesConfiguration, ldapServerProfiles);
+		services.AddCustomHealthChecks(_webApiConfiguration, authorityConfiguration, webApiScopesConfiguration, ldapServerProfiles);
 
-		services.AddSwaggerConfiguration(Configuration, out swaggerUIConfiguration);
+		services.AddSwaggerConfiguration(Configuration, out _swaggerUIConfiguration);
 
-		services.ConfigureSwaggerGenerator(webApiConfiguration, webApiScopesConfiguration, authorityConfiguration, swaggerUIConfiguration);
+		services.ConfigureSwaggerGenerator(_webApiConfiguration, webApiScopesConfiguration, authorityConfiguration, _swaggerUIConfiguration);
 
 		Log.Information("{class} -> {method} completed.", FullName, nameof(ConfigureServices));
 	}
 
-	/// <summary>
-	/// This method gets called by the runtime. 
-	/// Use this method to configure the HTTP request pipeline.
-	/// </summary>
-	/// <param name="app">Injected <see cref="IApplicationBuilder"/></param>
-	/// <param name="env">Injected <see cref="IWebHostEnvironment"/></param>
-	/// <param name="webApiConfiguration">Injected <see cref="Configurations.App.WebApiConfiguration"/></param>
-	/// <param name="swaggerUIConfiguration">Injected <see cref="Configurations.Swagger.SwaggerUIConfiguration"/></param>
-	public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Configurations.App.WebApiConfiguration webApiConfiguration, Configurations.Swagger.SwaggerUIConfiguration swaggerUIConfiguration)
-	{
+    /// <summary>
+    /// This method gets called by the runtime. 
+    /// Use this method to configure the HTTP request pipeline.
+    /// </summary>
+    /// <param name="app">Injected <see cref="IApplicationBuilder"/></param>
+    /// <param name="env">Injected <see cref="IWebHostEnvironment"/></param>
+    /// <param name="webApiConfiguration">Injected <see cref="Configurations.App.WebApiConfiguration"/></param>
+    /// <param name="swaggerUIConfiguration">Injected <see cref="Configurations.Swagger.SwaggerUIConfiguration"/></param>
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
 		if (env.IsDevelopment())
 		{
 			app.UseDeveloperExceptionPage();
@@ -157,13 +151,15 @@ public class Startup
 
 		app.UseEndpoints(endpoints =>
 		{
-			endpoints.MapCustomHealthChecks(webApiConfiguration);
+			endpoints.MapCustomHealthChecks(_webApiConfiguration);
 
 			endpoints.MapControllers();
 		});
 
 		app.UseSwagger();
 
-		app.UseSwaggerUI(webApiConfiguration, swaggerUIConfiguration);
+		app.UseSwaggerUI(_webApiConfiguration, _swaggerUIConfiguration);
+
+        app.UseMockLdapData(_webApiConfiguration);
 	}
 }

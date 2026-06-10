@@ -59,7 +59,7 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		/// <summary>
-		/// Send a post request to LDAP Web Api Authentications controller.
+		/// Send a post request to LDAP Web Api Authentications controller, action authenticate.
 		/// </summary>
 		/// <param name="ldapCredential">Account credentials or Network credentials</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
@@ -82,5 +82,30 @@ namespace Bitai.LDAPWebApi.Clients
 				}
 			}
 		}
-	}
+
+        /// <summary>
+        /// Send a post request to LDAP Web Api Authentications controller, action authenticateWithoutUserLookup.
+        /// </summary>
+        /// <param name="ldapCredential">Account credentials or Network credentials</param>
+        /// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+        /// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+        /// <returns><see cref="IHttpResponse"/></returns>
+        public async Task<IHttpResponse> AuthenticateWithoutUserLookupAsync(Bitai.LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+        {
+            var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticateWithoutUserLookup?requestLabel={requestLabel}";
+
+            using (var httpClient = await CreateHttpClient(setBearerToken))
+            {
+                using (var content = new ObjectContent<LDAPHelper.DTO.LDAPDomainAccountCredential>(ldapCredential, new JsonMediaTypeFormatter()))
+                {
+                    var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
+                    if (!responseMessage.IsSuccessStatusCode)
+                        return await responseMessage.ToUnsuccessfulHttpResponseAsync();
+                    else
+                        return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPHelper.DTO.LDAPDomainAccountAuthenticationResult>();
+                }
+            }
+        }
+    }
 }

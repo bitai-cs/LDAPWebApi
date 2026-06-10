@@ -1,11 +1,14 @@
-using Bitai.LDAPHelper.LdapAdapters;
+using System.Data;
+using Bitai.LDAPHelper;
 using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPHelper.QueryFilters;
 using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Server;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Novell.Directory.Ldap;
 
 namespace Bitai.LDAPWebApi.Controllers;
 
@@ -64,15 +67,20 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			if (searchResult.HasErrorObject)
-			{
-				Logger.LogError(searchResult.ErrorObject, "Search failed by {@ida} identifier with value {@id}.", identifierAttribute, identifier);
+            if (searchResult.HasErrorObject)
+            {
+                if (searchResult.ErrorObject is LdapException)
+                {
+                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
 
-				throw searchResult.ErrorObject;
-			}
-			else
-				throw new Exception(searchResult.OperationMessage);
-		}
+                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
+                }
+                else
+                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
+            }
+            else
+                throw new Exception(searchResult.OperationMessage);
+        }
 
 		if (searchResult.Entries.Count() == 0)
 			throw new ResourceNotFoundException($"The user with identifier {identifierAttribute}={identifier} was not found");
@@ -85,17 +93,18 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		return Ok(searchResult);
 	}
 
-	/// <summary>
-	/// Search directory entries based on the specified filters.
-	/// </summary>
-	/// <param name="serverProfile">LDAP Server profile Id.</param>
-	/// <param name="catalogType">LDAP Server catalog type.</param>
-	/// <param name="searchFilters"><see cref="Models.SearchFiltersModel"/> that encapsulates attribute filters in query string.</param>
-	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
-	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
-	/// <returns><see cref="LDAPSearchResult"/></returns>
-	/// <exception cref="ApplicationException">When an <see cref="LDAPHelper"/> operation does not complete successfully.</exception>
-	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+    /// <summary>
+    /// Search directory entries based on the specified filters.
+    /// </summary>
+    /// <param name="serverProfile">LDAP Server profile Id.</param>
+    /// <param name="catalogType">LDAP Server catalog type.</param>
+    /// <param name="searchFilters"><see cref="Models.SearchFiltersModel"/> that encapsulates attribute filters in query string.</param>
+    /// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+    /// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+    /// <returns><see cref="LDAPSearchResult"/></returns>
+    /// <exception cref="LdapException">When an LDAP error interrup a <see cref="DirectoryController"/> operation.</exception>
+    /// <exception cref="Exception">When an <see cref="DirectoryController"/> operation does not complete successfully.</exception>
+    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
 	[ActionName("filterBy")]
@@ -134,15 +143,20 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			if (searchResult.HasErrorObject)
-			{
-				Logger.LogError(searchResult.ErrorObject, "Error when performing the search for LDAP entries by the filter: {@searchFilters}", searchFilters);
+            if (searchResult.HasErrorObject)
+            {
+                if (searchResult.ErrorObject is LdapException)
+                {
+                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
 
-				throw searchResult.ErrorObject;
-			}
-			else
-				throw new ApplicationException(searchResult.OperationMessage);
-		}
+                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
+                }
+                else
+                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
+            }
+            else
+                throw new Exception(searchResult.OperationMessage);
+        }
 
 		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
 
@@ -162,7 +176,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers")]
-	public async Task<ActionResult<LDAPCreateMsADUserAccountResult>> CreateUserAccountForMsAD(
+	public async Task<ActionResult<LDAPCreateMsADUserAccountResult>> CreateMsADUserAccount(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
@@ -178,58 +192,23 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var accountManager = GetAccountManager(clientConfig);
 		accountManager.InitializeMissingMsADUserAccountDN(newUserAccount);
 
-		#region Check if DN already exists
-		var onlyUsersFilterCombiner = LDAPHelper.QueryFilters.AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
-		var attributeFilter = new LDAPHelper.QueryFilters.AttributeFilter(EntryAttribute.distinguishedName, new LDAPHelper.QueryFilters.FilterValue(newUserAccount.DistinguishedName));
-		var searchFilterCombiner = new LDAPHelper.QueryFilters.AttributeFilterCombiner(false, true, new List<LDAPHelper.QueryFilters.ICombinableFilter> { onlyUsersFilterCombiner, attributeFilter });
-
-		var searcher = GetLdapSearcher(clientConfig);
-		var searchResult = await searcher.SearchEntriesAsync(searchFilterCombiner, RequiredEntryAttributes.Minimun, requestLabel);
-		if (!searchResult.IsSuccessfulOperation)
-		{
-			if (searchResult.HasErrorObject)
-				throw searchResult.ErrorObject;
-			else
-				throw new Exception(searchResult.OperationMessage);
-		}
-		if (searchResult.Entries.Count() != 0)
-		{
-			throw new ConflictException($"There is already an entry in the AD with the {EntryAttribute.distinguishedName} equal to {newUserAccount.DistinguishedName}");
-		}
-		#endregion
-
-		#region Check if samAccountName already exists
-		attributeFilter = new LDAPHelper.QueryFilters.AttributeFilter(EntryAttribute.sAMAccountName, new LDAPHelper.QueryFilters.FilterValue(newUserAccount.SAMAccountName));
-		searchFilterCombiner = new LDAPHelper.QueryFilters.AttributeFilterCombiner(false, true, new List<LDAPHelper.QueryFilters.ICombinableFilter> { onlyUsersFilterCombiner, attributeFilter });
-
-		searchResult = await searcher.SearchEntriesAsync(searchFilterCombiner, RequiredEntryAttributes.Minimun, requestLabel);
-		if (!searchResult.IsSuccessfulOperation)
-		{
-			if (searchResult.HasErrorObject)
-				throw searchResult.ErrorObject;
-			else
-				throw new Exception(searchResult.OperationMessage);
-		}
-		if (searchResult.Entries.Count() != 0)
-		{
-			throw new ConflictException($"There is already an entry in the AD with the {EntryAttribute.sAMAccountName} equal to {newUserAccount.SAMAccountName}");
-		}
-		#endregion
-
 		var createUserAccountResult = await accountManager.CreateUserAccountForMsAD(newUserAccount, requestLabel);
 		if (!createUserAccountResult.IsSuccessfulOperation)
 		{
 			if (createUserAccountResult.HasErrorObject)
 			{
-				Logger.LogError(createUserAccountResult.ErrorObject, "Error creating user account {@ua}", newUserAccount.SecureClone());
-
-				throw createUserAccountResult.ErrorObject;
+                if (createUserAccountResult.ErrorObject is DataValidationException)
+                    throw new BadRequestException(createUserAccountResult.OperationMessage, createUserAccountResult.ErrorObject);
+                if (createUserAccountResult.ErrorObject is DuplicateNameException)
+                    throw new ConflictException(createUserAccountResult.OperationMessage, createUserAccountResult.ErrorObject);
+                else
+				    throw new Exception(createUserAccountResult.OperationMessage,  createUserAccountResult.ErrorObject);
 			}
 			else
 				throw new Exception(createUserAccountResult.OperationMessage);
 		}
 
-		Logger.LogInformation("Response body: {@pwdUpdateResult}", createUserAccountResult);
+		Logger.LogInformation("Response body: {@createUserAccountResult}", createUserAccountResult);
 
 		return Ok(createUserAccountResult);
 	}
@@ -270,61 +249,67 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		{
 			var strings = credential.UserAccount.Split('\\', StringSplitOptions.None);
 			if (!strings[0].Equals(serverProfileObject.DefaultDomainName, StringComparison.OrdinalIgnoreCase))
-				throw new BadRequestException($"The {strings[0]} domain of the user account {strings[1]} must be the same as the {serverProfile} domain specified in the API route.");
+				throw new BadRequestException($"The {strings[0]} domain of the usename {strings[1]} must be the same as the {serverProfile} domain specified in the API route.");
 
 			if (!strings[1].Equals(identifier, StringComparison.OrdinalIgnoreCase))
-				throw new BadHttpRequestException($"The user account {strings[1]} must be the same as the {identifier} identifier specified in the API route.");
+				throw new BadRequestException($"The usernme {strings[1]} must be the same as the {identifier} identifier specified in the API route.");
 
 			domainName = strings[0];
 			userAccount = strings[1];
 		}
 		else
 		{
-			domainName = serverProfileObject.DefaultDomainName;
+            if (!credential.UserAccount.Equals(identifier, StringComparison.OrdinalIgnoreCase))
+                throw new BadRequestException($"The user account {credential.UserAccount} must be the same as the {identifier} identifier specified in the API route.");
+
+            domainName = serverProfileObject.DefaultDomainName;
 			userAccount = credential.UserAccount;
 		}
 
-		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
-		var searcher = GetLdapSearcher(clientConfig);
-		var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
-		var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
-		var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
-		var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
-		if (!searchResult.IsSuccessfulOperation)
-		{
-			if (searchResult.HasErrorObject)
-			{
-				Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@searchFilter}", searchFilter);
+		//var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+		//var searcher = GetLdapSearcher(clientConfig);
+		//var onlyUsersFilter = AttributeFilterCombiner.CreateOnlyUsersFilterCombiner();
+		//var attributeFilter = new AttributeFilter(identifierAttribute.Value, new FilterValue(identifier));
+		//var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { onlyUsersFilter, attributeFilter });
+		//var searchResult = await searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
+		//if (!searchResult.IsSuccessfulOperation)
+		//{
+		//	if (searchResult.HasErrorObject)
+		//	{
+		//		Logger.LogError(searchResult.ErrorObject, "Failed to search for a domain user account based on search filter {@searchFilter}", searchFilter);
 
-				throw searchResult.ErrorObject;
-			}
-			else
-				throw new Exception(searchResult.OperationMessage);
-		}
+		//		throw searchResult.ErrorObject;
+		//	}
+		//	else
+		//		throw new Exception(searchResult.OperationMessage);
+		//}
 
-		if (searchResult.Entries.Count() == 0)
-			throw new ResourceNotFoundException($"The user accoun with identifier {attributeFilter} was not found");
+		//if (searchResult.Entries.Count() == 0)
+		//	throw new ResourceNotFoundException($"The user accoun with identifier {attributeFilter} was not found");
 
-		if (searchResult.Entries.Count() > 1)
-			throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier {attributeFilter}.");
+		//if (searchResult.Entries.Count() > 1)
+		//	throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier {attributeFilter}.");
 
-		var entry = searchResult.Entries.Single();
+		//var entry = searchResult.Entries.Single();
 
-		var dnCredential = new LDAPDistinguishedNameCredential(entry.distinguishedName, credential.Password);
+		//var dnCredential = new LDAPDistinguishedNameCredential(entry.distinguishedName, credential.Password);
 		var accountManager = GetAccountManager(GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType)));
-		var pwdUpdateResult = await accountManager.SetUserAccountPasswordForMsAD(dnCredential, requestLabel);
+		var pwdUpdateResult = await accountManager.SetMsADUserAccountPassword(identifierAttribute.Value, userAccount, credential.Password, requestLabel);
 
 		if (!pwdUpdateResult.IsSuccessfulOperation)
 		{
-			if (pwdUpdateResult.HasErrorObject)
-			{
-				Logger.LogError(pwdUpdateResult.ErrorObject, "Failed password assignment for user account {identifier} with {distinguishedName}: {distinguishedNameValue}", identifier, EntryAttribute.distinguishedName, dnCredential.DistinguishedName);
-
-				throw pwdUpdateResult.ErrorObject;
-			}
-			else
-				throw new Exception(pwdUpdateResult.OperationMessage);
-		}
+            if (pwdUpdateResult.HasErrorObject)
+            {
+                if (pwdUpdateResult.ErrorObject is EntryNotFoundException)
+                    throw new ResourceNotFoundException(pwdUpdateResult.OperationMessage, pwdUpdateResult.ErrorObject);
+                else if (pwdUpdateResult.ErrorObject is DataValidationException)
+                    throw new BadRequestException(pwdUpdateResult.OperationMessage, pwdUpdateResult.ErrorObject);
+                else
+                    throw new Exception(pwdUpdateResult.OperationMessage, pwdUpdateResult.ErrorObject);
+            }
+            else
+                throw new Exception(pwdUpdateResult.OperationMessage);
+        }
 
 		Logger.LogInformation("Response body: {@pwdUpdateResult}", pwdUpdateResult);
 
@@ -354,31 +339,27 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@idn}={@id}, {@idan}={@ida}, {@rtn}={@rt}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel), requestLabel);
 
 		if (!catalogType.Equals(CatalogTypeRoutes.LocalCatalog, StringComparison.OrdinalIgnoreCase))
-			throw new BadRequestException("No se puede eliminar la cuenta de usuario en el catálogo global de un servidor LDAP. Esta operación solo está permitida en el catálogo local de un servidor LDAP.");
+			throw new BadRequestException("User account deletion from the LDAP server’s global catalog is not permitted. This operation is only allowed in the LDAP server’s local catalog.");
 
 		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		string distinguishedName = identifier;
-		if (identifierAttribute == EntryAttribute.sAMAccountName)
-		{
-			var searchResult = await SearchUserAccountAsync(clientConfig, identifier, identifierAttribute.Value, requestLabel);
-
-			if (searchResult.IsSuccessfulOperation)
-			{
-				if (searchResult.Entries.Count() == 0)
-					throw new ResourceNotFoundException($"There is no user account according to the criteria {identifierAttribute} = {identifier}");
-
-				distinguishedName = searchResult.Entries.Single().distinguishedName;
-			}
-			else
-				ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", searchResult);
-		}
-
 		var accountManager = GetAccountManager(clientConfig);
-
-		var disableResult = await accountManager.DisableUserAccountForMsAD(distinguishedName, requestLabel);
+		var disableResult = await accountManager.DisableMsADUserAccount(identifierAttribute.Value, identifier, requestLabel);
 		if (!disableResult.IsSuccessfulOperation)
-			ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", disableResult);
+        {
+            if (disableResult.HasErrorObject)
+            {
+                if (disableResult.ErrorObject is EntryNotFoundException)
+                    throw new ResourceNotFoundException(disableResult.OperationMessage, disableResult.ErrorObject);
+                else if (disableResult.ErrorObject is DataValidationException)
+                    throw new BadRequestException(disableResult.OperationMessage, disableResult.ErrorObject);
+                else
+                    throw new Exception(disableResult.OperationMessage, disableResult.ErrorObject);
+            }
+            else
+                throw new Exception(disableResult.OperationMessage);
+        }
+		//ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", disableResult);
 
 		Logger.LogInformation("Response body: {@removeResult}", disableResult);
 
@@ -411,31 +392,18 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
-		string distinguishedName = identifier;
-		if (identifierAttribute == EntryAttribute.sAMAccountName)
-		{
-			var searchResult = await SearchUserAccountAsync(clientConfig, identifier, identifierAttribute.Value, requestLabel);
-
-			if (searchResult.IsSuccessfulOperation)
-			{
-				if (searchResult.Entries.Count() == 0)
-					throw new ResourceNotFoundException($"There is no user account according to the criteria {identifierAttribute} = {identifier}");
-				else
-					distinguishedName = searchResult.Entries.Single().distinguishedName;
-			}
-			else
-				ThrowExceptionForUnsuccessfulOperation($"Failed to disable user account {identifier}.", searchResult);
-		}
-
 		var accountManager = GetAccountManager(clientConfig);
-
-		var removeResult = await accountManager.RemoveUserAccountForMsAD(distinguishedName, requestLabel);
-
+		var removeResult = await accountManager.RemoveMsADUserAccount(identifierAttribute.Value, identifier, requestLabel);
 		if (!removeResult.IsSuccessfulOperation)
 		{
 			if (removeResult.HasErrorObject)
 			{
-				throw removeResult.ErrorObject;
+                if (removeResult.ErrorObject is EntryNotFoundException)
+                    throw new ResourceNotFoundException(removeResult.OperationMessage, removeResult.ErrorObject);
+                else if (removeResult.ErrorObject is DataValidationException)
+                    throw new BadRequestException(removeResult.OperationMessage, removeResult.ErrorObject);
+                else
+                    throw new Exception(removeResult.OperationMessage, removeResult.ErrorObject);
 			}
 			else
 				throw new Exception(removeResult.OperationMessage);
@@ -491,7 +459,16 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 			{
 				Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
 
-				throw searchResult.ErrorObject;
+                if (searchResult.ErrorObject is EntryNotFoundException)
+                    throw new ResourceNotFoundException($"{searchResult.OperationMessage} No user entry was found for the specified identifier {identifierAttribute}={identifier}.", searchResult.ErrorObject);
+                else if (searchResult.ErrorObject is LdapException)
+                {
+                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
+
+                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
+                }
+                else
+                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
 			}
 			else
 				throw new Exception(searchResult.OperationMessage);
@@ -678,14 +655,25 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		if (!searchResult.IsSuccessfulOperation)
 		{
-			if (searchResult.HasErrorObject)
-			{
-				Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
+            if (searchResult.HasErrorObject)
+            {
+                Logger.LogError(searchResult.ErrorObject, "Failed to get LDAP parent entries for user account with {@identifierAttribute}={identifier}", identifierAttribute, identifier);
 
-				throw searchResult.ErrorObject;
-			}
-			else
-				throw new Exception(searchResult.OperationMessage);
+                if (searchResult.ErrorObject is EntryNotFoundException)
+                    throw new ResourceNotFoundException($"{searchResult.OperationMessage} The group entry with identifier {identifierAttribute}: {identifier} was not found.", searchResult.ErrorObject);
+                else if (searchResult.ErrorObject is LdapException)
+                {
+                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
+
+                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
+                }
+                else
+                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
+            }
+            else
+            {
+                throw new Exception(searchResult.OperationMessage);
+            }
 		}
 
 		Logger.LogInformation("Response body: {@result}", searchResult);

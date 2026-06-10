@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Configurations.Security;
 
 /// <summary>
-/// Identity Server authority configuration model.
+/// Identity Server authority _configuration model.
 /// </summary>
 public class AuthorityConfiguration
 {
