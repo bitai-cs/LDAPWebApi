@@ -24,6 +24,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{B4F14F4F-1
 		misc\LDAP Web Api development settings.json = misc\LDAP Web Api development settings.json
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{56046A85-FA83-4ED1-96A1-BB7CEF2AFD70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bitai.LDAPWebApi.Tests", "tests\Bitai.LDAPWebApi.Tests\Bitai.LDAPWebApi.Tests.csproj", "{3A8DC079-EE73-467F-BE67-B5781EA1AA45}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CEA55782-65D1-452E-8856-B3C28D42FE0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,13 +52,20 @@ Global
 		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A8DC079-EE73-467F-BE67-B5781EA1AA45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A8DC079-EE73-467F-BE67-B5781EA1AA45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A8DC079-EE73-467F-BE67-B5781EA1AA45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A8DC079-EE73-467F-BE67-B5781EA1AA45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{5C4BB2FD-B967-40FE-B860-D2BBB2B5CA5C} = {CEA55782-65D1-452E-8856-B3C28D42FE0C}
+		{643F9EA8-840E-44D7-884B-1DDDE5602870} = {CEA55782-65D1-452E-8856-B3C28D42FE0C}
 		{AF559051-04E2-4FFE-8A36-81A0634B0515} = {68910433-DE7C-4D8D-917D-9103AA30F13C}
 		{70681F7B-DEEB-4F1C-ABB7-C8192FD0D19B} = {68910433-DE7C-4D8D-917D-9103AA30F13C}
+		{3A8DC079-EE73-467F-BE67-B5781EA1AA45} = {56046A85-FA83-4ED1-96A1-BB7CEF2AFD70}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DB0C2252-0846-4C49-970A-C7C68C82A4F3}

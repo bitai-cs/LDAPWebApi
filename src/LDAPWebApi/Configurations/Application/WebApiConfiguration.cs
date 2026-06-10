@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Bitai.LDAPWebApi.Configurations.App;
 
 /// <summary>
-/// Web Api configuration model 
+/// Web Api _configuration model 
 /// </summary>
 public class WebApiConfiguration
 {
@@ -59,11 +59,11 @@ public class WebApiConfiguration
 	/// </summary>
 	public string WebApiContactUrl { get; set; }
 	/// <summary>
-	/// Web API health checks configuration
+	/// Web API health checks _configuration
 	/// </summary>
 	public WebApiHealthChecksConfiguration HealthChecksConfiguration { get; set; }
     /// <summary>
-    /// Web API testing configuration
+    /// Web API testing _configuration
     /// </summary>
     public WebApiTestConfiguration TestConfiguration { get; set; }
 
@@ -72,7 +72,7 @@ public class WebApiConfiguration
 
     #region Inner classes
     /// <summary>
-    /// Web API health checks configuration model
+    /// Web API health checks _configuration model
     /// </summary>
     public class WebApiHealthChecksConfiguration
 	{
@@ -128,7 +128,7 @@ public class WebApiConfiguration
 	}
 
     /// <summary>
-    /// Web API testing configuration model
+    /// Web API testing _configuration model
     /// </summary>
     public class WebApiTestConfiguration
     {

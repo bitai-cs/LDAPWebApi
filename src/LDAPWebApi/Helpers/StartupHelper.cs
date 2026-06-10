@@ -378,6 +378,10 @@ public static class StartupHelpers
         var seeder = new MockLdapDataSeeder(logger);
         seeder.SeedAllData();
 
+#if DEBUG
+        seeder.PrintAllData();
+#endif
+
         return app;
     }
 }

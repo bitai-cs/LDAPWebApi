@@ -13,7 +13,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
 		};
 
-		static string WebApiBaseUrl = "https://localhost/LDAPWebApi";
+		static string WebApiBaseUrl = "https://localhost:5101";
 		static WebApiClientCredential ClientCredentials = new WebApiClientCredential
 		{
 			AuthorityUrl = "https://localhost/IsSts9",
@@ -22,7 +22,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 			ClientSecret = "Bitai.LdapWebApi.Local.Machine.Client"
         };
 
-		static bool UseAccessTokenToCallLdapWebApi = true;
+		static bool UseAccessTokenToCallLdapWebApi = false;
 
 
 
@@ -45,27 +45,29 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				Console.WriteLine("Presione la tecla enter para iniciar el demo...");
 				Console.ReadLine();
 
+                Log.Warning($"{nameof(Selected_LDAPServerProfile)}: {Selected_LDAPServerProfile}");
+
                 await ServerProfilesClient_GetProfileIdsAsync();
 
                 await ServerProfilesClient_GetAllAsync();
 
                 await CatalogTypesClient_GetAllAsync();
 
-                //await UserDirectoryClient_CreateMsADUserAccountAsync();
+                await UserDirectoryClient_CreateMsADUserAccountAsync();
 
-				//await UserDirectoryClient_SetMsADUserAccountPassword();
+                await UserDirectoryClient_SetMsADUserAccountPassword();
 
-				await AuthenticationsClient_AccountAuthenticationAsync();
+                await AuthenticationsClient_AccountAuthenticationAsync();
 
-				//await UserDirectoryClient_DisableMsADUserAccount();
+                await UserDirectoryClient_DisableMsADUserAccount();
 
-				//await UserDirectoryClient_RemoveMsADUserAccount();
+                await UserDirectoryClient_RemoveMsADUserAccount();
 
-				await DirectoryClient_SearchByIdentifierAsync("srv1$");
+                await DirectoryClient_SearchByIdentifierAsync("victor.bastidas");
 
 				await UserDirectoryClient_FilterByIdentifierAsync("victor.bastidas");
 
-				await UserDirectoryClient_FilterByIdentifierAsync("???");
+				await UserDirectoryClient_FilterByIdentifierAsync("victor.bastidas");
 			}
 			catch (Exception ex)
 			{
@@ -162,7 +164,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 
 				var credential = new LDAPCredential
 				{
-					UserAccount = "CERTUS\\vbastidas01",
+					UserAccount = $"{Selected_LDAPServerProfile}\\victor.bastidas",
 					Password = "17viko@@"
 				};
 				LogInfo(credential);
@@ -198,7 +200,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				Console.WriteLine($"Enter the password of the account.");
 				Console.WriteLine("(It is not nescessary to enter the real password)");
 
-				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential("BITAIVA", "victor.bastidas", requestAccountPassword("BITAIVA\\victor.bastidas"));
+				var accountCredentials = new LDAPHelper.DTO.LDAPDomainAccountCredential($"{Selected_LDAPServerProfile}", "victor.bastidas", requestAccountPassword("HOLDING\\victor.bastidas"));
 
 				LogInfo($"{nameof(client.AuthenticateAsync)}...");
 				var httpResponse = await client.AuthenticateAsync(accountCredentials, RequestLabel, UseAccessTokenToCallLdapWebApi);
@@ -229,7 +231,7 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				NewBlankLines(1);
 
 				LogInfo($"{nameof(client.DisableMsADUserAccountAsync)}...");
-				var httpResponse = await client.DisableMsADUserAccountAsync("vbastidas01", EntryAttribute.sAMAccountName, RequestLabel, UseAccessTokenToCallLdapWebApi);
+				var httpResponse = await client.DisableMsADUserAccountAsync("isaac.newton", EntryAttribute.sAMAccountName, RequestLabel, UseAccessTokenToCallLdapWebApi);
 				if (!httpResponse.IsSuccessResponse)
 				{
 					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
@@ -257,14 +259,14 @@ namespace Bitai.LDAPWebApi.Clients.Demo
 				NewBlankLines(1);
 
 				LogInfo($"{nameof(client.RemoveMsADUserAccountAsync)}...");
-				var httpResponse = await client.RemoveMsADUserAccountAsync("vbastidas01", EntryAttribute.sAMAccountName, RequestLabel, UseAccessTokenToCallLdapWebApi);
+				var httpResponse = await client.RemoveMsADUserAccountAsync("isaac.newton", EntryAttribute.sAMAccountName, RequestLabel, UseAccessTokenToCallLdapWebApi);
 				if (!httpResponse.IsSuccessResponse)
 				{
 					client.ThrowClientRequestException("Error al realizar la solicitud", httpResponse);
 				}
 				else
 				{
-					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPDisableUserAccountOperationResult>(httpResponse);
+					var result = await client.GetDTOFromResponseAsync<LDAPHelper.DTO.LDAPRemoveMsADUserAccountResult>(httpResponse);
 
 					LogInfo(result);
 				}
