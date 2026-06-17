@@ -1,10 +1,10 @@
 # Bitai LDAP Web API Ecosystem
 
-[![.NET Core](https://img.shields.io/badge/.NET-8.0-blue.svg)](https://dotnet.microsoft.com)
+[![.NET Core](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com)
 [![ASP.NET Core Web API](https://img.shields.io/badge/ASP.NET%20Core-Web%20API-green.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey.svg)]()
 
-An enterprise-grade, cross-platform **ASP.NET Core Web API** and client ecosystem designed to centralize and simplify operations across one or more **LDAP and Microsoft Active Directory Servers**. 
+An enterprise-grade, cross-platform **ASP.NET Core Web API** and client ecosystem designed to centralize and simplify operations across one or more **LDAP and Microsoft Active Directory Servers**. -
 
 The solution decouples direct network directory integrations by introducing a robust HTTP REST proxy layer. It supports secure authentication, highly optimized directory searching, and complete Active Directory user provisioning.
 
@@ -17,7 +17,7 @@ The solution is divided into highly cohesive, decoupled components:
 ```mermaid
 graph TD
     ClientApp[Client Application] -->|HTTP REST / OAuth2| WebAPI[Bitai.LDAPWebApi]
-    
+
     subgraph Clients Library Component
         ClientApp -.->|Consumes| ClientLib[Bitai.LDAPWebApi.Client]
     end
@@ -34,7 +34,7 @@ graph TD
 ```
 
 ### 1. `Bitai.LDAPWebApi` (Service Host)
-*   **Technology**: ASP.NET Core MVC (Targeting .NET 8.0)
+*   **Technology**: ASP.NET Core MVC (Targeting .NET 10.0)
 *   **Role**: Host controller services exposing the directory proxy layer.
 *   **Configuration**: Manages multi-tenant LDAP configurations under custom profiles via `appsettings.json`.
 *   **Security**: Secured by OAuth2/Bearer authorization protocols (OAuth2 server, Identity Server, etc.).

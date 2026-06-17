@@ -104,7 +104,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPSearchResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWASearchResult>();
 			}
 		}
 		#endregion GET /api/{serverProfile}/{catalogType}/Directory/{identifier}
@@ -179,7 +179,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPSearchResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWASearchResult>();
 			}
 		}
 		#endregion GET /api/{serverProfile}/{catalogType}/Directory/filterBy

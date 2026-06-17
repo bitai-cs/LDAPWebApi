@@ -55,7 +55,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Single(result.Entries);
@@ -79,7 +79,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Single(result.Entries);
@@ -119,7 +119,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -142,7 +142,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -166,7 +166,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -191,7 +191,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.True(result.Entries.Count() > 0, "OR filter should return at least 1 entries.");
@@ -213,7 +213,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Empty(result.Entries);
@@ -236,7 +236,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -263,7 +263,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -284,7 +284,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Empty(result.Entries);
@@ -308,7 +308,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -353,7 +353,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -379,7 +379,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Single(result.Entries);
@@ -402,7 +402,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Single(result.Entries);
@@ -445,7 +445,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -490,7 +490,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -516,7 +516,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.NotEmpty(result.Entries);
@@ -539,7 +539,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPSearchResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWASearchResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Empty(result.Entries);
@@ -605,7 +605,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPCreateMsADUserAccountResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWACreateMsADUserAccountResult>();
         Assert.Contains($"MS AD user account created at CN=Test NewUser {newId}", result.OperationMessage, StringComparison.OrdinalIgnoreCase);
         Assert.True(result.IsSuccessfulOperation);
     }
@@ -685,7 +685,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPPasswordUpdateResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWAPasswordUpdateResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
     }
@@ -759,7 +759,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPDisableUserAccountOperationResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWADisableUserAccountOperationResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
     }
@@ -818,7 +818,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<LDAPRemoveMsADUserAccountResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWARemoveMsADUserAccountResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
     }

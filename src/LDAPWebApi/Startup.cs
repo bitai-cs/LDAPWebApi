@@ -133,12 +133,6 @@ public class Startup
 		//    app.UseHttpsRedirection();
 		//}            
 
-		//app.UseSerilogRequestLogging();
-		//app.UseSerilogRequestLogging(options =>
-		//{
-		//	options.IncludeQueryInRequestPath = true;
-		//});
-
 		app.UseRouting();
 
 		app.UseCors();

@@ -76,6 +76,7 @@ The following code illustrates how to configure the `LDAPUserDirectoryWebApiClie
 ```csharp
 using System;
 using System.Threading.Tasks;
+using Bitai.LDAPWebApi.DTO;
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPWebApi.Clients;
 using Bitai.WebApi.Client;
@@ -121,7 +122,7 @@ public class LDAPService
 
         if (response.IsSuccessStatusCode)
         {
-            var searchResult = response.GetContent<LDAPSearchResult>();
+            var searchResult = response.GetContent<LWASearchResult>();
             Console.WriteLine($"Search completed. Matched {searchResult.Entries.Count} user(s).");
             
             foreach (var entry in searchResult.Entries)

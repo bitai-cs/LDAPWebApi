@@ -1,4 +1,5 @@
 using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
 
 namespace Bitai.LDAPWebApi.Clients
@@ -77,7 +78,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPSearchResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWASearchResult>();
 			}
 		}
 
@@ -104,7 +105,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPSearchResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWASearchResult>();
 			}
 		}
 	}

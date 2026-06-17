@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Bitai.LDAPHelper.DTO;
+using Bitai.LDAPWebApi.DTO;
 using Bitai.LDAPWebApi.Tests.Infrastructure;
 
 namespace Bitai.LDAPWebApi.Tests.Controllers;
@@ -8,7 +9,7 @@ namespace Bitai.LDAPWebApi.Tests.Controllers;
 /// <summary>
 /// Integration tests for <see cref="Bitai.LDAPWebApi.Controllers.AuthenticationsController"/>.
 ///
-/// These tests rely on the application's built-in mock LDAP data store 
+/// These tests rely on the application's built-in mock LDAP data store
 /// (<c>EnablePersistentMockLdapDataStore = true</c>).  The <see cref="LDAPWebApiFactory"/>
 /// starts the full ASP.NET Core pipeline with <see cref="Bitai.LDAPWebApi.Startup"/> and
 /// authorization bypass enabled, so every request is treated as authenticated.
@@ -43,7 +44,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
 
     #region Private methods
     private static string AuthenticateUrl(string serverProfile, string catalogType, string? requestLabel = null)
-    {        
+    {
         return AuthenticateBaseUrl(serverProfile, catalogType, "authenticate", requestLabel);
     }
 
@@ -66,8 +67,8 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
     #region Success scenarios
     /// <summary>
     /// A valid credential for a known user in the mock store should return 200 OK
-    /// with <see cref="LDAPDomainAccountAuthenticationResult.IsSuccessfulOperation"/> = true
-    /// and <see cref="LDAPDomainAccountAuthenticationResult.IsAuthenticated"/> = true.
+    /// with <see cref="LWADomainAccountAuthenticationResult.IsSuccessfulOperation"/> = true
+    /// and <see cref="LWADomainAccountAuthenticationResult.IsAuthenticated"/> = true.
     /// </summary>
     [Fact]
     public async Task AuthenticateAsync_ValidCredential_ReturnsOkAndAuthenticated()
@@ -86,7 +87,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<LDAPDomainAccountAuthenticationResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWADomainAccountAuthenticationResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation, "Operation should be marked successful.");
         Assert.True(result.IsAuthenticated, "Account should be authenticated.");
@@ -113,7 +114,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<LDAPDomainAccountAuthenticationResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWADomainAccountAuthenticationResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.True(result.IsAuthenticated);
@@ -137,7 +138,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<LDAPDomainAccountAuthenticationResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWADomainAccountAuthenticationResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.Equal(label, result.RequestLabel);
@@ -145,8 +146,8 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
 
     /// <summary>
     /// A valid credential for a known user in the mock store should return 200 OK
-    /// with <see cref="LDAPDomainAccountAuthenticationResult.IsSuccessfulOperation"/> = true
-    /// and <see cref="LDAPDomainAccountAuthenticationResult.IsAuthenticated"/> = true.
+    /// with <see cref="LWADomainAccountAuthenticationResult.IsSuccessfulOperation"/> = true
+    /// and <see cref="LWADomainAccountAuthenticationResult.IsAuthenticated"/> = true.
     /// </summary>
     [Fact]
     public async Task AuthenticateWithoutUserLookupAsync_ValidCredential_ReturnsOkAndAuthenticated()
@@ -165,7 +166,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<LDAPDomainAccountAuthenticationResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWADomainAccountAuthenticationResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation, "Operation should be marked successful.");
         Assert.True(result.IsAuthenticated, "Account should be authenticated.");
@@ -175,7 +176,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
     #region Failure scenarios
     /// <summary>
     /// A credential for a user that does not exist in the mock store should return a
-    /// response where <see cref="LDAPDomainAccountAuthenticationResult.IsAuthenticated"/>
+    /// response where <see cref="LWADomainAccountAuthenticationResult.IsAuthenticated"/>
     /// is <c>false</c> (or throw, depending on the mock adapter behavior).
     /// We assert a non-2xx response OR a successful response with authentication = false.
     /// </summary>
@@ -192,7 +193,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
         // Assert: the mock adapter should return authentication = false (or 500/4xx on error)
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadFromJsonAsync<LDAPDomainAccountAuthenticationResult>();
+            var result = await response.Content.ReadFromJsonAsync<LWADomainAccountAuthenticationResult>();
             Assert.NotNull(result);
             Assert.False(result.IsAuthenticated, "Unknown user should not be authenticated.");
         }
@@ -275,7 +276,7 @@ public class AuthenticationsControllerTests : IClassFixture<LDAPWebApiFactory>
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<LDAPDomainAccountAuthenticationResult>();
+        var result = await response.Content.ReadFromJsonAsync<LWADomainAccountAuthenticationResult>();
         Assert.NotNull(result);
         Assert.True(result.IsSuccessfulOperation);
         Assert.True(result.IsAuthenticated);

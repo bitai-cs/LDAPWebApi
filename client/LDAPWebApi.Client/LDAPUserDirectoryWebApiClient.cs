@@ -135,7 +135,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPSearchResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWASearchResult>();
 			}
 		}
 		#endregion
@@ -162,7 +162,7 @@ namespace Bitai.LDAPWebApi.Clients
 					if (!responseMessage.IsSuccessStatusCode)
 						return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 					else
-						return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPCreateMsADUserAccountResult>();
+						return await responseMessage.ToSuccessfulHttpResponseAsync<LWACreateMsADUserAccountResult>();
 				}
 			}
 		}
@@ -199,7 +199,7 @@ namespace Bitai.LDAPWebApi.Clients
 					if (!responseMessage.IsSuccessStatusCode)
 						return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 					else
-						return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPPasswordUpdateResult>();
+						return await responseMessage.ToSuccessfulHttpResponseAsync<LWAPasswordUpdateResult>();
 				}
 			}
 		}
@@ -226,7 +226,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPDisableUserAccountOperationResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWADisableUserAccountOperationResult>();
 			}
 		}
 		#endregion PATCH /api/{serverProfile}/{catalogType}/Directory/MsADUsers/{identifier}/disableBy
@@ -252,7 +252,7 @@ namespace Bitai.LDAPWebApi.Clients
 				if (!responseMessage.IsSuccessStatusCode)
 					return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 				else
-					return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPRemoveMsADUserAccountResult>();
+					return await responseMessage.ToSuccessfulHttpResponseAsync<LWARemoveMsADUserAccountResult>();
 			}
 		}
 		#endregion DELETE /api/{serverProfile}/{catalogType}/Directory/MsADUsers/{identifier}
