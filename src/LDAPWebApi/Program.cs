@@ -6,10 +6,24 @@ using Serilog.Sinks.Grafana.Loki;
 
 namespace Bitai.LDAPWebApi;
 
+/// <summary>
+/// Entry point for the LDAP Web API application. Handles host building,
+/// configuration loading, and Serilog bootstrap logging.
+/// </summary>
 public class Program
 {
-    private static IConfiguration _configuration; 
+    /// <summary>
+    /// The application-wide configuration instance, built during startup
+    /// from JSON files, environment variables, and command-line arguments.
+    /// </summary>
+    private static IConfiguration _configuration;
 
+    /// <summary>
+    /// Application entry point. Bootstraps the logging system, builds and runs
+    /// the generic host, and ensures <see cref="Log.CloseAndFlush"/> is called
+    /// on exit or fatal failure.
+    /// </summary>
+    /// <param name="args">Command-line arguments passed to the application.</param>
     public static void Main(string[] args)
     {
         _configuration = GetConfiguration(args);
@@ -36,6 +50,13 @@ public class Program
         }
     }
 
+    /// <summary>
+    /// Builds the <see cref="IConfiguration"/> by loading settings from
+    /// <c>appsettings.json</c>, the environment-specific <c>appsettings.{Environment}.json</c>,
+    /// user secrets (development only), environment variables, and command-line arguments.
+    /// </summary>
+    /// <param name="args">Command-line arguments to include in the configuration sources.</param>
+    /// <returns>The composed <see cref="IConfiguration"/> instance.</returns>
     private static IConfiguration GetConfiguration(string[] args)
     {
         var environment = Environment.GetEnvironmentVariable(Startup.ENVARNAME_ASPNETCORE_ENVIRONMENT);
@@ -57,6 +78,16 @@ public class Program
         return configurationBuilder.Build();
     }
 
+    /// <summary>
+    /// Configures Serilog with the sinks specified in <see cref="WebApiLogConfiguration"/>
+    /// (console, file, Grafana Loki, Elasticsearch) and enriches log events with
+    /// application-level properties.
+    /// </summary>
+    /// <param name="configuration">Source <see cref="IConfiguration"/> for reading log settings.</param>
+    /// <param name="loggerConfiguration">The <see cref="LoggerConfiguration"/> to append sinks to.</param>
+    /// <param name="hostBuilderContext">Optional context providing hosting environment details; may be null during bootstrap.</param>
+    /// <param name="webApiConfiguration">Outputs the resolved <see cref="WebApiConfiguration"/>.</param>
+    /// <returns>The enriched <see cref="LoggerConfiguration"/>.</returns>
     private static LoggerConfiguration SetupLoggerConfiguration(IConfiguration configuration, LoggerConfiguration loggerConfiguration, HostBuilderContext? hostBuilderContext, out WebApiConfiguration webApiConfiguration)
     {
         webApiConfiguration = configuration.GetSection(nameof(WebApiConfiguration)).Get<WebApiConfiguration>() ?? new WebApiConfiguration();
@@ -122,6 +153,13 @@ public class Program
         }
     }
 
+    /// <summary>
+    /// Creates and configures the <see cref="IHostBuilder"/> for the application.
+    /// Sets up the app configuration pipeline, Kestrel web server, <see cref="Startup"/>
+    /// wiring, and Serilog integration.
+    /// </summary>
+    /// <param name="args">Command-line arguments forwarded to the configuration sources.</param>
+    /// <returns>A configured <see cref="IHostBuilder"/> ready to build and run.</returns>
     public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                  .ConfigureAppConfiguration((hostContext, configApp) =>

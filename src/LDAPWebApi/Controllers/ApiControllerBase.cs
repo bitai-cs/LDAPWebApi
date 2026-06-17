@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPHelper.LdapAdapters;
-using Bitai.LDAPHelper.QueryFilters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bitai.LDAPWebApi.Controllers;
@@ -12,7 +10,7 @@ namespace Bitai.LDAPWebApi.Controllers;
 public abstract class ApiControllerBase<T> : ControllerBase
 {
 	/// <summary>
-	/// <see cref="IConfiguration"/>    
+	/// <see cref="IConfiguration"/>
 	/// </summary>
 	protected IConfiguration Configuration { get; }
 
@@ -127,7 +125,7 @@ public abstract class ApiControllerBase<T> : ControllerBase
 	}
 
 	/// <summary>
-	/// Check if the name of the catalog type is the 
+	/// Check if the name of the catalog type is the
 	/// name of the global catalog.
 	/// </summary>
 	/// <param name="ldapCatalogType">Name of Catalog type.</param>
@@ -192,34 +190,4 @@ public abstract class ApiControllerBase<T> : ControllerBase
 
 		return searchFilters.combineFilters.Value;
 	}
-
-	///// <summary>
-	///// Search for a user account.
-	///// </summary>
-	///// <param name="clientConfiguration"></param>
-	///// <param name="userAccountIdentifier"></param>
-	///// <param name="userAccountIdentifierAttribute"></param>
-	///// <param name="requestLabel"></param>
-	///// <returns></returns>
-	//protected Task<LDAPSearchResult> SearchUserAccountAsync(LDAPHelper.ClientConfiguration clientConfiguration, string userAccountIdentifier, EntryAttribute userAccountIdentifierAttribute, string requestLabel)
-	//{
-	//	var searcher = GetLdapSearcher(clientConfiguration);
-	//	var searchFilter = new AttributeFilterCombiner(false, true, new ICombinableFilter[] { AttributeFilterCombiner.CreateOnlyUsersFilterCombiner(), new AttributeFilter(userAccountIdentifierAttribute, new FilterValue(userAccountIdentifier)) });
-
-	//	return searcher.SearchEntriesAsync(searchFilter, RequiredEntryAttributes.Minimun, requestLabel);
-	//}
-
-	///// <summary>
-	///// Throw an error according to the response of an unsuccessful operation.
-	///// </summary>
-	///// <param name="exceptionMessage"></param>
-	///// <param name="unsuccessfulOperation"></param>
-	///// <exception cref="Exception"></exception>
-	//protected void ThrowExceptionForUnsuccessfulOperation(string exceptionMessage, LDAPOperationResult unsuccessfulOperation)
-	//{
-	//	if (unsuccessfulOperation.HasErrorObject)
-	//		throw new Exception(exceptionMessage, unsuccessfulOperation.ErrorObject);
-	//	else
-	//		throw new Exception($"{exceptionMessage}. {unsuccessfulOperation.OperationMessage}");
-	//}
 }

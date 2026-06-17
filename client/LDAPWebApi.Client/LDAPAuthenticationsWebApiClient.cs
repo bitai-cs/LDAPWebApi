@@ -1,3 +1,4 @@
+using Bitai.LDAPWebApi.DTO;
 using Bitai.WebApi.Client;
 using System.Net.Http.Formatting;
 
@@ -66,7 +67,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
 		/// <returns><see cref="IHttpResponse"/></returns>
-		public async Task<IHttpResponse> AuthenticateAsync(Bitai.LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+		public async Task<IHttpResponse> AuthenticateAsync(LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticate?requestLabel={requestLabel}";
 
@@ -78,7 +79,7 @@ namespace Bitai.LDAPWebApi.Clients
 					if (!responseMessage.IsSuccessStatusCode)
 						return await responseMessage.ToUnsuccessfulHttpResponseAsync();
 					else
-						return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPHelper.DTO.LDAPDomainAccountAuthenticationResult>();
+						return await responseMessage.ToSuccessfulHttpResponseAsync<LWADomainAccountAuthenticationResult>();
 				}
 			}
 		}
@@ -91,7 +92,7 @@ namespace Bitai.LDAPWebApi.Clients
         /// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
         /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
         /// <returns><see cref="IHttpResponse"/></returns>
-        public async Task<IHttpResponse> AuthenticateWithoutUserLookupAsync(Bitai.LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+        public async Task<IHttpResponse> AuthenticateWithoutUserLookupAsync(LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
         {
             var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticateWithoutUserLookup?requestLabel={requestLabel}";
 
@@ -103,7 +104,7 @@ namespace Bitai.LDAPWebApi.Clients
                     if (!responseMessage.IsSuccessStatusCode)
                         return await responseMessage.ToUnsuccessfulHttpResponseAsync();
                     else
-                        return await responseMessage.ToSuccessfulHttpResponseAsync<LDAPHelper.DTO.LDAPDomainAccountAuthenticationResult>();
+                        return await responseMessage.ToSuccessfulHttpResponseAsync<LWADomainAccountAuthenticationResult>();
                 }
             }
         }

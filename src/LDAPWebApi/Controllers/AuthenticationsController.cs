@@ -1,6 +1,7 @@
 using Bitai.LDAPHelper.DTO;
 using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPWebApi.Configurations.App;
+using Bitai.LDAPWebApi.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,7 +37,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
 	[ActionName("authenticate")]
-	public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> AuthenticateAsync(
+	public async Task<ActionResult<LWADomainAccountAuthenticationResult>> AuthenticateAsync(
 		[FromRoute] string serverProfile,
 		[FromRoute] string catalogType,
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
@@ -44,14 +45,14 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 	{
 		Logger.LogInformation("Endpoint Routes: {serverProfileRoute}={serverProfile}, {catalogTypeRoute}={catalogType}, {requestLabelQuery}={requestLabel}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(requestLabel), requestLabel);
         Logger.LogInformation("Endpoint Method: {method}", nameof(AuthenticateAsync));
-        Logger.LogInformation("Endpoint Paylod: {@credential}", credential.SecureClone());
+        Logger.LogInformation("Endpoint Payload: {@credential}", credential.SecureClone());
 
 		var ldapClientConfig = GetLdapClientConfiguration(serverProfile.ToString(), IsGlobalCatalog(catalogType), out var ldapServerProfile);
 
 		var authenticator = GetAuthenticator(ldapClientConfig.ServerSettings);
 
 		if (string.IsNullOrEmpty(credential.DomainName))
-			credential.DomainName = ldapServerProfile.DefaultDomainName; 
+			credential.DomainName = ldapServerProfile.DefaultDomainName;
 
 		var authenticationResult = await authenticator.AuthenticateAsync(credential, ldapClientConfig.SearchLimits, ldapClientConfig.DomainAccountCredential, requestLabel);
 		if (!authenticationResult.IsSuccessfulOperation)
@@ -66,7 +67,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
 		Logger.LogInformation("Response body: {@authenticationResult}", authenticationResult);
 
-		return Ok(authenticationResult);
+		return Ok(new LWADomainAccountAuthenticationResult(authenticationResult));
 	}
 
     /// <summary>
@@ -81,7 +82,7 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
     [HttpPost]
     [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
     [ActionName("authenticateWithoutUserLookup")]
-    public async Task<ActionResult<LDAPDomainAccountAuthenticationResult>> AuthenticateWithoutUserLookupAsync(
+    public async Task<ActionResult<LWADomainAccountAuthenticationResult>> AuthenticateWithoutUserLookupAsync(
         [FromRoute] string serverProfile,
         [FromRoute] string catalogType,
         [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
@@ -111,6 +112,6 @@ public class AuthenticationsController : ApiControllerBase<AuthenticationsContro
 
         Logger.LogInformation("Response body: {@authenticationResult}", authenticationResult);
 
-        return Ok(authenticationResult);
+        return Ok(new LWADomainAccountAuthenticationResult(authenticationResult));
     }
 }
