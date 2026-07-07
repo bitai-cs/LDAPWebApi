@@ -30,7 +30,8 @@
       "publishAllPorts": true,
       "useSSL": true,
       "httpPort": 5100,
-      "sslPort": 5101
+      "sslPort": 5101,
+      "containerName": "LDAPWebApiDev"
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
