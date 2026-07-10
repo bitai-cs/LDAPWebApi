@@ -492,9 +492,41 @@ The repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) t
 The main API project includes a Dockerfile and `.dockerignore` for containerized deployments:
 
 ```bash
-docker build -t bitai-ldap-webapi -f src/LDAPWebApi/Dockerfile .
-docker run -p 8080:8080 -p 8443:8443 bitai-ldap-webapi
+# Build Debug image (uses Dockerfile ARG BUILD_CONFIGURATION=Debug)
+docker build \
+  --build-arg BUILD_CONFIGURATION=Debug \
+  -t bitai-ldapwebapi:debug \
+  -f src/LDAPWebApi/Dockerfile .
+
+# Build Release image (uses Dockerfile ARG BUILD_CONFIGURATION=Release)
+docker build \
+  --build-arg BUILD_CONFIGURATION=Release \
+  -t bitai-ldapwebapi:release \
+  -f src/LDAPWebApi/Dockerfile .
+
+# Run with production-oriented parameters
+docker run -d \
+  --name bitai-ldapwebapi \
+  -p 5100:8080 \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  -e WebApiConfiguration__HealthChecksConfiguration__EnableHealthChecks=true \
+  -e LDAPServerProfiles__0__ProfileId=DOMAIN_PROFILEID \
+  -e LDAPServerProfiles__0__Server=192.168.1.200 \
+  -e LDAPServerProfiles__0__Port=Default \
+  -e LDAPServerProfiles__0__UseSSL=true \
+  -e LDAPServerProfiles__0__BaseDN="DC=va,DC=bitai,DC=com" \
+  -e LDAPServerProfiles__0__PortForGlobalCatalog=Default \
+  -e LDAPServerProfiles__0__UseSSLforGlobalCatalog=false \
+  -e LDAPServerProfiles__0__BaseDNforGlobalCatalog="DC=bitai,DC=com" \
+  -e LDAPServerProfiles__0__DefaultDomainName=BITAIVA \
+  -e LDAPServerProfiles__0__ConnectionTimeout=10 \
+  -e LDAPServerProfiles__0__DomainUserAccount="BITAIVA\\Administrator" \
+  -e LDAPServerProfiles__0__DomainAccountPassword='ThePassword' \
+  -e LDAPServerProfiles__0__HealthCheckPingTimeout=50 \
+  bitai-ldapwebapi:release
 ```
+
+> Security: never hardcode LDAP bind passwords in source control or shell history. Prefer injecting `LDAPServerProfiles__0__DomainAccountPassword` from a secret store or CI/CD secret variable.
 
 The project is configured with `DockerDefaultTargetOS=Linux` in the `.csproj`.
 

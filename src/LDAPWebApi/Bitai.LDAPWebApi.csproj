@@ -5,9 +5,9 @@
 		<RootNamespace>Bitai.LDAPWebApi</RootNamespace>
 		<AssemblyName>Bitai.LDAPWebApi</AssemblyName>
 		<UserSecretsId>d895caed-ec5c-4dfe-b5f1-1d6df1609afe</UserSecretsId>
-		<Version>10.1.0</Version>
-		<AssemblyVersion>10.1.0</AssemblyVersion>
-        <FileVersion>10.1.0</FileVersion>
+		<Version>10.1.1</Version>
+		<AssemblyVersion>10.1.1</AssemblyVersion>
+        <FileVersion>10.1.1</FileVersion>
 		<Authors>Viko Bastidas (BITAI)</Authors>
 		<Company>BITAI</Company>
 		<Product>LDAP Web API</Product>
