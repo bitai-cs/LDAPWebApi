@@ -6,7 +6,7 @@ using Bitai.WebApi.Client;
 namespace Bitai.LDAPWebApi.Clients
 {
 	/// <summary>
-	/// Client that makes requests to the Web Api Directory controller.
+	/// Client for user-related routes under the LDAP Web API Directory controller.
 	/// </summary>
 	public class LDAPUserDirectoryWebApiClient : LDAPWebApiBaseClient
 	{
@@ -33,12 +33,12 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Constructor
+		/// Initializes a new instance of the <see cref="LDAPUserDirectoryWebApiClient"/> class with Identity Server credentials.
 		/// </summary>
 		/// <param name="webApiBaseUrl">Api address.</param>
 		/// <param name="serverProfile">Server profile Id.</param>
 		/// <param name="useGlobalCatalog">Whether or not to use the global catalog.</param>
-		/// <param name="clientCredential">Client credential to connect Api.</param>
+		/// <param name="clientCredential">Client credentials used to connect to the API.</param>
 		public LDAPUserDirectoryWebApiClient(string webApiBaseUrl, string serverProfile, bool useGlobalCatalog, WebApiClientCredential clientCredential) : base(webApiBaseUrl, serverProfile, useGlobalCatalog, clientCredential)
 		{
 		}
@@ -66,7 +66,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="samAccountName">The sAMAccountName value to filter by.</param>
 		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the user search result.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(string samAccountName, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(null, samAccountName, null, null, null, null, requestLabel, setBearerToken, default);
@@ -79,7 +79,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="requiredAttributes">Set of LDAP attributes that the search result should contain.</param>
 		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the user search result.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(string samAccountName, RequiredEntryAttributes requiredAttributes, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(null, samAccountName, null, null, null, requiredAttributes, requestLabel, setBearerToken, default);
@@ -92,7 +92,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="filterValue">Value that will be used to filter the LDAP attribute assigned in the filterAttribute parameter.</param>
 		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the user search result.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(filterAttribute, filterValue, null, null, null, null, requestLabel, setBearerToken, default);
@@ -106,7 +106,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="requiredAttributes">Set of LDAP attributes that the search result should contain.</param>
 		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the user search result.</returns>
 		public Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute filterAttribute, string filterValue, RequiredEntryAttributes requiredAttributes, bool setBearerToken = true, string? requestLabel = default)
 		{
 			return SearchFilteringByAsync(filterAttribute, filterValue, null, null, null, requiredAttributes, requestLabel, setBearerToken, default);
@@ -124,7 +124,7 @@ namespace Bitai.LDAPWebApi.Clients
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
 		/// <param name="setBearerToken">Whether or not to add the security "Bearer Token" to the HTTP request header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the user search result.</returns>
 		public async Task<IHttpResponse> SearchFilteringByAsync(EntryAttribute? filterAttribute, string filterValue, EntryAttribute? secondFilterAttribute = null, string? secondFilterValue = null, bool? combineFilters = null, RequiredEntryAttributes? requiredAttributes = null, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/Users/filterBy?filterAttribute={filterAttribute}&filterValue={filterValue}&secondFilterAttribute={GetOptionalEntryAttributeName(secondFilterAttribute)}&secondFilterValue={secondFilterValue}&combineFilters={GetOptionalBooleanValue(combineFilters)}&requiredAttributes={GetOptionalRequiredEntryAttributesName(requiredAttributes)}&requestLabel={requestLabel}";
@@ -143,13 +143,13 @@ namespace Bitai.LDAPWebApi.Clients
 
 		#region POST /api/{serverProfile}/{catalogType}/Directory/MsADUsers
 		/// <summary>
-		/// Create a Ms AS user account
+		/// Creates an MS AD user account.
 		/// </summary>
-		/// <param name="newUSerAccount">Data of the new user account. See <see cref="LDAPMsADUserAccount"/>.</param>
+		/// <param name="newUSerAccount">Data for the new user account. See <see cref="LDAPMsADUserAccount"/>.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the account creation result.</returns>
 		public async Task<IHttpResponse> CreateMsADUserAccountAsync(LDAPMsADUserAccount newUSerAccount, string? requestLabel = default, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/MsADUsers?requestLabel={requestLabel}";
@@ -171,14 +171,14 @@ namespace Bitai.LDAPWebApi.Clients
 
 		#region PATCH /api/{serverProfile}/{catalogType}/Directory/MsADUsers/{identifier}/Credential
 		/// <summary>
-		/// Set password to a Ms AD user account
+		/// Sets the password for an MS AD user account.
 		/// </summary>
 		/// <param name="credential">The <see cref="LDAPCredential"/> that contains the password to be assigned to the user account.</param>
 		/// <param name="identifierAttribute">The LDAP <see cref="EntryAttribute"/> type to which the <paramref name="credential"/> (route) parameter relates.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns>An <see cref="IHttpResponse{TContent}"/> that encapsulates an <see cref="IHttpResponse"/>.</returns>
+		/// <returns>An HTTP response containing the password update result.</returns>
 		public async Task<IHttpResponse> SetMsADUserAccountPasswordAsync(LDAPCredential credential, EntryAttribute? identifierAttribute = EntryAttribute.sAMAccountName, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			string identifier = credential.UserAccount;
@@ -208,14 +208,14 @@ namespace Bitai.LDAPWebApi.Clients
 
 		#region PATCH /api/{serverProfile}/{catalogType}/Directory/MsADUsers/{identifier}/disableBy
 		/// <summary>
-		/// Disable Ms AD user account.
+		/// Disables an MS AD user account.
 		/// </summary>
-		/// <param name="identifier"></param>
-		/// <param name="identifierAttribute"></param>
-		/// <param name="requestLabel"></param>
-		/// <param name="setBearerToken"></param>
-		/// <param name="cancellationToken"></param>
-		/// <returns></returns>
+		/// <param name="identifier">User account identifier value.</param>
+		/// <param name="identifierAttribute">LDAP attribute used as the identifier route value.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// <returns>An HTTP response containing the disable operation result.</returns>
 		public async Task<IHttpResponse> DisableMsADUserAccountAsync(string identifier, EntryAttribute? identifierAttribute = EntryAttribute.sAMAccountName, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/MsADUsers/{identifier}/disableBy?identifierAttribute={GetOptionalEntryAttributeName(identifierAttribute)}&requestLabel={requestLabel}";
@@ -234,14 +234,14 @@ namespace Bitai.LDAPWebApi.Clients
 
 		#region DELETE /api/{serverProfile}/{catalogType}/Directory/MsADUsers/{identifier}
 		/// <summary>
-		/// Remove Ms AD user account.
+		/// Removes an MS AD user account.
 		/// </summary>
-		/// <param name="identifier"></param>
-		/// <param name="identifierAttribute"></param>
-		/// <param name="requestLabel"></param>
-		/// <param name="setBearerToken"></param>
-		/// <param name="cancellationToken"></param>
-		/// <returns></returns>
+		/// <param name="identifier">User account identifier value.</param>
+		/// <param name="identifierAttribute">LDAP attribute used as the identifier route value.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// <returns>An HTTP response containing the remove operation result.</returns>
 		public async Task<IHttpResponse> RemoveMsADUserAccountAsync(string identifier, EntryAttribute? identifierAttribute = EntryAttribute.sAMAccountName, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.DirectoryController}/MsADUsers/{identifier}?identifierAttribute={GetOptionalEntryAttributeName(identifierAttribute)}&requestLabel={requestLabel}";

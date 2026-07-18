@@ -5,17 +5,16 @@ using System.Net.Http.Formatting;
 namespace Bitai.LDAPWebApi.Clients
 {
 	/// <summary>
-	/// Client that makes requests to the authentication controller 
-	/// of the LDAP Web Api.
+	/// Client for the LDAP Web API Authentications controller.
 	/// </summary>
 	public class LDAPAuthenticationsWebApiClient : LDAPWebApiBaseClient
 	{
 		/// <summary>
-		/// Constructor.
+		/// Initializes a new instance of the <see cref="LDAPAuthenticationsWebApiClient"/> class.
 		/// </summary>
 		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
 		/// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
-		/// <param name="useLdapServerGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>		
+		/// <param name="useLdapServerGlobalCatalog">Whether or not the global catalog of the LDAP server will be used; otherwise the local catalog of the LDAP server will be used.</param>
 		public LDAPAuthenticationsWebApiClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog) : base(ldapWebApiBaseUrl, ldapServerProfile, useLdapServerGlobalCatalog)
 		{
 		}
@@ -33,7 +32,7 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Constructor.
+		/// Initializes a new instance of the <see cref="LDAPAuthenticationsWebApiClient"/> class with Identity Server credentials.
 		/// </summary>
 		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
 		/// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
@@ -60,13 +59,13 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		/// <summary>
-		/// Send a post request to LDAP Web Api Authentications controller, action authenticate.
+		/// Sends a POST request to authenticate a domain account credential.
 		/// </summary>
-		/// <param name="ldapCredential">Account credentials or Network credentials</param>
+		/// <param name="ldapCredential">Account credentials or network credentials.</param>
 		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns><see cref="IHttpResponse"/></returns>
+		/// <returns>An HTTP response containing the domain account authentication result.</returns>
 		public async Task<IHttpResponse> AuthenticateAsync(LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticate?requestLabel={requestLabel}";
@@ -84,29 +83,29 @@ namespace Bitai.LDAPWebApi.Clients
 			}
 		}
 
-        /// <summary>
-        /// Send a post request to LDAP Web Api Authentications controller, action authenticateWithoutUserLookup.
-        /// </summary>
-        /// <param name="ldapCredential">Account credentials or Network credentials</param>
-        /// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
-        /// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
-        /// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-        /// <returns><see cref="IHttpResponse"/></returns>
-        public async Task<IHttpResponse> AuthenticateWithoutUserLookupAsync(LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
-        {
-            var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticateWithoutUserLookup?requestLabel={requestLabel}";
+		/// <summary>
+		/// Sends a POST request to authenticate a domain account credential without loading user details.
+		/// </summary>
+		/// <param name="ldapCredential">Account credentials or network credentials.</param>
+		/// <param name="requestLabel">Custom tag to identify the request and mark the data returned in the response.</param>
+		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
+		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
+		/// <returns>An HTTP response containing the domain account authentication result.</returns>
+		public async Task<IHttpResponse> AuthenticateWithoutUserLookupAsync(LDAPHelper.DTO.LDAPDomainAccountCredential ldapCredential, string? requestLabel = null, bool setBearerToken = true, CancellationToken cancellationToken = default)
+		{
+			var uri = $"{WebApiBaseUrl}/api/{LDAPServerProfile}/{LDAPServerCatalogTypes.GetCatalogTypeName(UseLDAPServerGlobalCatalog)}/{ControllerNames.AuthenticationsController}/authenticateWithoutUserLookup?requestLabel={requestLabel}";
 
-            using (var httpClient = await CreateHttpClient(setBearerToken))
-            {
-                using (var content = new ObjectContent<LDAPHelper.DTO.LDAPDomainAccountCredential>(ldapCredential, new JsonMediaTypeFormatter()))
-                {
-                    var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
-                    if (!responseMessage.IsSuccessStatusCode)
-                        return await responseMessage.ToUnsuccessfulHttpResponseAsync();
-                    else
-                        return await responseMessage.ToSuccessfulHttpResponseAsync<LWADomainAccountAuthenticationResult>();
-                }
-            }
-        }
-    }
+			using (var httpClient = await CreateHttpClient(setBearerToken))
+			{
+				using (var content = new ObjectContent<LDAPHelper.DTO.LDAPDomainAccountCredential>(ldapCredential, new JsonMediaTypeFormatter()))
+				{
+					var responseMessage = await httpClient.PostAsync(uri, content, cancellationToken);
+					if (!responseMessage.IsSuccessStatusCode)
+						return await responseMessage.ToUnsuccessfulHttpResponseAsync();
+					else
+						return await responseMessage.ToSuccessfulHttpResponseAsync<LWADomainAccountAuthenticationResult>();
+				}
+			}
+		}
+	}
 }

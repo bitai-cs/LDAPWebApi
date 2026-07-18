@@ -3,7 +3,7 @@ using Bitai.WebApi.Client;
 namespace Bitai.LDAPWebApi.Clients
 {
 	/// <summary>
-	/// Client that creates and submits requests to LDAP Web Api Server Profiles controller.
+	/// Client for the LDAP Web API ServerProfiles controller.
 	/// </summary>
 	public class LDAPServerProfilesWebApiClient : LDAPWebApiBaseClient
 	{
@@ -26,7 +26,7 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Constructor.
+		/// Initializes a new instance of the <see cref="LDAPServerProfilesWebApiClient"/> class with Identity Server credentials.
 		/// </summary>
 		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
 		/// <param name="clientCredentials">Client credentials to request an access token  from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
@@ -49,12 +49,11 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		/// <summary>
-		/// Send a GET request to [controller]/GetProfileIds
+		/// Sends a GET request to retrieve all configured LDAP server profile identifiers.
 		/// </summary>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// 
-		/// <returns><see cref="IHttpResponse"/></returns>
+		/// <returns>An HTTP response containing the list of profile identifiers.</returns>
 		public async Task<IHttpResponse> GetProfileIdsAsync(bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}/GetProfileIds";
@@ -70,12 +69,12 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Send a GET request to [controller]/<paramref name="serverProfileId"/>
+		/// Sends a GET request to retrieve one LDAP server profile by profile identifier.
 		/// </summary>
 		/// <param name="serverProfileId">LDAP Server profile Id.</param>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns><see cref="IHttpResponse"/></returns>
+		/// <returns>An HTTP response containing the requested LDAP server profile.</returns>
 		public async Task<IHttpResponse> GetByProfileIdAsync(string serverProfileId, bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			if (string.IsNullOrEmpty(serverProfileId))
@@ -94,11 +93,11 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Sen a GET request to [controller]
+		/// Sends a GET request to retrieve all configured LDAP server profiles.
 		/// </summary>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns><see cref="IHttpResponse"/></returns>
+		/// <returns>An HTTP response containing all LDAP server profiles.</returns>
 		public async Task<IHttpResponse> GetAllAsync(bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{ControllerNames.ServerProfilesController}";

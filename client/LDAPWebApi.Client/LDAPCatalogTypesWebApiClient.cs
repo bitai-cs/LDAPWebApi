@@ -3,14 +3,14 @@ using Bitai.WebApi.Client;
 namespace Bitai.LDAPWebApi.Clients
 {
 	/// <summary>
-	/// Client that creates and submits requests to LDAP Web Api Catalog Types controller.
+	/// Client for the LDAP Web API CatalogTypes controller.
 	/// </summary>
 	public class LDAPCatalogTypesWebApiClient : LDAPWebApiBaseClient
 	{
 		/// <summary>
-		/// Constructor.
+		/// Initializes a new instance of the <see cref="LDAPCatalogTypesWebApiClient"/> class.
 		/// </summary>
-		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>		
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
 		public LDAPCatalogTypesWebApiClient(string ldapWebApiBaseUrl) : base(ldapWebApiBaseUrl)
 		{
 		}
@@ -26,7 +26,7 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Constructor.
+		/// Initializes a new instance of the <see cref="LDAPCatalogTypesWebApiClient"/> class with Identity Server credentials.
 		/// </summary>
 		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
 		/// <param name="clientCredentials">Client credentials to request an access token  from the Identity Server. This access token will be sent in the HTTP authorization header as Bearer Token.</param>
@@ -49,11 +49,11 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		/// <summary>
-		/// Send a GET request to LDAP Web Api CatalogTypes controller.
+		/// Sends a GET request to retrieve available LDAP catalog types.
 		/// </summary>
 		/// <param name="setBearerToken">Whether or not to request and / or assign the access token in the authorization HTTP header.</param>
 		/// <param name="cancellationToken">See <see cref="CancellationToken"/>.</param>
-		/// <returns><see cref="IHttpResponse"/></returns>
+		/// <returns>An HTTP response containing the configured LDAP catalog types.</returns>
 		public async Task<IHttpResponse> GetAllAsync(bool setBearerToken = true, CancellationToken cancellationToken = default)
 		{
 			var uri = $"{WebApiBaseUrl}/api/{ControllerNames.CatalogTypesController}";
