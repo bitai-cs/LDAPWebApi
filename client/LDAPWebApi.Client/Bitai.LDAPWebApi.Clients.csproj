@@ -3,15 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>10.1.0</Version>
-    <AssemblyVersion>10.1.0</AssemblyVersion>
-    <FileVersion>10.1.0</FileVersion>
+    <Version>10.1.1</Version>
+    <AssemblyVersion>10.1.1</AssemblyVersion>
+    <FileVersion>10.1.1</FileVersion>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
     <Description>Library to make client requests to Bitai LDAP Web API.</Description>
     <Copyright>© 2026 BITAI LDAP Web API Clients. MIT License.</Copyright>
-    <PackageIcon>api1_64.png</PackageIcon>       
+    <PackageIcon>api1_64.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bitai-cs/LDAPWebApi</PackageProjectUrl>
     <RepositoryUrl>https://github.com/bitai-cs/LDAPWebApi</RepositoryUrl>
@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bitai.LDAPHelper.DTO" Version="10.0.0" />
+    <PackageReference Include="Bitai.LDAPWebApi.DTO" Version="10.0.1" />
     <PackageReference Include="Bitai.WebApi.Helpers" Version="10.0.1" />
     <PackageReference Include="Duende.IdentityModel" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
@@ -49,10 +50,6 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\LDAPWebApi.DTO\Bitai.LDAPWebApi.DTO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

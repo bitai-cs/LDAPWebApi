@@ -5,18 +5,16 @@ using Bitai.WebApi.Client;
 namespace Bitai.LDAPWebApi.Clients
 {
 	/// <summary>
-	/// Encapsulates basic LDAP Web Api client behavior. 
+	/// Provides shared configuration and helper utilities for LDAP Web API clients.
 	/// </summary>
 	public abstract class LDAPWebApiBaseClient : WebApiBaseClient
 	{
 		/// <summary>
-		/// LDAP Server profile Id, which is defined in appsettings.json 
-		/// of LDAPWebApi. 
+		/// Gets or sets the LDAP server profile identifier defined in the LDAP Web API configuration.
 		/// </summary>
 		public string? LDAPServerProfile { get; set; }
 		/// <summary>
-		/// True, if the client will connect to the server's global catalog,
-		/// otherwise, it will connect to the server's local catalog.
+		/// Gets or sets a value indicating whether requests should target the server global catalog instead of the local catalog.
 		/// </summary>
 		public bool UseLDAPServerGlobalCatalog { get; set; }
 
@@ -24,7 +22,7 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		/// <summary>
-		/// See <see cref="LDAPServerCatalogTypes"/>.
+		/// Gets helper methods for resolving LDAP catalog type route values.
 		/// </summary>
 		protected LDAPServerCatalogTypes LDAPServerCatalogTypes => new LDAPServerCatalogTypes();
 
@@ -70,11 +68,11 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Constructor
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with LDAP server profile routing settings.
 		/// </summary>
-		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL</param>
-		/// <param name="ldapServerProfile">LDAP Server Profile Id</param>
-		/// <param name="useLdapServerGlobalCatalog">Wheter the global catalog or the local catalog will be used.</param>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
+		/// <param name="useLdapServerGlobalCatalog">Whether the global catalog or the local catalog will be used.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog) : base(ldapWebApiBaseUrl)
 		{
 			LDAPServerProfile = ldapServerProfile;
@@ -82,12 +80,12 @@ namespace Bitai.LDAPWebApi.Clients
 		}
 
 		/// <summary>
-		/// Constructor
+		/// Initializes a new instance of the <see cref="LDAPWebApiBaseClient"/> class with LDAP server profile routing settings and Identity Server credentials.
 		/// </summary>
-		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL</param>
-		/// <param name="ldapServerProfile">LDAP Server Profile Id</param>
-		/// <param name="useLdapServerGlobalCatalog">Wheter the global catalog or the local catalog will be used.</param>
-		/// <param name="clientCredentials">Security parameters to get an access token from Identity Server.</param>
+		/// <param name="ldapWebApiBaseUrl">LDAP Web Api base URL.</param>
+		/// <param name="ldapServerProfile">LDAP Server Profile Id.</param>
+		/// <param name="useLdapServerGlobalCatalog">Whether the global catalog or the local catalog will be used.</param>
+		/// <param name="clientCredentials">Security parameters to obtain an access token from the Identity Server.</param>
 		protected LDAPWebApiBaseClient(string ldapWebApiBaseUrl, string ldapServerProfile, bool useLdapServerGlobalCatalog, WebApiClientCredential clientCredentials) : base(ldapWebApiBaseUrl, clientCredentials)
 		{
 			LDAPServerProfile = ldapServerProfile;
@@ -127,30 +125,30 @@ namespace Bitai.LDAPWebApi.Clients
 
 
 		/// <summary>
-		/// Get value for an optional <see cref="EntryAttribute"/> query string parameter.
+		/// Gets the query-string value for an optional <see cref="EntryAttribute"/> parameter.
 		/// </summary>
-		/// <param name="optionalEntryAttribute">Nullable <see cref="EntryAttribute"/></param>
-		/// <returns></returns>
+		/// <param name="optionalEntryAttribute">Nullable <see cref="EntryAttribute"/>.</param>
+		/// <returns>The attribute name when specified; otherwise an empty string.</returns>
 		public string GetOptionalEntryAttributeName(EntryAttribute? optionalEntryAttribute)
 		{
 			return optionalEntryAttribute.HasValue ? optionalEntryAttribute.Value.ToString() : string.Empty;
 		}
 
 		/// <summary>
-		/// Get value for an optional <see cref="RequiredEntryAttributes"/> query string parameter.
+		/// Gets the query-string value for an optional <see cref="RequiredEntryAttributes"/> parameter.
 		/// </summary>
-		/// <param name="nullable">Nullable <see cref="RequiredEntryAttributes"/></param>
-		/// <returns></returns>
+		/// <param name="nullable">Nullable <see cref="RequiredEntryAttributes"/>.</param>
+		/// <returns>The attribute set value when specified; otherwise an empty string.</returns>
 		public string GetOptionalRequiredEntryAttributesName(RequiredEntryAttributes? nullable)
 		{
 			return nullable.HasValue ? nullable.Value.ToString() : string.Empty;
 		}
 
 		/// <summary>
-		/// Get value for an optional <see cref="bool"/> query string parameter.
+		/// Gets the query-string value for an optional Boolean parameter.
 		/// </summary>
-		/// <param name="nullable"></param>
-		/// <returns></returns>
+		/// <param name="nullable">Nullable Boolean value.</param>
+		/// <returns>The Boolean value as text when specified; otherwise an empty string.</returns>
 		public string GetOptionalBooleanValue(bool? nullable)
 		{
 			return nullable.HasValue ? nullable.Value.ToString() : string.Empty;
@@ -161,7 +159,7 @@ namespace Bitai.LDAPWebApi.Clients
 
 		#region Static inner class
 		/// <summary>
-		/// Helper class which allow to identify LDAP Web Api controllers.
+		/// Exposes constant route segment names for LDAP Web API controllers.
 		/// </summary>
 		public static class ControllerNames
 		{
@@ -170,7 +168,7 @@ namespace Bitai.LDAPWebApi.Clients
 			/// </summary>
 			public static readonly string ServerProfilesController = "ServerProfiles";
 			/// <summary>
-			/// Catalog Typrs controller name.
+			/// Catalog Types controller name.
 			/// </summary>
 			public static readonly string CatalogTypesController = "CatalogTypes";
 			/// <summary>
