@@ -223,7 +223,7 @@ Configures Cross-Origin Resource Sharing for browser-based consumers.
 
 ### `WebApiLogConfiguration`
 
-Multi-sink logging via Serilog. Each sink can be enabled or disabled independently.
+Logging via Serilog using console and file sinks.
 
 ```json
 {
@@ -239,19 +239,6 @@ Multi-sink logging via Serilog. Each sink can be enabled or disabled independent
       "RollingInterval": "Day",
       "RetainedFileCountLimit": 30,
       "FlushToDiskIntervalInMinutes": 3
-    },
-    "GrafanaLokiLog": {
-      "Enabled": false,
-      "LokiUrl": "http://localhost:3100",
-      "BatchPostingLimit": 100,
-      "Period": "00:00:02",
-      "AppName": "[webapiname]",
-      "MinimunLogEventLevel": "Warning"
-    },
-    "ElasticsearchLog": {
-      "Enabled": false,
-      "ElasticsearchNodeUrls": [ "http://192.168.1.20:9200" ],
-      "MinimunLogEventLevel": "Verbose"
     }
   }
 }
@@ -265,9 +252,6 @@ Multi-sink logging via Serilog. Each sink can be enabled or disabled independent
 | | `RollingInterval` | Rotation frequency (`Day`, `Hour`, `Infinite`, etc.) |
 | | `RetainedFileCountLimit` | Maximum old files retained on disk |
 | | `FlushToDiskIntervalInMinutes` | How often buffered writes are flushed |
-| **Grafana Loki** | `LokiUrl` | Loki ingest endpoint |
-| | `AppName` | Label applied to all Loki log streams; `[webapiname]` resolves to `WebApiConfiguration.WebApiName` |
-| **Elasticsearch** | `ElasticsearchNodeUrls` | One or more Elasticsearch node URLs |
 
 ### `WebApiScopesConfiguration`
 

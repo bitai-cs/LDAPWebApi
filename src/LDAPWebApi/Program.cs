@@ -1,8 +1,6 @@
 using Bitai.LDAPWebApi.Configurations.App;
 using Serilog;
 using Serilog.Formatting.Compact;
-using Serilog.Sinks.Elasticsearch;
-using Serilog.Sinks.Grafana.Loki;
 
 namespace Bitai.LDAPWebApi;
 
@@ -80,7 +78,7 @@ public class Program
 
     /// <summary>
     /// Configures Serilog with the sinks specified in <see cref="WebApiLogConfiguration"/>
-    /// (console, file, Grafana Loki, Elasticsearch) and enriches log events with
+    /// (console, file) and enriches log events with
     /// application-level properties.
     /// </summary>
     /// <param name="configuration">Source <see cref="IConfiguration"/> for reading log settings.</param>
@@ -124,25 +122,6 @@ public class Program
 
             loggerConfiguration = loggerConfiguration
                 .WriteTo.File(new RenderedCompactJsonFormatter(), webApiLogConfiguration.FileLog.LogFilePath, restrictedToMinimumLevel: logEventLevel, rollingInterval: webApiLogConfiguration.FileLog.RollingInterval, flushToDiskInterval: new TimeSpan(0, webApiLogConfiguration.FileLog.FlushToDiskIntervalInMinutes, 0), retainedFileCountLimit: webApiLogConfiguration.FileLog.RetainedFileCountLimit);
-        }
-
-        if (webApiLogConfiguration.GrafanaLokiLog.Enabled)
-        {
-            var logEventLevel = parseLogEventLevel(webApiLogConfiguration.GrafanaLokiLog.MinimunLogEventLevel);
-
-            loggerConfiguration = loggerConfiguration
-                .WriteTo.GrafanaLoki(webApiLogConfiguration.GrafanaLokiLog.LokiUrl, textFormatter: new RenderedCompactJsonFormatter(), propertiesAsLabels: new string[] { "applicationName", "assemblyName", "environment", "level", "HealthStatus" }, restrictedToMinimumLevel: logEventLevel, batchPostingLimit: webApiLogConfiguration.GrafanaLokiLog.BatchPostingLimit, period: webApiLogConfiguration.GrafanaLokiLog.Period);
-        }
-
-        if (webApiLogConfiguration.ElasticsearchLog.Enabled)
-        {
-            var logEventLevel = parseLogEventLevel(webApiLogConfiguration.ElasticsearchLog.MinimunLogEventLevel);
-
-            loggerConfiguration = loggerConfiguration
-                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(webApiLogConfiguration.ElasticsearchLog.GetElasticsearchNodeUris())
-                {
-                    AutoRegisterTemplate = true,
-                });
         }
 
         return loggerConfiguration;
