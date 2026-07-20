@@ -1,8 +1,4 @@
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Bitai.LDAPWebApi.Configurations.App;
 
@@ -83,22 +79,6 @@ public class WebApiLogConfiguration
 #endif
 		};
 
-        GrafanaLokiLog = new GrafanaLokiLogSetup
-        {
-            Enabled = false,
-            LokiUrl = "http://localhost:3100",
-            Period = new TimeSpan(0, 0, 2),
-            BatchPostingLimit = 100,
-            AppName = "Bitai.LDAPWebApi",
-            MinimunLogEventLevel = MinimunLogEventLevel.Error
-        };
-
-        ElasticsearchLog = new ElasticsearchLogSetup
-        {
-            Enabled = false,
-            ElasticsearchNodeUrls = new string[] { "http://localhost:9200" },
-            MinimunLogEventLevel = MinimunLogEventLevel.Error
-        };
     }
 
 
@@ -113,19 +93,6 @@ public class WebApiLogConfiguration
     /// File log _configuration
     /// </summary>
     public FileLogSetup FileLog { get; set; }
-
-    /// <summary>
-    /// Grafana Loki log _configuration
-    /// </summary>
-    public GrafanaLokiLogSetup GrafanaLokiLog { get; set; }
-
-    /// <summary>
-    /// Elasticsearch log _configuration
-    /// </summary> 
-    public ElasticsearchLogSetup ElasticsearchLog { get; set; }
-
-
-
 
     #region Inner 
     /// <summary>
@@ -206,108 +173,5 @@ public class WebApiLogConfiguration
 		}
     }
 
-    /// <summary>
-    /// Inner class to configure Grafana Loki log
-    /// </summary>
-    public class GrafanaLokiLogSetup
-    {
-        /// <summary>
-        /// Enable or disable logging
-        /// </summary>
-        public bool Enabled { get; set; }
-
-        /// <summary>
-        /// Loki URL
-        /// </summary>
-        public string LokiUrl { get; set; }
-
-        /// <summary>
-        /// Batch posting limit
-        /// </summary>
-        public int BatchPostingLimit { get; set; }
-
-        /// <summary>
-        /// Posting period
-        /// </summary>
-        public TimeSpan Period { get; set; }
-
-        /// <summary>
-        /// Application name
-        /// </summary>
-        public string AppName { get; set; }
-
-        /// <summary>
-        /// See <see cref="MinimunLogEventLevel"/>
-        /// </summary>
-        public MinimunLogEventLevel MinimunLogEventLevel { get; set; }
-
-
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public GrafanaLokiLogSetup()
-        {
-            Enabled = false;
-            LokiUrl = "http://localhost:3100";
-            BatchPostingLimit = 100;
-            Period = TimeSpan.FromSeconds(2);
-            AppName = "Bitai.LDAPWebApi";
-            MinimunLogEventLevel = MinimunLogEventLevel.Error;
-        }
-    }
-
-
-    /// <summary>
-    /// Inner class to configure Elasticsearch log
-    /// </summary>
-    public class ElasticsearchLogSetup
-    {
-        /// <summary>
-        /// Enable or disable logging
-        /// </summary>
-        public bool Enabled { get; set; }
-
-        /// <summary>
-        /// URLs of Elasticsearch nodes
-        /// </summary>
-        public string[] ElasticsearchNodeUrls { get; set; }
-
-        /// <summary>
-        /// See <see cref="MinimunLogEventLevel"/>
-        /// </summary>
-        public MinimunLogEventLevel MinimunLogEventLevel { get; set; }
-
-
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public ElasticsearchLogSetup()
-        {
-            Enabled = false;
-            ElasticsearchNodeUrls = new string[] { "http://localhost:9200" };
-            MinimunLogEventLevel = MinimunLogEventLevel.Error;
-        }
-
-
-
-        /// <summary>
-        /// Get <see cref="IEnumerable{Uri}"/> from <see cref="ElasticsearchNodeUrls"/>
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<Uri> GetElasticsearchNodeUris()
-        {
-            var uris = new List<Uri>();
-
-            if (ElasticsearchNodeUrls.GetLength(0) > 0)
-            {
-                foreach (var url in ElasticsearchNodeUrls)
-                    uris.Add(new Uri(url));
-            }
-
-            return uris;
-        }
-    }
     #endregion
 }

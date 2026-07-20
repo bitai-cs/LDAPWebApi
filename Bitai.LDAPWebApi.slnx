@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Client/">
+    <Project Path="client/LDAPWebApi.Client.Demo/Bitai.LDAPWebApi.Clients.Demo.csproj" />
+    <Project Path="client/LDAPWebApi.Client/Bitai.LDAPWebApi.Clients.csproj" />
+  </Folder>
+  <Folder Name="/Misc/">
+    <File Path="misc/LDAP Web Api development settings.json" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/LDAPWebApi.DTO/Bitai.LDAPWebApi.DTO.csproj" />
+    <Project Path="src/LDAPWebApi/Bitai.LDAPWebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Bitai.LDAPWebApi.Tests/Bitai.LDAPWebApi.Tests.csproj" />
+  </Folder>
+</Solution>
