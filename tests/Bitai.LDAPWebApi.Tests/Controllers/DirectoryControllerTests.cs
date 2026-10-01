@@ -14,7 +14,7 @@ namespace Bitai.LDAPWebApi.Tests.Controllers;
 /// starts the full ASP.NET Core pipeline with authorization bypassed.
 ///
 /// Mock data snapshot (from <c>MockLdapDataSeeder.SeedAllData()</c>):
-///   • Server profile  : HOLDING  (BaseDN = DC=holding,DC=latam,DC=com)
+///   • Server profile  : HOLDING  (BaseDN = DC=va,DC=bitai,DC=com)
 ///   • Catalog types   : LC (local) | GC (global)
 ///   • Users with sAMAccountName:
 ///       james.dockers, sara.pikes, robert.miller, isaac.newton, manuel.cordoba,
@@ -70,8 +70,8 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
     [Fact]
     public async Task GetByIdentifier_ExistingUser_ByDistinguishedName_ReturnsOkWithEntry()
     {
-        // Arrange – james.dockers is in OU=Seniors,OU=DevOps,OU=IT,DC=holding,DC=latam,DC=com
-        const string dn = "CN=James Dockers,OU=Seniors,OU=DevOps,OU=IT,DC=holding,DC=latam,DC=com";
+        // Arrange – james.dockers is in OU=Seniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com
+        const string dn = "CN=James Dockers,OU=Seniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com";
         var url = $"api/{ServerProfile}/{LC}/Directory/{Uri.EscapeDataString(dn)}?identifierAttribute={EntryAttribute.distinguishedName}";
 
         // Act
@@ -393,7 +393,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
     public async Task GetGroupByIdentifier_ExistingGroup_ByDistinguishedName_ReturnsOkWithGroup()
     {
         // Arrange
-        const string dn = "CN=Domain Admins,CN=Users,DC=holding,DC=latam,DC=com";
+        const string dn = "CN=Domain Admins,CN=Users,DC=va,DC=bitai,DC=com";
         var url = $"api/{ServerProfile}/{LC}/Directory/Groups/{Uri.EscapeDataString(dn)}" +
                   $"?identifierAttribute={EntryAttribute.distinguishedName}&requiredAttributes={RequiredEntryAttributes.Few}";
 
@@ -564,7 +564,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
             Sn = $"NewUser {newId}",
             Cn = $"Test NewUser {newId}",
             Password = "TestP@ssword1!",
-            DistinguishedNameOfContainer = "OU=Juniors,OU=DevOps,OU=IT,DC=holding,DC=latam,DC=com"
+            DistinguishedNameOfContainer = "OU=Juniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com"
         };
         var url = $"api/{ServerProfile}/{LC}/Directory/MsADUsers";
 
@@ -595,7 +595,8 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
             Cn = $"Test NewUser {newId}",
             DisplayName = $"Test NewUser {newId} (xUnit)",
             Password = "TestP@ssword1!",
-            DistinguishedNameOfContainer = "OU=Juniors,OU=DevOps,OU=IT,DC=holding,DC=latam,DC=com",
+            DistinguishedNameOfContainer = "OU=Juniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com",
+            DistinguishedName = $"CN=Test NewUser {newId},OU=Juniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com",
             ObjectClass = new[] { "top", "person", "organizationalPerson", "user" }
         };
         var url = $"api/{ServerProfile}/{LC}/Directory/MsADUsers";
@@ -624,7 +625,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
             GivenName = "GC",
             Sn = "Blocked",
             Password = "TestP@ssword1!",
-            DistinguishedNameOfContainer = "OU=Juniors,OU=DevOps,OU=IT,DC=holding,DC=latam,DC=com"
+            DistinguishedNameOfContainer = "OU=Juniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com"
         };
         var url = $"api/{ServerProfile}/{GC}/Directory/MsADUsers";
 
@@ -651,7 +652,8 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
             Cn = "Victor Bastidas",
             DisplayName = "Victor Bastidas (Duplicate)",
             Password = "TestP@ssword1!",
-            DistinguishedNameOfContainer = "OU=Seniors,OU=DevOps,OU=IT,DC=holding,DC=latam,DC=com",
+            DistinguishedNameOfContainer = "OU=Seniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com",
+            DistinguishedName = "CN=Victor Bastidas,OU=Seniors,OU=DevOps,OU=IT,DC=va,DC=bitai,DC=com",
             ObjectClass = new[] { "top", "person", "organizationalPerson", "user" }
         };
         var url = $"api/{ServerProfile}/{LC}/Directory/MsADUsers";
@@ -743,9 +745,9 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
     /// should return 200 OK with a successful result.
     ///
     /// Note: magic.cuy is seeded under DC=pe,DC=latam,DC=com but the HOLDING profile BaseDN
-    /// is DC=holding,DC=latam,DC=com.  When the mock adapter is used it operates on all entries
+    /// is DC=va,DC=bitai,DC=com.  When the mock adapter is used it operates on all entries
     /// in the in-memory store regardless of BaseDN, so the user is still reachable.
-    /// We therefore use robert.miller who is under DC=holding,DC=latam,DC=com.
+    /// We therefore use robert.miller who is under DC=va,DC=bitai,DC=com.
     /// </summary>
     [Fact]
     public async Task DisableMsADUserAccount_ValidUser_BySAMAccountName_ReturnsOk()
@@ -804,7 +806,7 @@ public class DirectoryControllerTests : IClassFixture<LDAPWebApiFactory>
     /// <summary>
     /// Removing a user (magic.cuy, seeded as PE intern) by sAMAccountName
     /// should return 200 OK.
-    /// We use alice.wonder who is under DC=holding,DC=latam,DC=com.
+    /// We use alice.wonder who is under DC=va,DC=bitai,DC=com.
     /// </summary>
     [Fact]
     public async Task RemoveMsADUserAccount_ValidUser_BySAMAccountName_ReturnsOk()

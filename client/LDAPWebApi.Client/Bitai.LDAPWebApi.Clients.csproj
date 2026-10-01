@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Bitai.LDAPWebApi.Clients</RootNamespace>
-    <Version>10.1.1</Version>
-    <AssemblyVersion>10.1.1</AssemblyVersion>
-    <FileVersion>10.1.1</FileVersion>
+    <Version>10.1.2</Version>
+    <AssemblyVersion>10.1.2</AssemblyVersion>
+    <FileVersion>10.1.2</FileVersion>
     <Authors>Viko Bastidas (BITAI)</Authors>
     <Company>BITAI</Company>
     <Product>LDAP Web API</Product>
@@ -34,7 +34,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="10.0.0" />
+    <PackageReference Include="Bitai.LDAPHelper.DTO" Version="10.1.0" />
     <PackageReference Include="Bitai.LDAPWebApi.DTO" Version="10.0.1" />
     <PackageReference Include="Bitai.WebApi.Helpers" Version="10.0.1" />
     <PackageReference Include="Duende.IdentityModel" Version="8.1.0" />
