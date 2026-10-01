@@ -90,7 +90,7 @@ public class Startup
 		Log.Information("{class} -> {method} completed.", FullName, nameof(ConfigureServices));
 	}
 
-    /// <summary>
+    /// <summary>   
     /// This method gets called by the runtime. 
     /// Use this method to configure the HTTP request pipeline.
     /// </summary>

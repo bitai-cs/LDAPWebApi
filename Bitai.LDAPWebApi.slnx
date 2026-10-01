@@ -1,5 +1,5 @@
 <Solution>
-  <Folder Name="/Client/">
+  <Folder Name="/clients/">
     <Project Path="client/LDAPWebApi.Client.Demo/Bitai.LDAPWebApi.Clients.Demo.csproj" />
     <Project Path="client/LDAPWebApi.Client/Bitai.LDAPWebApi.Clients.csproj" />
   </Folder>

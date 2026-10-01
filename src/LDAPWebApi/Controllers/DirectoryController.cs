@@ -32,148 +32,19 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 	}
 
 
-	/// <summary>
-	/// Get an directory entry by its identifier.
-	/// </summary>
-	/// <param name="serverProfile">LDAP Server profile Id.</param>
-	/// <param name="catalogType">LDAP Server catalog type.</param>
-	/// <param name="identifier">Directory entry identifier value.</param>
-	/// <param name="identifierAttribute">Attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.sAMAccountName"/> attribute is assumed by default. This is an optional query string parameter.</param>
-	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
-	/// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
-	/// <returns><see cref="LWASearchResult"/></returns>
-	/// <exception cref="ResourceNotFoundException">When no directory entry found.</exception>
-	/// <exception cref="BadRequestException">When more than one directory entry is found.</exception>
-	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
-	[HttpGet]
-	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/{identifier}")]
-	public async Task<ActionResult<LWASearchResult>> GetByIdentifier(
-		[FromRoute] string serverProfile,
-		[FromRoute] string catalogType,
-		[FromRoute] string identifier,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
-	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
 
-		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
-
-		var searcher = GetLdapSearcher(clientConfig);
-
-		var searchFilter = new AttributeFilter(identifierAttribute!.Value, new FilterValue(identifier));
-
-		var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestLabel);
-
-		if (!searchResult.IsSuccessfulOperation)
-		{
-            if (searchResult.HasErrorObject)
-            {
-                if (searchResult.ErrorObject is LdapException)
-                {
-                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
-
-                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
-                }
-                else
-                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
-            }
-            else
-                throw new Exception(searchResult.OperationMessage);
-        }
-
-		if (searchResult.Entries.Count() == 0)
-			throw new ResourceNotFoundException($"The user with identifier {identifierAttribute}={identifier} was not found");
-
-		if (searchResult.Entries.Count() > 1)
-			throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
-
-		Logger.LogInformation("Response body: {@result}", searchResult);
-
-		return Ok(new LWASearchResult(searchResult));
-	}
-
+    #region User Provisioning Endpoints
     /// <summary>
-    /// Search directory entries based on the specified filters.
+    /// Create MS AD user account.
     /// </summary>
-    /// <param name="serverProfile">LDAP Server profile Id.</param>
-    /// <param name="catalogType">LDAP Server catalog type.</param>
-    /// <param name="searchFilters"><see cref="Models.SearchFiltersModel"/> that encapsulates attribute filters in query string.</param>
-    /// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
-    /// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
-    /// <returns><see cref="LWASearchResult"/></returns>
-    /// <exception cref="LdapException">When an LDAP error interrup a <see cref="DirectoryController"/> operation.</exception>
-    /// <exception cref="Exception">When an <see cref="DirectoryController"/> operation does not complete successfully.</exception>
-    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
-	[HttpGet]
-	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
-	[ActionName("filterBy")]
-	public async Task<ActionResult<LWASearchResult>> FilterByAsync(
-		[FromRoute] string serverProfile,
-		[FromRoute] string catalogType,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
-		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
-	{
-		Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
-
-		ValidateRequiredAttributes(ref requiredAttributes);
-
-		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
-
-		var searcher = GetLdapSearcher(clientConfig);
-
-		LDAPSearchResult searchResult;
-		if (searchFilters.secondFilterAttribute.HasValue)
-		{
-			searchFilters.combineFilters = ValidateCombineFiltersParameter(searchFilters);
-
-			var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
-			var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
-			var searchFilter = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
-
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
-		}
-		else
-		{
-			var searchFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
-
-			searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
-		}
-
-		if (!searchResult.IsSuccessfulOperation)
-		{
-            if (searchResult.HasErrorObject)
-            {
-                if (searchResult.ErrorObject is LdapException)
-                {
-                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
-
-                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
-                }
-                else
-                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
-            }
-            else
-                throw new Exception(searchResult.OperationMessage);
-        }
-
-		Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
-
-		return Ok(new LWASearchResult(searchResult));
-	}
-
-	/// <summary>
-	/// Create MS AD user account.
-	/// </summary>
-	/// <param name="serverProfile"></param>
-	/// <param name="catalogType"></param>
-	/// <param name="requestLabel"></param>
-	/// <param name="newUserAccount"></param>
-	/// <returns><see cref="LWACreateMsADUserAccountResult" /></returns>
-	/// <exception cref="BadRequestException"></exception>
-	/// <exception cref="Exception"></exception>
-	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
+    /// <param name="serverProfile"></param>
+    /// <param name="catalogType"></param>
+    /// <param name="requestLabel"></param>
+    /// <param name="newUserAccount"></param>
+    /// <returns><see cref="LWACreateMsADUserAccountResult" /></returns>
+    /// <exception cref="BadRequestException"></exception>
+    /// <exception cref="Exception"></exception>
+    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAdminApiScopeName)]
 	[HttpPost]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/MsADUsers")]
 	public async Task<ActionResult<LWACreateMsADUserAccountResult>> CreateMsADUserAccount(
@@ -190,8 +61,6 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
 
 		var accountManager = GetAccountManager(clientConfig);
-		accountManager.InitializeMissingMsADUserAccountDN(newUserAccount);
-
 		var createUserAccountResult = await accountManager.CreateUserAccountForMsAD(newUserAccount, requestLabel);
 		if (!createUserAccountResult.IsSuccessfulOperation)
 		{
@@ -234,7 +103,7 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 		[FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel,
 		[FromBody] LDAPCredential credential)
 	{
-		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@cn}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel), requestLabel, nameof(credential), credential.UserAccount);
+		Logger.LogInformation("Request path: {@spn}={@sp}, {@ctn}={@ct}, {@in}={@i}, {@ian}={@ia}, {@rtn}={@rt}, {@Name}={@c}", nameof(serverProfile), serverProfile, nameof(catalogType), catalogType, nameof(identifier), identifier, nameof(identifierAttribute), identifierAttribute, nameof(requestLabel), requestLabel, nameof(credential), credential.UserAccount);
 
 		ValidateIdentifierAttribute(ref identifierAttribute);
 
@@ -413,19 +282,156 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		return Ok(new LWARemoveMsADUserAccountResult(removeResult));
 	}
+    #endregion
 
-	/// <summary>
-	/// Gets the list of parents for the specified user account in the LDAP server
-	/// identified by the given <paramref name="serverProfile"/> and <paramref name="catalogType"/>.
-	/// </summary>
-	/// <param name="serverProfile">The LDAP profile identifier that defines the route for this endpoint.</param>
-	/// <param name="catalogType">The LDAP catalog type name that defines the route for this endpoint. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
-	/// <param name="identifier">The identifier of the user account that will define the route of this endpoint. The value must be a valid for the LDAP attribute <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
-	/// <param name="identifierAttribute">The attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter. This parameter is optional.</param>
-	/// <param name="requiredAttributes">The list of LDAP attributes that will be included in the search result. This parameter is optional.</param>
-	/// <param name="requestLabel">The custom tag that identifies the request and marks the data returned in the response. This parameter is optional.</param>
-	/// <returns>A <see cref="LWASearchResult"/> object that represents the result of the operation.</returns>
-	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+
+    #region Generic Search Endpoints
+    /// <summary>
+    /// Get an directory entry by its identifier.
+    /// </summary>
+    /// <param name="serverProfile">LDAP Server profile Id.</param>
+    /// <param name="catalogType">LDAP Server catalog type.</param>
+    /// <param name="identifier">Directory entry identifier value.</param>
+    /// <param name="identifierAttribute">Attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.sAMAccountName"/> attribute is assumed by default. This is an optional query string parameter.</param>
+    /// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+    /// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+    /// <returns><see cref="LWASearchResult"/></returns>
+    /// <exception cref="ResourceNotFoundException">When no directory entry found.</exception>
+    /// <exception cref="BadRequestException">When more than one directory entry is found.</exception>
+    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+    [HttpGet]
+    [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/{identifier}")]
+    public async Task<ActionResult<LWASearchResult>> GetByIdentifier(
+        [FromRoute] string serverProfile,
+        [FromRoute] string catalogType,
+        [FromRoute] string identifier,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalIdentifierAttributeBinder))] EntryAttribute? identifierAttribute,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
+    {
+        Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(identifier)}={identifier}, {nameof(identifierAttribute)}={identifierAttribute}, {nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
+
+        var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+        var searcher = GetLdapSearcher(clientConfig);
+
+        var searchFilter = new AttributeFilter(identifierAttribute!.Value, new FilterValue(identifier));
+
+        var searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes!.Value, requestLabel);
+
+        if (!searchResult.IsSuccessfulOperation)
+        {
+            if (searchResult.HasErrorObject)
+            {
+                if (searchResult.ErrorObject is LdapException)
+                {
+                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
+
+                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
+                }
+                else
+                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
+            }
+            else
+                throw new Exception(searchResult.OperationMessage);
+        }
+
+        if (searchResult.Entries.Count() == 0)
+            throw new ResourceNotFoundException($"The user with identifier {identifierAttribute}={identifier} was not found");
+
+        if (searchResult.Entries.Count() > 1)
+            throw new BadRequestException($"More than one LDAP entry was obtained for the supplied identifier '{identifier}'. Verify the identifier and the attribute '{identifierAttribute}' to which it applies.");
+
+        Logger.LogInformation("Response body: {@result}", searchResult);
+
+        return Ok(new LWASearchResult(searchResult));
+    }
+
+    /// <summary>
+    /// Search directory entries based on the specified filters.
+    /// </summary>
+    /// <param name="serverProfile">LDAP Server profile Id.</param>
+    /// <param name="catalogType">LDAP Server catalog type.</param>
+    /// <param name="searchFilters"><see cref="Models.SearchFiltersModel"/> that encapsulates attribute filters in query string.</param>
+    /// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+    /// <param name="requestLabel">Custom tag that identifies the request and marks the data returned in the response. This is an optional query string parameter.</param>
+    /// <returns><see cref="LWASearchResult"/></returns>
+    /// <exception cref="LdapException">When an LDAP error interrup a <see cref="DirectoryController"/> operation.</exception>
+    /// <exception cref="Exception">When an <see cref="DirectoryController"/> operation does not complete successfully.</exception>
+    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+    [HttpGet]
+    [Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/[action]")]
+    [ActionName("filterBy")]
+    public async Task<ActionResult<LWASearchResult>> FilterByAsync(
+        [FromRoute] string serverProfile,
+        [FromRoute] string catalogType,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.SearchFiltersBinder))] Models.SearchFiltersModel searchFilters,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalRequiredAttributesBinder))] RequiredEntryAttributes? requiredAttributes,
+        [FromQuery][ModelBinder(BinderType = typeof(Binders.OptionalQueryStringBinder))] string requestLabel)
+    {
+        Logger.LogInformation($"Request path: {nameof(serverProfile)}={serverProfile}, {nameof(catalogType)}={catalogType}, {nameof(searchFilters.filterAttribute)}={searchFilters.filterAttribute}, {nameof(searchFilters.filterValue)}={searchFilters.filterValue}, {nameof(searchFilters.secondFilterAttribute)}={searchFilters.secondFilterAttribute}, {nameof(searchFilters.secondFilterValue)}={searchFilters.secondFilterValue},{nameof(searchFilters.combineFilters)}={searchFilters.combineFilters},{nameof(requiredAttributes)}={requiredAttributes}, {nameof(requestLabel)}={requestLabel}");
+
+        ValidateRequiredAttributes(ref requiredAttributes);
+
+        var clientConfig = GetLdapClientConfiguration(serverProfile, IsGlobalCatalog(catalogType));
+
+        var searcher = GetLdapSearcher(clientConfig);
+
+        LDAPSearchResult searchResult;
+        if (searchFilters.secondFilterAttribute.HasValue)
+        {
+            searchFilters.combineFilters = ValidateCombineFiltersParameter(searchFilters);
+
+            var firstAttributeFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+            var secondAttributeFilter = new AttributeFilter(searchFilters.secondFilterAttribute.Value, new FilterValue(searchFilters.secondFilterValue));
+            var searchFilter = new AttributeFilterCombiner(false, searchFilters.combineFilters.Value, new ICombinableFilter[] { firstAttributeFilter, secondAttributeFilter });
+
+            searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
+        }
+        else
+        {
+            var searchFilter = new AttributeFilter(searchFilters.filterAttribute, new FilterValue(searchFilters.filterValue));
+
+            searchResult = await searcher.SearchEntriesAsync(searchFilter, requiredAttributes.Value, requestLabel);
+        }
+
+        if (!searchResult.IsSuccessfulOperation)
+        {
+            if (searchResult.HasErrorObject)
+            {
+                if (searchResult.ErrorObject is LdapException)
+                {
+                    var unwrappedLdapException = (LdapException)searchResult.ErrorObject;
+
+                    throw new LdapException(searchResult.OperationMessage, unwrappedLdapException.ResultCode, unwrappedLdapException.LdapErrorMessage, unwrappedLdapException);
+                }
+                else
+                    throw new Exception(searchResult.OperationMessage, searchResult.ErrorObject);
+            }
+            else
+                throw new Exception(searchResult.OperationMessage);
+        }
+
+        Logger.LogInformation("Search result count: {0}", searchResult.Entries.Count());
+
+        return Ok(new LWASearchResult(searchResult));
+    }
+    #endregion
+
+
+    #region User Search Endpoints
+    /// <summary>
+    /// Gets the list of parents for the specified user account in the LDAP server
+    /// identified by the given <paramref name="serverProfile"/> and <paramref name="catalogType"/>.
+    /// </summary>
+    /// <param name="serverProfile">The LDAP profile identifier that defines the route for this endpoint.</param>
+    /// <param name="catalogType">The LDAP catalog type name that defines the route for this endpoint. See <see cref="DTO.LDAPServerCatalogTypes"/>.</param>
+    /// <param name="identifier">The identifier of the user account that will define the route of this endpoint. The value must be a valid for the LDAP attribute <see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>.</param>
+    /// <param name="identifierAttribute">The attribute (<see cref="EntryAttribute.sAMAccountName"/> or <see cref="EntryAttribute.distinguishedName"/>) that will validate the <paramref name="identifier"/> parameter. This parameter is optional.</param>
+    /// <param name="requiredAttributes">The list of LDAP attributes that will be included in the search result. This parameter is optional.</param>
+    /// <param name="requestLabel">The custom tag that identifies the request and marks the data returned in the response. This parameter is optional.</param>
+    /// <returns>A <see cref="LWASearchResult"/> object that represents the result of the operation.</returns>
+    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Users/{identifier}/Parents")]
 	public async Task<ActionResult<LWASearchResult>> GetParentsForUserIdentifier(
@@ -552,18 +558,21 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		return Ok(new LWASearchResult(searchResult));
 	}
+    #endregion
 
-	/// <summary>
-	/// Get a group by its identifier.
-	/// </summary>
-	/// <param name="serverProfile">LDAP Server profile Id.</param>
-	/// <param name="catalogType">LDAP Server catalog type.</param>
-	/// <param name="identifier">Group identifier value.</param>
-	/// <param name="identifierAttribute">The attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.distinguishedName"/> attribute is assumed by default. This is an optional query string parameter.</param>
-	/// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
-	/// <param name="requestLabel"></param>
-	/// <returns><see cref="LWASearchResult"/> that encapsulates the group entry.</returns>
-	[Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
+
+    #region Group Search Endpoints
+    /// <summary>
+    /// Get a group by its identifier.
+    /// </summary>
+    /// <param name="serverProfile">LDAP Server profile Id.</param>
+    /// <param name="catalogType">LDAP Server catalog type.</param>
+    /// <param name="identifier">Group identifier value.</param>
+    /// <param name="identifierAttribute">The attribute of the entry by which it will be identified. If no value is assigned, the <see cref="EntryAttribute.distinguishedName"/> attribute is assumed by default. This is an optional query string parameter.</param>
+    /// <param name="requiredAttributes">Type of LDAP attribute set that the response should return. If no value is assigned, <see cref="RequiredEntryAttributes.Few"/> is assumed by default. This is an optional query string parameter.</param>
+    /// <param name="requestLabel"></param>
+    /// <returns><see cref="LWASearchResult"/> that encapsulates the group entry.</returns>
+    [Authorize(WebApiScopesConfiguration.AuthorizationPolicyForAnyApiScopeName)]
 	[HttpGet]
 	[Route("{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/[controller]/Groups/{identifier}")]
 	public async Task<ActionResult<LWASearchResult>> GetGroupByIdentifier(
@@ -752,4 +761,5 @@ public class DirectoryController : ApiControllerBase<DirectoryController>
 
 		return Ok(new LWASearchResult(searchResult));
 	}
+    #endregion
 }

@@ -1,7 +1,7 @@
 using Bitai.LDAPHelper.LdapAdapters;
 using Bitai.LDAPHelper.LdapAdapters.Novell;
-using Bitai.LDAPHelper.Tests.Mocks.LdapAdapters;
-using Bitai.LDAPHelper.Tests.Mocks.LdapData;
+using Bitai.LDAPHelper.LdapAdapters.LdapHelperMock;
+using Bitai.LDAPHelper.LdapAdapters.LdapHelperMock.LdapData;
 using Bitai.LDAPWebApi.Configurations.App;
 using Bitai.LDAPWebApi.Configurations.LDAP;
 using Bitai.LDAPWebApi.Configurations.Security;

@@ -18,7 +18,7 @@ namespace Bitai.LDAPWebApi.Tests.Controllers;
 ///   POST  api/{serverProfile:ldapSvrPf}/{catalogType:ldapCatType}/Authentications/authenticate
 ///
 /// Mock data used (from MockLdapDataSeeder):
-///   • Server profile  : HOLDING  (BaseDN = DC=holding,DC=latam,DC=com)
+///   • Server profile  : HOLDING  (BaseDN = DC=va,DC=bitai,DC=com)
 ///   • Catalog type    : LC  (local catalog)
 ///   • Valid user      : james.dockers  /  Domain: HOLDING
 ///   • Disabled user   : sara.pikes@US (userAccountControl = 514)
